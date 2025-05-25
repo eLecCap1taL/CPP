@@ -1,0 +1,43 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "f9",
+            "type": "shell",
+            "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall",
+            "options": {
+                "cwd": "${fileDirname}"
+            }
+        },
+        {
+            "label": "f10",
+            "type": "shell",
+            "command": "./${fileBasenameNoExtension}",
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [],
+            "windows": {
+                "command": "./${fileBasenameNoExtension}.exe"
+            },
+            "linux": {
+                "command": "./${fileBasenameNoExtension}"
+            }
+        },
+        {
+            "label": "f11",
+            "type": "shell",
+            "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall && ${fileBasenameNoExtension}",
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [],
+            "windows": {
+                "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension}.exe -std=c++17 -O2 -lm -Wall && ./${fileBasenameNoExtension}.exe"
+            },
+            "linux": {
+                "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall && ./${fileBasenameNoExtension}"
+            }
+        }
+    ]
+}
