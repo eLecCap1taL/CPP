@@ -4,7 +4,7 @@
         {
             "label": "f9",
             "type": "shell",
-            "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall",
+            "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall && echo build successfully",
             "options": {
                 "cwd": "${fileDirname}"
             }
@@ -12,7 +12,7 @@
         {
             "label": "f10",
             "type": "shell",
-            "command": "./${fileBasenameNoExtension}",
+            "command": "ulimit -s unlimited && ./${fileBasenameNoExtension}",
             "options": {
                 "cwd": "${fileDirname}"
             },
@@ -21,22 +21,22 @@
                 "command": "./${fileBasenameNoExtension}.exe"
             },
             "linux": {
-                "command": "./${fileBasenameNoExtension}"
+                "command": "ulimit -s unlimited && ./${fileBasenameNoExtension} && echo run end"
             }
         },
         {
             "label": "f11",
             "type": "shell",
-            "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall && ${fileBasenameNoExtension}",
+            "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall && echo build successfully && ulimit -s unlimited && ./${fileBasenameNoExtension}",
             "options": {
                 "cwd": "${fileDirname}"
             },
             "problemMatcher": [],
             "windows": {
-                "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension}.exe -std=c++17 -O2 -lm -Wall && ./${fileBasenameNoExtension}.exe"
+                "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension}.exe -std=c++17 -O2 -lm -Wall && echo build successfully && ./${fileBasenameNoExtension}.exe"
             },
             "linux": {
-                "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall && ./${fileBasenameNoExtension}"
+                "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall && echo build successfully && ulimit -s unlimited && ./${fileBasenameNoExtension} && echo run end"
             }
         }
     ]
