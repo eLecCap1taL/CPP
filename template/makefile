@@ -11,14 +11,14 @@ gen: gen.cpp
 std: std.cpp
 	g++ std.cpp -o std -std=c++14 -O2 -lm -DONLINE_JUDGE
 
-chk: all
-	bash dp.sh
-
 runstd: std
 	./std < a.in
 
-runprog: prog
+run: prog
 	./prog < a.in
 
 chksample: prog
-	bash chk.sh
+	bash chksample.sh $(NAME)
+
+dp: all
+	bash dp.sh

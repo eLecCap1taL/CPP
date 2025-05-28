@@ -1,5 +1,3 @@
-prog=""
-
 test_L=1
 test_R=10
 
@@ -9,10 +7,13 @@ sample_out=".out"
 
 WAstop=1
 
+# ----------------------------------------------
+
+prog=$1
+
 for((i=$test_L;i<=$test_R;i++))
 do
     ./prog < $sample_pre$prog$i$sample_in > $prog.out
-    # echo $prog.out
     if diff $prog.out $sample_pre$prog$i$sample_out -Z > /dev/null; then
         echo OK accept testcase $i
     else

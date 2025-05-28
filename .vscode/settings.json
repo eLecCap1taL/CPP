@@ -2,6 +2,8 @@
     "files.associations": {
         "*.cs2script": "cs2script",
         "*.scfg": "lua",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "fstream": "cpp",
+        "algorithm": "cpp"
     }
 }

@@ -1,6 +1,9 @@
 //%^~
 // #pragma GCC optimize(3)
-#pragma GCC optimize("Ofast")
+// #pragma GCC optimize("O3")
+#pragma GCC optimize("O3,tree-vectorize,unroll-loops")
+// #pragma GCC target("native")
+// #pragma GCC target("avx2")
 // #include <bits/stdc++.h>
 #include <cstdio>
 #include <cstring>
@@ -239,60 +242,44 @@ namespace SUB1{
 		foru(o,1,q){
 			auto [ty,x,y]=op[o];
 			if(ty==1){
-				#define BL 8
-				#define NUM 8
-				while(y-BL*NUM>=x){
-					static u32 val[NUM];
+				#define BL 32
+				#define NUM 4
+				static u32 val[NUM];
+				while(1){
+					if(y-BL*NUM<x)	break;
 					val[0]=a[y-BL*1];
 					val[1]=a[y-BL*2];
 					val[2]=a[y-BL*3];
 					val[3]=a[y-BL*4];
-					val[4]=a[y-BL*5];
-					val[5]=a[y-BL*6];
-					val[6]=a[y-BL*7];
-					val[7]=a[y-BL*8];
-					// val[8+0]=a[y-BL*(8+1)];
-					// val[8+1]=a[y-BL*(8+2)];
-					// val[8+2]=a[y-BL*(8+3)];
-					// val[8+3]=a[y-BL*(8+4)];
-					// val[8+4]=a[y-BL*(8+5)];
-					// val[8+5]=a[y-BL*(8+6)];
-					// val[8+6]=a[y-BL*(8+7)];
-					// val[8+7]=a[y-BL*(8+8)];
-					for(size_t i=0;i<BL-1;i++){
-						a[y-BL*0-i]^=a[y-BL*0-i-1];
-						a[y-BL*1-i]^=a[y-BL*1-i-1];
-						a[y-BL*2-i]^=a[y-BL*2-i-1];
-						a[y-BL*3-i]^=a[y-BL*3-i-1];
-						a[y-BL*4-i]^=a[y-BL*4-i-1];
-						a[y-BL*5-i]^=a[y-BL*5-i-1];
-						a[y-BL*6-i]^=a[y-BL*6-i-1];
-						a[y-BL*7-i]^=a[y-BL*7-i-1];
-						// a[y-BL*(8+0)-i]^=a[y-BL*(8+0)-i-1];
-						// a[y-BL*(8+1)-i]^=a[y-BL*(8+1)-i-1];
-						// a[y-BL*(8+2)-i]^=a[y-BL*(8+2)-i-1];
-						// a[y-BL*(8+3)-i]^=a[y-BL*(8+3)-i-1];
-						// a[y-BL*(8+4)-i]^=a[y-BL*(8+4)-i-1];
-						// a[y-BL*(8+5)-i]^=a[y-BL*(8+5)-i-1];
-						// a[y-BL*(8+6)-i]^=a[y-BL*(8+6)-i-1];
-						// a[y-BL*(8+7)-i]^=a[y-BL*(8+7)-i-1];
+					for(size_t i=0;i<=27;i+=2){
+						u64* ptr1=(u64*)&a[y-BL*0-i-1];
+						u64* ptr2=(u64*)&a[y-BL*1-i-1];
+						u64* ptr3=(u64*)&a[y-BL*2-i-1];
+						u64* ptr4=(u64*)&a[y-BL*3-i-1];
+						*ptr1=(*ptr1)^(*((u64*)&a[y-BL*0-i-2]));
+						*ptr2=(*ptr2)^(*((u64*)&a[y-BL*1-i-2]));
+						*ptr3=(*ptr3)^(*((u64*)&a[y-BL*2-i-2]));
+						*ptr4=(*ptr4)^(*((u64*)&a[y-BL*3-i-2]));
 					}
+					a[y-BL*1+4]^=a[y-BL*1+3];
+					a[y-BL*2+4]^=a[y-BL*2+3];
+					a[y-BL*3+4]^=a[y-BL*3+3];
+					a[y-BL*4+4]^=a[y-BL*4+3];
+
+					a[y-BL*1+3]^=a[y-BL*1+2];
+					a[y-BL*2+3]^=a[y-BL*2+2];
+					a[y-BL*3+3]^=a[y-BL*3+2];
+					a[y-BL*4+3]^=a[y-BL*4+2];
+
+					a[y-BL*1+2]^=a[y-BL*1+1];
+					a[y-BL*2+2]^=a[y-BL*2+1];
+					a[y-BL*3+2]^=a[y-BL*3+1];
+					a[y-BL*4+2]^=a[y-BL*4+1];
+					
 					a[y-BL*1+1]^=val[0];
 					a[y-BL*2+1]^=val[1];
 					a[y-BL*3+1]^=val[2];
 					a[y-BL*4+1]^=val[3];
-					a[y-BL*5+1]^=val[4];
-					a[y-BL*6+1]^=val[5];
-					a[y-BL*7+1]^=val[6];
-					a[y-BL*8+1]^=val[7];
-					// a[y-BL*(8+1)+1]^=val[8+0];
-					// a[y-BL*(8+2)+1]^=val[8+1];
-					// a[y-BL*(8+3)+1]^=val[8+2];
-					// a[y-BL*(8+4)+1]^=val[8+3];
-					// a[y-BL*(8+5)+1]^=val[8+4];
-					// a[y-BL*(8+6)+1]^=val[8+5];
-					// a[y-BL*(8+7)+1]^=val[8+6];
-					// a[y-BL*(8+8)+1]^=val[8+7];
 					y-=BL*NUM;
 				}
 				for(size_t i=y;i>x;i--){
