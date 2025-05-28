@@ -218,16 +218,78 @@ inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 class TIMECHKER{
-	public:
-		~TIMECHKER(){
-			cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
-		}
-	}TIMECHECKER;
+public:
+	~TIMECHKER(){
+		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+	}
+}TIMECHECKER;
 /*
 
 */
-void solve(bool SPE){ 
-	
+const int mod=998244353;
+int n,m,k;
+int a[155];
+class Opt1{
+public:
+	int c;
+}A[155];
+class Opt2{
+public:
+	int l,r,c;
+}B[155];
+
+
+namespace SUBNFRAC{
+	int p[15];
+	vector<int> ls;
+	set<vector<int>> st;
+	void work(){
+		foru(i,1,m+k){
+			p[i]=i;
+		}
+		ls.resize(n);
+		do{
+			foru(i,1,n){
+				ls[i-1]=a[i];
+			}
+			foru(i,1,m+k){
+				int x=p[i];
+				if(x<=m){
+					for(auto& v:ls){
+						chkmin(v,A[x].c);
+					}
+				}else{
+					x-=m;
+					for(int i=B[x].l-1;i<=B[x].r-1;i++){
+						chkmax(ls[i],B[x].c);
+					}
+				}
+			}
+			st.insert(ls);
+		}while(next_permutation(p+1,p+1+m+k));
+		// for(auto& L:st){
+		// 	cein<<L<<endl;
+		// }
+		cout<<st.size();
+	}
+}
+
+void solve(bool SPE){
+	n=RIN,m=RIN,k=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+	}
+	foru(i,1,m){
+		A[i].c=RIN;
+	}
+	foru(i,1,k){
+		B[i]={RIN,RIN,RIN};
+	}
+
+	if(m<=3 && k<=7){
+		SUBNFRAC::work();
+		return ;
+	}
 	
 	#ifdef DEBUGING
 	if(SPE){
@@ -248,8 +310,9 @@ signed main()
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	if(freopen("ex_alpha1.in","r",stdin));
+	// if(freopen("alpha.in","r",stdin));
+	// if(freopen("alpha.out","w",stdout));
 	#endif
 	#endif
 	

@@ -1,6 +1,6 @@
 //%^~
 // #pragma GCC optimize(3)
-// #pragma GCC optimize("Ofast")
+#pragma GCC optimize("Ofast")
 // #include <bits/stdc++.h>
 #include <cstdio>
 #include <cstring>
@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 250005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)++)
@@ -83,7 +83,7 @@ class Cap1taLDebug{
 	#else
 	#define READTYPE int
 	#endif
-	#define DEBUGING
+	// #define DEBUGING
 private:
 	ostream& buf;
 	#ifndef DEBUGING
@@ -226,8 +226,221 @@ class TIMECHKER{
 /*
 
 */
+int n,q;
+u32 a[MAXN];
+class OPT{
+public:
+	int ty;
+	int x,y;
+}op[100005];
+
+namespace SUB1{
+	void work(){
+		foru(o,1,q){
+			auto [ty,x,y]=op[o];
+			if(ty==1){
+				#define BL 8
+				#define NUM 8
+				while(y-BL*NUM>=x){
+					static u32 val[NUM];
+					val[0]=a[y-BL*1];
+					val[1]=a[y-BL*2];
+					val[2]=a[y-BL*3];
+					val[3]=a[y-BL*4];
+					val[4]=a[y-BL*5];
+					val[5]=a[y-BL*6];
+					val[6]=a[y-BL*7];
+					val[7]=a[y-BL*8];
+					// val[8+0]=a[y-BL*(8+1)];
+					// val[8+1]=a[y-BL*(8+2)];
+					// val[8+2]=a[y-BL*(8+3)];
+					// val[8+3]=a[y-BL*(8+4)];
+					// val[8+4]=a[y-BL*(8+5)];
+					// val[8+5]=a[y-BL*(8+6)];
+					// val[8+6]=a[y-BL*(8+7)];
+					// val[8+7]=a[y-BL*(8+8)];
+					for(size_t i=0;i<BL-1;i++){
+						a[y-BL*0-i]^=a[y-BL*0-i-1];
+						a[y-BL*1-i]^=a[y-BL*1-i-1];
+						a[y-BL*2-i]^=a[y-BL*2-i-1];
+						a[y-BL*3-i]^=a[y-BL*3-i-1];
+						a[y-BL*4-i]^=a[y-BL*4-i-1];
+						a[y-BL*5-i]^=a[y-BL*5-i-1];
+						a[y-BL*6-i]^=a[y-BL*6-i-1];
+						a[y-BL*7-i]^=a[y-BL*7-i-1];
+						// a[y-BL*(8+0)-i]^=a[y-BL*(8+0)-i-1];
+						// a[y-BL*(8+1)-i]^=a[y-BL*(8+1)-i-1];
+						// a[y-BL*(8+2)-i]^=a[y-BL*(8+2)-i-1];
+						// a[y-BL*(8+3)-i]^=a[y-BL*(8+3)-i-1];
+						// a[y-BL*(8+4)-i]^=a[y-BL*(8+4)-i-1];
+						// a[y-BL*(8+5)-i]^=a[y-BL*(8+5)-i-1];
+						// a[y-BL*(8+6)-i]^=a[y-BL*(8+6)-i-1];
+						// a[y-BL*(8+7)-i]^=a[y-BL*(8+7)-i-1];
+					}
+					a[y-BL*1+1]^=val[0];
+					a[y-BL*2+1]^=val[1];
+					a[y-BL*3+1]^=val[2];
+					a[y-BL*4+1]^=val[3];
+					a[y-BL*5+1]^=val[4];
+					a[y-BL*6+1]^=val[5];
+					a[y-BL*7+1]^=val[6];
+					a[y-BL*8+1]^=val[7];
+					// a[y-BL*(8+1)+1]^=val[8+0];
+					// a[y-BL*(8+2)+1]^=val[8+1];
+					// a[y-BL*(8+3)+1]^=val[8+2];
+					// a[y-BL*(8+4)+1]^=val[8+3];
+					// a[y-BL*(8+5)+1]^=val[8+4];
+					// a[y-BL*(8+6)+1]^=val[8+5];
+					// a[y-BL*(8+7)+1]^=val[8+6];
+					// a[y-BL*(8+8)+1]^=val[8+7];
+					y-=BL*NUM;
+				}
+				for(size_t i=y;i>x;i--){
+					a[i]^=a[i-1];
+				}
+			}else{
+				printf("%u\n",a[x]);
+			}
+		}
+		foru(i,1,n){
+			printf("%u\n",a[i]);
+		}
+	}
+}
+
+namespace SUBZR{
+	u64 d[MAXN/64+5];
+	#define gb(x,y) (((x)>>(y))&1)
+	#define sb(x,y)	((x)|=(1ull<<(y)))
+	#define cb(x,y)	((x)&=(~(1ull<<(y))))
+	#define hb(x)	((x>>63)&1)
+	void processMid(u64& x,u32 l,u32 r,bool apd){
+		const u64 lf=x&((1ull<<l)-1);
+		const u64 rf=r==63?0:(x&(~((1ull<<(r+1))-1)));
+		x^=lf|rf;
+		x^=x<<1;
+		// cerr<<x<<endl;
+		if(r<63)	x&=((1ull<<(r+1))-1);
+		// cerr<<x<<endl;
+		if(apd)	x^=1ull<<l;
+		x|=lf|rf;
+	}
+	void work(){
+		foru(i,0,n-1){
+			if(a[i+1]){
+				sb(d[i>>6],i&63);
+			}
+		}
+		foru(i,1,q){
+			auto [ty,l,r]=op[i];
+			l--,r--;
+			if(ty==1){
+				u32 L=(l>>6),lid=l&63;
+				u32 R=(r>>6),rid=r&63;
+				
+				if(L==R){
+					processMid(d[L],lid,rid,0);
+					continue;
+				}
+				processMid(d[R],0,rid,hb(d[R-1]));
+				for(u32 i=R-1;i>L;i--){
+					d[i]^=d[i]<<1;
+					d[i]^=hb(d[i-1]);
+				}
+				processMid(d[L],lid,63,0);
+
+			}else{
+				printf("%u\n",(u32)gb(d[l>>6],l&63));
+				// printf("%u\n",a[l+1]);
+			}
+		}
+		foru(i,0,n-1){
+			printf("%u\n",(u32)gb(d[i>>6],i&63));
+		}
+	}
+}
+
+namespace SUBZR1{
+	u64 d[MAXN/64+5];
+	#define gb(x,y) (((x)>>(y))&1)
+	#define sb(x,y)	((x)|=(1ull<<(y)))
+	#define cb(x,y)	((x)&=(~(1ull<<(y))))
+	#define hb(x)	((x>>63)&1)
+	void processMid(u64& x,u32 l,u32 r,bool apd){
+		const u64 lf=x&((1ull<<l)-1);
+		const u64 rf=r==63?0:(x&(~((1ull<<(r+1))-1)));
+		x^=lf|rf;
+		x^=x<<1;
+		// cerr<<x<<endl;
+		if(r<63)	x&=((1ull<<(r+1))-1);
+		// cerr<<x<<endl;
+		if(apd)	x^=1ull<<l;
+		x|=lf|rf;
+	}
+	void work(){
+		u32 mul=a[1];
+		if(a[1]){
+			sb(d[0>>6],0&63);
+		}
+		foru(i,1,q){
+			auto [ty,l,r]=op[i];
+			l--,r--;
+			if(ty==1){
+				u32 L=(l>>6),lid=l&63;
+				u32 R=(r>>6),rid=r&63;
+				
+				if(L==R){
+					processMid(d[L],lid,rid,0);
+					continue;
+				}
+				processMid(d[R],0,rid,hb(d[R-1]));
+				for(u32 i=R-1;i>L;i--){
+					d[i]^=d[i]<<1;
+					d[i]^=hb(d[i-1]);
+				}
+				processMid(d[L],lid,63,0);
+
+			}else{
+				printf("%u\n",(u32)(gb(d[l>>6],l&63))*mul);
+				// printf("%u\n",a[l+1]);
+			}
+		}
+		foru(i,0,n-1){
+			printf("%u\n",(u32)(gb(d[i>>6],i&63))*mul);
+		}
+	}
+}
+
+
 void solve(bool SPE){ 
-	
+	int T=RIN;
+	n=RIN,q=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+		assume(a[i]<(1u<<30));
+	}
+	foru(i,1,q){
+		op[i].ty=RIN;
+		if(op[i].ty==1){
+			op[i].x=RIN,op[i].y=RIN;
+		}else{
+			op[i].x=RIN;
+		}
+	}
+
+	if(T==2){
+		SUBZR1::work();
+		return ;
+	}
+	if(T==3){
+		SUBZR::work();
+		return ;
+	}
+
+	// if(n<=2000 && q<=2000){
+		SUB1::work();
+		return ;
+	// }
 	
 	#ifdef DEBUGING
 	if(SPE){
@@ -248,8 +461,9 @@ signed main()
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	// if(freopen("ex_sigma3.in","r",stdin));
+	if(freopen("sigma.in","r",stdin));
+	if(freopen("sigma.out","w",stdout));
 	#endif
 	#endif
 	

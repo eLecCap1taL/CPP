@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 250005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)++)
@@ -226,8 +226,106 @@ class TIMECHKER{
 /*
 
 */
+int n,q;
+u32 a[MAXN];
+class OPT{
+public:
+	int ty;
+	int x,y;
+}op[100005];
+
+namespace SUB1{
+	void work(){
+		foru(o,1,q){
+			auto [ty,x,y]=op[o];
+			if(ty==1){
+				for(int i=y;i>x;i--){
+					a[i]^=a[i-1];
+				}
+			}else{
+				printf("%u\n",a[x]);
+			}
+		}
+		foru(i,1,n){
+			printf("%u\n",a[i]);
+		}
+	}
+}
+
+namespace SUBZR{
+	u64 d[MAXN/64+5];
+	#define gb(x,y) (((x)>>(y))&1)
+	#define sb(x,y)	((x)|=(1ull<<(y)))
+	#define cb(x,y)	((x)&=(~(1ull<<(y))))
+	#define hb(x)	((x>>63)&1)
+	void processMid(u64& x,u32 l,u32 r,bool apd){
+		const u64 lf=x&((1ull<<l)-1);
+		const u64 rf=r==63?0:(x&(~((1ull<<(r+1))-1)));
+		x^=lf|rf;
+		x^=x<<1;
+		if(r<63)	x&=(~((1ull<<(r+1))-1));
+		if(apd)	x^=1ull<<l;
+		x|=lf|rf;
+	}
+	void work(){
+		foru(i,0,n-1){
+			if(a[i+1]){
+				sb(d[i>>6],i&63);
+			}
+		}
+		foru(i,1,q){
+			auto [ty,l,r]=op[i];
+			l--,r--;
+			if(ty==1){
+				u32 L=(l>>6),lid=l&63;
+				u32 R=(r>>6),rid=r&63;
+				
+				if(L==R){
+					processMid(d[L],lid,rid,0);
+					continue;
+				}
+				processMid(d[R],0,rid,hb(d[R-1]));
+				for(u32 i=R-1;i>L;i--){
+					d[i]^=d[i]<<1;
+					d[i]^=hb(d[i-1]);
+				}
+				processMid(d[L],lid,63,0);
+
+			}else{
+				printf("%u\n",(u32)gb(d[l>>6],l&63));
+				// printf("%u\n",a[l+1]);
+			}
+		}
+		foru(i,0,n-1){
+			printf("%u\n",(u32)gb(d[i>>6],i&63));
+		}
+	}
+}
+
 void solve(bool SPE){ 
-	
+	int T=RIN;
+	n=RIN,q=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+	}
+	foru(i,1,q){
+		op[i].ty=RIN;
+		if(op[i].ty==1){
+			op[i].x=RIN,op[i].y=RIN;
+		}else{
+			op[i].x=RIN;
+		}
+	}
+
+	// if(T==3){
+	// 	SUBZR::work();
+	// 	return ;
+	// }
+
+	// if(n<=2000 && q<=2000){
+		SUB1::work();
+		return ;
+	// }
 	
 	#ifdef DEBUGING
 	if(SPE){
@@ -248,8 +346,9 @@ signed main()
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	if(freopen("ex_sigma3.in","r",stdin));
+	// if(freopen("sigma.in","r",stdin));
+	if(freopen("sigma.out","w",stdout));
 	#endif
 	#endif
 	

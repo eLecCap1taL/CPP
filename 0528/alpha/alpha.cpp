@@ -218,16 +218,147 @@ inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 class TIMECHKER{
-	public:
-		~TIMECHKER(){
-			cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
-		}
-	}TIMECHECKER;
+public:
+	~TIMECHKER(){
+		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+	}
+}TIMECHECKER;
 /*
 
 */
-void solve(bool SPE){ 
-	
+const int mod=998244353;
+int n,m,k;
+int a[155];
+class Opt1{
+public:
+	int c;
+}A[155];
+class Opt2{
+public:
+	int l,r,c;
+}B[155];
+
+
+namespace SUBNFRAC{
+	int p[15];
+	int ls[25];
+	unordered_set<u64> st;
+	const u64 B1=137;
+	const u64 B2=157;
+	const u64 mod1=998244853;
+	const u64 mod2=1e9+7;
+	// u64 dat[4000005],N;
+	void work(){
+		foru(i,1,m+k){
+			p[i]=i;
+		}
+		do{
+			int ct=0;
+			foru(i,1,m+k){
+				if(p[i]<=m && p[i]!=++ct){
+					ct=-1;
+					break;
+				}
+			}
+			if(ct==-1)	continue;
+			foru(i,1,n){
+				ls[i]=a[i];
+			}
+			foru(i,1,m+k){
+				int x=p[i];
+				if(x<=m){
+					for(int i=1;i<=n;i++){
+						chkmin(ls[i],A[x].c);
+					}
+				}else{
+					x-=m;
+					for(int i=B[x].l;i<=B[x].r;i++){
+						chkmax(ls[i],B[x].c);
+					}
+				}
+			}
+			u64 hs1=0;
+			u64 hs2=0;
+			for(int i=1;i<=n;i++){
+				hs1=hs1*B1%mod1+ls[i];
+				hs2=hs2*B2+ls[i];
+			}
+			// if(st.find(hs2*mod1+hs1)==st.end()){
+			// for(int i=1;i<=n;i++){
+			// 	cout<<ls[i]<<' ';
+			// }
+			// cout<<endl;
+			// }
+			// hs1%=mod1,hs2%=mod2;
+			// dat[++N]=hs2*mod1+hs1;
+			// st.insert(hs2);
+			st.insert(hs2*mod1+hs1);
+		}while(next_permutation(p+1,p+1+m+k));
+		cout<<st.size();
+		// cout<<(dat+N+1)-unique(dat+1,dat+1+N);
+	}
+}
+
+namespace SUBLR{
+	unordered_set<int> st;
+	void work(){
+		LL ans=1;
+		foru(i,1,n){
+			st.clear();
+			if(a[i]>A[1].c)	a[i]=A[1].c;
+			foru(j,1,k){
+				if(B[j].l!=i)	continue;
+				if(B[j].c<=A[1].c){
+					chkmax(a[i],B[j].c);
+				}
+			}
+
+			foru(j,1,k){
+				if(B[j].l!=i)	continue;
+				if(B[j].c>A[1].c){
+					chkmax(a[i],B[j].c);
+					st.insert(B[j].c);
+				}
+			}
+			foru(j,1,m){
+				if(A[j].c<=a[i])	st.insert(A[j].c);
+				else	break;
+			}
+			ans=ans*(LL)max((int)st.size(),1)%mod;
+			// cerr<<i<<" have "<<st.size()<<endl;
+		}
+		cout<<ans;
+	}
+}
+
+void solve(bool SPE){
+	n=RIN,m=RIN,k=RIN;
+	foru(i,1,n){ 
+		a[i]=RIN;
+	}
+	foru(i,1,m){
+		A[i].c=RIN;
+	}
+
+	sort(A+1,A+1+m,[](Opt1 x,Opt1 y)->bool{
+		return x.c<y.c;
+	});
+
+	bool LR=1;
+	foru(i,1,k){
+		B[i]={RIN,RIN,RIN};
+		LR&=B[i].l==B[i].r;
+	}
+
+	if(LR){
+		SUBLR::work();
+		return ;
+	}
+
+	if(m<=3 && k<=7){
+		SUBNFRAC::work();
+		return ;
+	}
 	
 	#ifdef DEBUGING
 	if(SPE){
@@ -248,8 +379,9 @@ signed main()
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	// if(freopen("ex_alpha6.in","r",stdin));
+	if(freopen("alpha.in","r",stdin));
+	if(freopen("alpha.out","w",stdout));
 	#endif
 	#endif
 	

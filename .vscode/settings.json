@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.cs2script": "cs2script",
+        "*.scfg": "lua",
+        "ostream": "cpp"
+    }
+}

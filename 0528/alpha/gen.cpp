@@ -227,8 +227,24 @@ class TIMECHKER{
 
 */
 void solve(bool SPE){ 
-	
-	
+    mt19937 rd(random_device{}()^time(0));
+    int n=20,m=3,k=7;
+    cout<<n<<' '<<m<<' '<<k<<endl;
+	foru(i,1,n){
+        cout<<rd()%n+1<<' ';
+    }
+    cout<<endl;
+    foru(i,1,m){
+        cout<<rd()%n+1<<' ';
+    }
+    cout<<endl;
+    foru(i,1,k){
+        int l=rd()%n+1,r=rd()%n+1,c=rd()%n+1;
+        if(l>r) swap(l,r);
+		r=l;
+        cout<<l<<' '<<r<<' '<<c<<endl;
+    }
+
 	#ifdef DEBUGING
 	if(SPE){
 		
@@ -248,8 +264,8 @@ signed main()
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	// if(freopen(".in","r",stdin));
+	// if(freopen(".out","w",stdout));
 	#endif
 	#endif
 	

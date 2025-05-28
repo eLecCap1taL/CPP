@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 1000005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)++)
@@ -226,8 +226,125 @@ class TIMECHKER{
 /*
 
 */
+int n;
+int a[MAXN];
+int b[MAXN];
+
+inline void add(array<LL,3>& ls,int l,int r,const LL k){
+	foru(i,l,r){
+		if(ls[i]==0)	continue;
+		ls[i]+=k;
+		chkmax(ls[i],0);
+	}
+}
+
+u64 hs(const array<LL,3>& ls){
+	u64 ret=0;
+	for(auto& x:ls){
+		ret=ret*114517+x;
+	}
+	return ret;
+}
+
+mt19937 rd(random_device{}()^time(0));
+
+namespace SUBDFS{
+	map<u64,LL> dis;
+	class Node{
+	public:
+		array<LL,3> fi;
+		LL se;
+		bool operator < (const Node& x)const{
+			return se>x.se;
+		}
+	};
+	priority_queue<Node> q;
+	void work(){
+		dis.clear();
+		array<LL,3> st;
+		array<LL,3> tar;
+		LL top=0;
+		foru(i,1,n){
+			st[i-1]=(LL)a[i];
+			tar[i-1]=(LL)b[i];
+			top+=abs(a[i]-b[i]);
+		}
+		u64 htar=hs(tar);
+		while(!q.empty())	q.pop();
+		q.push({st,0});
+		dis[hs(st)]=0;
+		while(!q.empty()){
+			const auto [ls,d]=q.top();
+			q.pop();
+
+			// cein<<ls<<' '<<d<<endl;
+			// if(ls==vector<LL>({1,0,1,0,1})){
+			// 	cein<<d<<endl;
+			// }
+			if(hs(ls)==htar){
+				// cerr<<dis.size()<<endl;
+				printf("%lld\n",d);
+				return ;
+			}
+
+			foru(l,0,n-1){
+				if(ls[l]==0)	continue;
+				foru(r,l,n-1){
+					if(ls[r]==0)	continue;
+					foru(k,l,r){
+						if(ls[k]==0)	continue;
+						if(ls[k]==tar[k])	continue;
+
+						// make it tar
+						auto nls=ls;
+						int dx=tar[k]-ls[k];
+						add(nls,l,r,dx);
+						auto hnls=hs(nls);
+						if(d+abs(dx)<=top){
+							auto it=dis.find(hnls);
+							if(it==dis.end() || it->se>d+abs(dx)){
+								dis[hnls]=d+abs(dx);
+								q.push({nls,d+abs(dx)});
+							}
+						}
+
+						//make it die
+						nls=ls;
+						dx=-ls[k];
+						add(nls,l,r,dx);
+						hnls=hs(nls);
+						if(d+abs(dx)<=top){
+							auto it=dis.find(hnls);
+							if(it==dis.end() || it->se>d+abs(dx)){
+								dis[hnls]=d+abs(dx);
+								q.push({nls,d+abs(dx)});
+							}
+						}
+					}
+				}
+			}
+
+		}
+	}
+}
 void solve(bool SPE){ 
-	
+	n=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+	}
+	foru(i,1,n){
+		b[i]=RIN;
+	}
+
+	foru(i,1,n){
+		if(b[i]!=0 && a[i]==0){
+			printf("-1\n");
+			return ;
+		}
+	}
+
+	SUBDFS::work();
+	// exit(0);
 	
 	#ifdef DEBUGING
 	if(SPE){
@@ -243,13 +360,14 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	// #define TESTCASEID
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	// if(freopen("ex_omega1.in","r",stdin));
+	if(freopen("omega.in","r",stdin));
+	if(freopen("omega.out","w",stdout));
 	#endif
 	#endif
 	
@@ -263,6 +381,11 @@ signed main()
 	ID=RIN;
 	#endif
 	
-	for(int i=1;i<=T;i++) solve(i==0);
+	for(int i=1;i<=T;i++){
+		if(i%10000==0){
+			cerr<<i*1.0/T<<endl;
+		}
+		solve(i==0);
+	}
 	return 0;
 }
