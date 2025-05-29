@@ -9,16 +9,20 @@ sample_out=".out"
 
 WAstop=0
 
+TimeLimit=5
+
 for((i=$test_L;i<=$test_R;i++))
 do
-    ./prog < $sample_pre$prog$i$sample_in > $prog.out
-    # echo $prog.out
-    if diff $prog.out $sample_pre$prog$i$sample_out -Z > /dev/null; then
-        echo OK accept testcase $i
-    else
-        echo Check failed testcase $i
-        if [ $WAstop -eq 1 ]; then
-            break
+    if timeout $TimeLimit ./prog < $sample_pre$prog$i$sample_in > $prog.out; then
+        if diff $prog.out $sample_pre$prog$i$sample_out -Z > /dev/null; then
+            echo OK accept testcase $i
+        else
+            echo Check failed testcase $i
+            if [ $WAstop -eq 1 ]; then
+                break
+            fi
         fi
+    else
+        echo TLE on testcase $i
     fi
 done

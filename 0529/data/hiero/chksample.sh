@@ -1,13 +1,13 @@
-test_L=1
+test_L=0
 test_R=10
 
 sample_pre="ex_"
 sample_in=".in"
 sample_out=".out"
 
-WAstop=1
+WAstop=0
 
-TimeLimit=5
+TimeLimit=1
 
 # ----------------------------------------------
 
