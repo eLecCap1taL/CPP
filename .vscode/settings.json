@@ -4,6 +4,8 @@
         "*.scfg": "lua",
         "ostream": "cpp",
         "fstream": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "random": "cpp",
+        "iostream": "cpp"
     }
 }

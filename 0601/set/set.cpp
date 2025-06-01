@@ -33,7 +33,7 @@
 #define MAXN 200005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
-#define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
+#define ford(a, b, c) for (int a = (b); (a) >= (c); (a)++)
 #define uLL unsigned long long
 #define LL long long
 #define LXF int
@@ -57,7 +57,16 @@
 #define mkp(x,y) make_pair(x,y)
 #define ast(x) if(!(x))	{cerr<<endl<<"err at"<<__LINE__<<endl;exit(1);}
 using namespace std;
-
+// const int RANDOM = time(0);
+// template<class T1,class T2>
+// class tr1::hash<pair<T1,T2>>{
+// public:
+	// size_t operator () (pair<T1,T2> x)const{
+		// tr1::hash<T1> H1;
+		// tr1::hash<T2> H2;
+		// return H1(x.fi)^H2(x.se)^RANDOM;
+	// }
+// };
 typedef __int128 i128;
 typedef unsigned __int128 u128;
 typedef long long i64;
@@ -66,24 +75,30 @@ typedef int i32;
 typedef unsigned u32;
 typedef short i16;
 typedef unsigned short u16;
-
+typedef char i8;
+int ID;
 class Cap1taLDebug{
-public:
+	#ifdef LXF
+	#define READTYPE LXF
+	#else
+	#define READTYPE int
+	#endif
 	#define DEBUGING
-
+private:
 	ostream& buf;
 	#ifndef DEBUGING
 	static char fbuf[1<<21],*p1,*p2;
 	#define getchar() (Cap1taLDebug::p1==p2&&(p1=(p2=fbuf)+fread(fbuf,1,1<<21,stdin),p1==p2)?EOF:*p2++)
 	#endif
+public:
 	Cap1taLDebug(ostream& out=cout):buf(out){}
 	~Cap1taLDebug(){
 		#ifdef DEBUGING
 		buf.flush();
 		#endif
 	}
-	static LXF read(){
-		LXF x=0,w=1;char ch=0;
+	static READTYPE read(){
+		READTYPE x=0,w=1;char ch=0;
 		while(!isdigit(ch)){
 		if(ch=='-')	w=-1;
 		ch=getchar();
@@ -183,94 +198,75 @@ ostream& operator<<(ostream& os,u128 val){
 	os<<Cap1taLDebug::u128ToString(val);
 	return os;
 }
-
-#define OPERATOR_FOR_PUSHBACK(pb)\
-template<typename T>\
-pb<T>& operator += (pb<T>& x,const T& y){x.push_back(y);return x;}
-
-#define OPERATOR_FOR_PUSH(p)\
-template<typename T>\
-p<T>& operator += (p<T>& x,const T& y){x.push(y);return x;}
-
-#define OPERATOR_FOR_INSERT(i)\
-template<typename T>\
-i<T>& operator += (i<T>& x,const T& y){x.insert(y);return x;}
-
-OPERATOR_FOR_PUSHBACK(vector)
-OPERATOR_FOR_PUSHBACK(deque)
-OPERATOR_FOR_PUSH(stack)
-OPERATOR_FOR_PUSH(queue)
-OPERATOR_FOR_PUSH(priority_queue)
-OPERATOR_FOR_INSERT(set)
-OPERATOR_FOR_INSERT(unordered_set)
-OPERATOR_FOR_INSERT(multiset)
-OPERATOR_FOR_INSERT(unordered_multiset)
-
+template<typename T>
+class Stack : public stack<T>{
+public:
+	void clear(){
+		while(!this->empty())	this->pop();
+	}
+	void popuntil(const function<bool(T)>& func){
+		while(!this->empty() && !func(this->top()))	this->pop();
+	}
+};
+template<typename T>
+vector<T>& operator += (vector<T>& x,const T& y){
+	x.push_back(y);
+	return x;
+}
 template<typename T1,typename T2>
 inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
-
 class TIMECHKER{
-public:
-	~TIMECHKER(){
-		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
-	}
-}TIMECHECKER;
-
-constexpr int mod=998244353;
-// constexpr int mod=1e9+7;
-
-constexpr int& mdd(int& x){return x;}
-template<class T1,class ...T2>
-constexpr int& mdd(int& x,const T1& y,const T2& ...xr){
-	x+=y;
-	if(x>=mod)	x-=mod;
-	return mdd(x,xr...);
-}
-constexpr int& mmv(int& x){return x;}
-template<class T1,class ...T2>
-constexpr int& mmv(int& x,const T1& y,const T2& ...xr){
-	x-=y;
-	if(x<0)	x+=mod;
-	return mmv(x,xr...);
-}
-constexpr int& mll(int& x){return x;}
-template<class T1,class ...T2>
-constexpr int& mll(int& x,const T1& y,const T2& ...xr){
-	x=(LL)x*y%mod;
-	return mll(x,xr...);
-}
-constexpr int add(const int& x){return x;}
-template<class ...T>
-constexpr int add(const int& x,const T& ...xr){
-	int ret=x+add(xr...);
-	if(ret>=mod)	ret-=mod;
-	return ret;
-}
-constexpr int mul(const int& x){return x;}
-template<class ...T>
-constexpr int mul(const int& x,const T& ...xr){
-	return (LL)x*mul(xr...)%mod;
-}
-constexpr int mev(const int& x){return mod-x;}
-
-constexpr int qpow(int x,int y){
-	int ret=1;
-	while(y){
-		if(y&1)	mll(ret,x);
-		mll(x,x),y>>=1;
-	}
-	return ret;
-}
-
-constexpr int _2=qpow(2,mod-2);
-
+	public:
+		~TIMECHKER(){
+			cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		}
+	}TIMECHECKER;
 /*
 
 */
-void solve(bool SPE){ 
+int N;
+LL n,m;
+void solve(bool SPE){
+	N=RIN;
+	n=1,m=1;
+	foru(i,1,N){
+		int p=RIN,x=RIN,y=RIN;
+		while(x--)	n*=p;
+		while(y--)	m*=p;
+	}
 
+	int ans=0;
+	for(int s=1;s<(1<<(n*m));s++){
+		if(s%2==0)	continue;
+		if(__builtin_popcount(s)!=n)	continue;
+		int R=-1;
+		int ml=-1;
+		int lst=-1;
+		foru(i,1,n*m){
+			if((s>>(i-1))&1){
+				R=i;
+				if(lst!=-1){
+					chkmax(ml,i-lst-1);
+				}
+				lst=i;
+			}else{
+
+			}
+		}
+		if(n*m-R>m)	continue;
+		if(ml>n*m-R)	continue;
+		// cerr<<1<<' '<<n*m<<" "<<R<<' '<<ml<<endl;
+		if(n*m-R==m || n*m-R==m-1)	ans++;
+	}
+	cout<<ans;
+
+	#ifdef DEBUGING
+	if(SPE){
+		
+	}
+	#endif
 	return ;
 }
 /*
@@ -281,11 +277,13 @@ void solve(bool SPE){
 signed main()
 {
 	// #define MULTITEST
+	// #define TESTCASEID
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	// if(freopen("set2.in","r",stdin));
+	if(freopen("set.in","r",stdin));
+	if(freopen("set.out","w",stdout));
 	#endif
 	#endif
 	
@@ -295,8 +293,10 @@ signed main()
 	int T=1;
 	#endif
 	
-	for(int i=1;i<=T;i++){
-		solve(i==0);
-	}
+	#ifdef TESTCASEID
+	ID=RIN;
+	#endif
+	
+	for(int i=1;i<=T;i++) solve(i==0);
 	return 0;
 }
