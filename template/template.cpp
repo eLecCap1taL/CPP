@@ -264,8 +264,6 @@ constexpr int qpow(int x,int y){
 	return ret;
 }
 
-constexpr int _2=qpow(2,mod-2);
-
 /*
 
 */

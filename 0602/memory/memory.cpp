@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 100005
+#define MAXN 200005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -264,104 +264,187 @@ constexpr int qpow(int x,int y){
 	return ret;
 }
 
-constexpr int _2=qpow(2,mod-2);
-
 /*
 
 */
 int n;
-int a[MAXN];
+LL b[MAXN];
+LL a[MAXN];
+bool uni;
 
-int f[2005][2005];
-int g[2005];
+class Info{
+public:
+	LL mx;
+	int num;
+	int L;
+	Info(LL x=0){
+		mx=x;
+		num=0;
+		L=1;
+	}
+	Info operator + (const Info& x)const{
+		Info ret;
+		ret.mx=max(mx,x.mx);
+		int lf=__lg(mx);
+		int rf=__lg(x.mx);
+		if(lf==max(lf,rf)){
+			ret.num+=num;
+		}else{
+			ret.num+=L;
+		}
+		if(rf==max(lf,rf)){
+			ret.num+=x.num;
+		}else{
+			ret.num+=x.L;
+		}
+		ret.L=L+x.L;
+		return ret;
+	}
+};
+class Node{
+public:
+	int l,r;
+	Info v;
+}tr[MAXN<<2];
+inline int lc(int x){return x<<1;}
+inline int rc(int x){return x<<1|1;}
+void push_up(int p){
+	tr[p].v=tr[lc(p)].v+tr[rc(p)].v;
+}
+void build(int p,int l,int r){
+	tr[p].l=l,tr[p].r=r;
+	if(l==r){
+		tr[p].v=Info(a[l]);
+		return ;
+	}
+	int mid=(l+r)>>1;
+	build(lc(p),l,mid);
+	build(rc(p),mid+1,r);
+}
+Info query(int p,int l,int r){
+	if(l<=tr[p].l && tr[p].r<=r){
+		return tr[p].v;
+	}
+	int mid=(tr[p].l+tr[p].r)>>1;
+	if(r<=mid)	return query(lc(p),l,r);
+	if(l>mid)	return query(rc(p),l,r);
+	return query(lc(p),l,r)+query(rc(p),l,r);
+}
 
-int ans[MAXN];
-
-int inv[MAXN];
-
-void solve(bool SPE){ 
-	n=RIN;
+void init(int _n, const vector<long long> &_a){
+	n=_n;
 	foru(i,1,n){
-		a[i]=RIN;
+		a[i]=_a[i-1];
+		b[i]=a[i];
 	}
-
-	inv[0]=1;
-	inv[1]=qpow(n-1,mod-2);
+	sort(b+1,b+1+n);
+	uni=1;
 	foru(i,2,n){
-		inv[i]=mul(inv[i-1],inv[1]);
-	}
-
-	f[1][a[1]]=1;
-	g[a[1]]=1;
-	foru(i,2,n){
-		foru(j,1,a[i]-1){
-			mdd(f[i][j],mul(g[j],inv[1]));
-		}
-		foru(o,a[i],n){
-			mdd(f[i][a[i]],mul(g[o],inv[1]));
-		}
-		foru(j,1,a[i]){
-			mdd(g[j],f[i][j]);
+		if(b[i]==b[i-1]){
+			uni=0;
 		}
 	}
+	build(1,1,n);
+}
 
+long long ask(int l, int r){
+    return 0;
+}
+
+vector<long long> askAll(int q, const vector<int> &l, const vector<int> &r){
+    vector<long long> ans(q);
+
+	static int s[MAXN];
 	foru(i,1,n){
-		foru(j,1,a[i]){
-			foru(k,1,i-1){
-				mdd(ans[k],mul(min(j,a[k]),f[i][j],inv[1]));
+		if(a[i]-(1ll<<__lg(a[i])))	s[i]=1;
+		s[i]+=s[i-1];
+	}
+
+	bool sub1=1;
+	foru(i,2,n){
+		if(a[i]!=a[i-1]){
+			sub1=0;
+			break;
+		}
+	}
+	if(sub1){
+		foru(i,0,q-1){
+			ans[i]=r[i]-l[i]+1+(1ll<<__lg(a[1]));
+			ans[i]+=s[r[i]]-s[l[i]-1];
+			chkmin(ans[i],r[i]-l[i]+1+a[1]);
+		}
+		return ans;
+	}
+
+	if(n<=1000 && q<=1000){
+		foru(o,0,q-1){
+			int L=l[o];
+			int R=r[o];
+
+			int hb=0;
+			foru(i,L,R){
+				chkmax(hb,__lg(a[i]));
 			}
-		}
-	}
-	foru(i,1,n){
-		foru(j,1,a[i]){
-			int N=0,S=0;
-			foru(k,1,n){
-				if(k==i)	continue;
-				if(a[k]<j){
-					N++;
-					add(S,j);
+
+			vector<LL> ls;
+
+			ans[o]=(1ll<<hb);
+			int len=0;
+			foru(i,L,R){
+				if(a[i]<=(1ll<<hb))	ans[o]++;
+				else{
+					len++;
+					ls+=a[i];
 				}
 			}
-			foru(k,1,i-1){
-				mdd(ans[i],mul(j-min(j,a[k]),f[i][j],inv[1]));
+
+			sort(All(ls));
+			LL mn=0;
+			for(size_t i=0;i<ls.size();i++){
+				if(i+1<ls.size() && ls[i]==ls[i+1]){
+					continue;
+				}
+				chkmin(mn,ls[i]-(1ll<<hb)-(i+1));
+				// cerr<<ls[i]-(1ll<<hb)<<' '<<pre<<endl;
 			}
-			foru(k,i+1,n){
-				mdd(ans[i],mul(j-min(j,a[k]),f[i][j],inv[1]));
-			}
+			
+			ans[o]+=2ll*len+mn;
+		}
+
+		return ans;
+	}
+
+	if(uni){
+		foru(o,0,q-1){
+			int L=l[o];
+			int R=r[o];
+
+			auto res=query(1,L,R);
+			int hb=__lg(res.mx);
+			int L=res.L;
+			int x=res.num;
+			ans[o]=1ll<<hb;
+			ans[o]+=x;
+			ans[o]+=2*(L-x);
+		}
+		return ans;
+	}
+	
+	int sub3=__lg(a[1]);
+	foru(i,2,n){
+		if(__lg(a[i])!=sub3){
+			sub3=-1;
+			break;
 		}
 	}
-
-	foru(i,1,n){
-		printf("%d\n",ans[i]);
+	if(sub3!=-1){
+		foru(i,0,q-1){
+			ans[i]=r[i]-l[i]+1+(1ll<<sub3);
+			ans[i]+=s[r[i]]-s[l[i]-1];
+		}
+		return ans;
 	}
 
-	return ;
-}
-/*
-检查文件读写
-检查多测清空
-检查数组大小
-*/
-signed main()
-{
-	// #define MULTITEST
-	
-	#ifndef ONLINE_JUDGE
-	#ifndef CPEDITOR
-	if(freopen("bottle2.in","r",stdin));
-	// if(freopen("bottle.in","r",stdin));
-	// if(freopen("bottle.out","w",stdout));
-	#endif
-	#endif
-	
-	#ifdef MULTITEST
-	int T=RIN;
-	#else
-	int T=1;
-	#endif
-	
-	for(int i=1;i<=T;i++){
-		solve(i==0);
-	}
-	return 0;
+	// exit(0);
+    return ans;
 }

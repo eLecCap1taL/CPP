@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 100005
+#define MAXN 5005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -264,77 +264,182 @@ constexpr int qpow(int x,int y){
 	return ret;
 }
 
-constexpr int _2=qpow(2,mod-2);
-
 /*
 
 */
+
 int n;
 int a[MAXN];
+int b[MAXN];
 
-int f[2005][2005];
-int g[2005];
+int t[MAXN];
+int p[MAXN];
 
-int ans[MAXN];
+class QR{
+public:
+	int l,r;
+}qr[MAXN];
+int q;
 
-int inv[MAXN];
+namespace SUBB{
+	int f[2][5005];
+	void work(){
+		f[0][0]=1;
+		foru(i,0,n-1){
+			// cerr<<i<<endl;
+			foru(j,0,i+1){
+				f[(i+1)&1][j]=0;
+			}
+			foru(j,0,i){
+				if(i+1>=j+2){
+					mdd(f[(i+1)&1][j+1],f[i&1][j]);
+				}
+				mdd(f[(i+1)&1][j],f[i&1][j]);
+			}
+		}
+
+		foru(o,1,q){
+			auto [l,r]=qr[o];
+			int ans=0;
+
+			foru(i,l,r){
+				mdd(ans,f[n&1][i]);
+			}
+			
+			cout<<ans<<'\n';
+		}
+	}
+}
+
+int f[5005][5005];
+bool vis[5005];
 
 void solve(bool SPE){ 
 	n=RIN;
+	bool A=1;
+	bool B=1;
+	foru(i,1,n){
+		b[i]=RIN;
+		A&=b[i]<=n;
+		B&=b[i]==2*i-1;
+	}
 	foru(i,1,n){
 		a[i]=RIN;
+		B&=a[i]==2*i;
 	}
 
-	inv[0]=1;
-	inv[1]=qpow(n-1,mod-2);
-	foru(i,2,n){
-		inv[i]=mul(inv[i-1],inv[1]);
+	if(A){
+		q=RIN;
+		while(q--){
+			int l=RIN;
+			RIN;
+			cout<<(l==0?1:0)<<'\n';
+		}
+		return ;
+	}
+	q=RIN;
+	foru(o,1,q){
+		qr[o]={RIN,RIN};
+		foru(i,qr[o].l,qr[o].r)	vis[i]=1;
 	}
 
-	f[1][a[1]]=1;
-	g[a[1]]=1;
-	foru(i,2,n){
-		foru(j,1,a[i]-1){
-			mdd(f[i][j],mul(g[j],inv[1]));
-		}
-		foru(o,a[i],n){
-			mdd(f[i][a[i]],mul(g[o],inv[1]));
-		}
-		foru(j,1,a[i]){
-			mdd(g[j],f[i][j]);
-		}
-	}
-
-	foru(i,1,n){
-		foru(j,1,a[i]){
-			foru(k,1,i-1){
-				mdd(ans[k],mul(min(j,a[k]),f[i][j],inv[1]));
-			}
-		}
-	}
-	foru(i,1,n){
-		foru(j,1,a[i]){
-			int N=0,S=0;
-			foru(k,1,n){
-				if(k==i)	continue;
-				if(a[k]<j){
-					N++;
-					add(S,j);
-				}
-			}
-			foru(k,1,i-1){
-				mdd(ans[i],mul(j-min(j,a[k]),f[i][j],inv[1]));
-			}
-			foru(k,i+1,n){
-				mdd(ans[i],mul(j-min(j,a[k]),f[i][j],inv[1]));
-			}
-		}
-	}
+	sort(a+1,a+1+n);
+	sort(b+1,b+1+n);
 
 	foru(i,1,n){
-		printf("%d\n",ans[i]);
+		t[i]=lower_bound(b+1,b+1+n,a[i])-b;
+		// cerr<<t[i]<<' ';
+	}
+	// HH;
+	foru(i,1,n){
+		p[i]=lower_bound(a+1,a+1+n,b[i])-a;
+		// cerr<<p[i]<<' ';
+	}
+	// HH;
+
+	if(B){
+		SUBB::work();
+		return ;
 	}
 
+	static int ans[MAXN];
+	static int R0[MAXN];
+	static int RS[MAXN];
+	foru(i,0,n-1){
+		R0[i]=i+1-p[i+1];
+		RS[i]=min((int)(upper_bound(t+1,t+1+n,i+1)-t-1),n);
+		// if(i>0)	assert(RS[i]>=RS[i-1]);
+		// cout<<RS[i]<<' ';
+	}
+	// cout<<endl;
+	foru(N,0,0){
+		if(!vis[N])	continue;
+		foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
+		f[0][0]=1;
+		foru(i,0,n-1){
+			int R=0;
+
+			R=R0[i]+N;
+
+			foru(j,0,R){
+				f[i+1][j]=f[i][j];
+			}
+
+			for(int j=RS[i];j>=1;j--){
+				mdd(f[i+1][j],f[i][j-1]);
+			}
+		}
+		ans[N]=f[n][N];
+	}
+
+	static int g[5005][5005];
+	g[0][0]=1;
+	foru(i,0,n-1){
+		foru(j,0,i){
+			if(a[j+1]<b[i+1]){
+				mdd(g[i+1][j+1],g[i][j]);
+			}
+			mdd(g[i+1][j],g[i][j]);
+		}
+	}
+	foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
+	f[n+1][0]=1;
+	ford(i,n+1,2){
+		foru(j,0,n-i+1){
+			mdd(f[i-1][j],f[i][j]);
+			if(a[n-j]>b[i-1]){
+				// cerr<<"?"<<i<<' '<<j<<endl;
+				mdd(f[i-1][j+1],f[i][j]);
+			}
+		}
+	}
+	// cerr<<f[1]
+	foru(N,1,n){
+		int M=0;
+		while(M+1<=n && b[M+1]<a[N]){
+			M++;
+		}
+		// cerr<<"get "<<N<<' '<<M<<endl;
+		// if(min(n-M,N)>N)	continue;
+		// cerr<<"calc "<<N<<endl;
+		foru(i,0,N){
+			if(n-N-(M-i)<0)	continue;
+			// cerr<<N<<' '<<i<<' '<<M<<' '<<n-N-(M-i)<<' '<<f[M+1][n-N-(M-i)]<<' '<<g[M][i]<<endl;
+			mdd(ans[N],mul(f[M+1][n-N-(M-i)],g[M][i]));
+		}
+	}
+
+	foru(o,1,q){
+		auto [l,r]=qr[o];
+		int s=0;
+		
+		foru(i,l,r){
+			mdd(s,ans[i]);
+		}
+		
+		cout<<s<<'\n';
+	}
+	
 	return ;
 }
 /*
@@ -348,9 +453,9 @@ signed main()
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen("bottle2.in","r",stdin));
-	// if(freopen("bottle.in","r",stdin));
-	// if(freopen("bottle.out","w",stdout));
+	if(freopen("a.in","r",stdin));
+	// if(freopen("plan.in","r",stdin));
+	// if(freopen("plan.out","w",stdout));
 	#endif
 	#endif
 	

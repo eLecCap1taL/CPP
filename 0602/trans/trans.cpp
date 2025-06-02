@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 100005
+#define MAXN 200005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -264,77 +264,87 @@ constexpr int qpow(int x,int y){
 	return ret;
 }
 
-constexpr int _2=qpow(2,mod-2);
-
 /*
 
 */
+class OPT{
+public:
+	int ty;
+	int x,y,z;
+};
+vector<OPT> opt;
+void AND(int x,int y,int z){
+	opt+=OPT{1,x,y,z};
+}
+void OR(int x,int y,int z){
+	opt+=OPT{2,x,y,z};
+}
+void XOR(int x,int y,int z){
+	opt+=OPT{3,x,y,z};
+}
+void SH(int x,int y,int z){
+	opt+=OPT{4,x,y,z};
+}
+void SET(int x,int y,int z){
+	opt+=OPT{5,x,y,z};
+}
+void push(){
+	cout<<opt.size()<<'\n';
+	for(auto [ty,x,y,z]:opt){
+		if(ty==1){
+			cout<<"AND ";
+		}else if(ty==2){
+			cout<<"OR ";
+		}else if(ty==3){
+			cout<<"XOR ";
+		}else if(ty==4){
+			cout<<"SH ";
+		}else if(ty==5){
+			cout<<"SET ";
+		}
+		cout<<x<<' '<<y<<' '<<z<<'\n';
+	}
+}
 int n;
-int a[MAXN];
+void SWAP(int a,int b,int c,int d){
+	if(b>d){
+		SWAP(c,d,a,b);
+		return ;
+	}
+	SH(n,c,n-(d-b));
+	XOR(n+1,a,n);
 
-int f[2005][2005];
-int g[2005];
+	SH(n+2,n+1,0);
+	SET(n+2,b,0);
+	XOR(n+1,n+1,n+2);
 
-int ans[MAXN];
-
-int inv[MAXN];
-
+	SH(n,n+1,d-b);
+	
+	XOR(a,a,n+1);
+	XOR(c,c,n);
+}
 void solve(bool SPE){ 
 	n=RIN;
-	foru(i,1,n){
-		a[i]=RIN;
-	}
+	// if(n==2){
+	// 	SH(2,0,1);
+	// 	XOR(3,2,1);
+	// 	SET(3,1,0);
+	// 	XOR(1,1,3);
+	// 	SH(4,3,1);
+	// 	XOR(0,0,4);
 
-	inv[0]=1;
-	inv[1]=qpow(n-1,mod-2);
-	foru(i,2,n){
-		inv[i]=mul(inv[i-1],inv[1]);
-	}
-
-	f[1][a[1]]=1;
-	g[a[1]]=1;
-	foru(i,2,n){
-		foru(j,1,a[i]-1){
-			mdd(f[i][j],mul(g[j],inv[1]));
-		}
-		foru(o,a[i],n){
-			mdd(f[i][a[i]],mul(g[o],inv[1]));
-		}
-		foru(j,1,a[i]){
-			mdd(g[j],f[i][j]);
+	// 	push();
+	// 	return ;
+	// }
+	// foru(i,0,n-1){
+	// 	SH(n+100+i,i,?)
+	// }
+	foru(i,1,n-1){
+		foru(j,0,i-1){
+			SWAP(i,j,j,i);
 		}
 	}
-
-	foru(i,1,n){
-		foru(j,1,a[i]){
-			foru(k,1,i-1){
-				mdd(ans[k],mul(min(j,a[k]),f[i][j],inv[1]));
-			}
-		}
-	}
-	foru(i,1,n){
-		foru(j,1,a[i]){
-			int N=0,S=0;
-			foru(k,1,n){
-				if(k==i)	continue;
-				if(a[k]<j){
-					N++;
-					add(S,j);
-				}
-			}
-			foru(k,1,i-1){
-				mdd(ans[i],mul(j-min(j,a[k]),f[i][j],inv[1]));
-			}
-			foru(k,i+1,n){
-				mdd(ans[i],mul(j-min(j,a[k]),f[i][j],inv[1]));
-			}
-		}
-	}
-
-	foru(i,1,n){
-		printf("%d\n",ans[i]);
-	}
-
+	push();
 	return ;
 }
 /*
@@ -348,9 +358,9 @@ signed main()
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen("bottle2.in","r",stdin));
-	// if(freopen("bottle.in","r",stdin));
-	// if(freopen("bottle.out","w",stdout));
+	// if(freopen("trans1.in","r",stdin));
+	if(freopen("trans.in","r",stdin));
+	if(freopen("trans.out","w",stdout));
 	#endif
 	#endif
 	

@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 100005
+#define MAXN 200005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -264,76 +264,41 @@ constexpr int qpow(int x,int y){
 	return ret;
 }
 
-constexpr int _2=qpow(2,mod-2);
-
 /*
 
 */
-int n;
 int a[MAXN];
-
-int f[2005][2005];
-int g[2005];
-
-int ans[MAXN];
-
-int inv[MAXN];
-
+int b[MAXN];
 void solve(bool SPE){ 
-	n=RIN;
-	foru(i,1,n){
-		a[i]=RIN;
-	}
+    int n=500;
+    int q=500;
+    cout<<n<<endl;
+    mt19937 rd(random_device{}()^time(0));
 
-	inv[0]=1;
-	inv[1]=qpow(n-1,mod-2);
-	foru(i,2,n){
-		inv[i]=mul(inv[i-1],inv[1]);
+	static int ls[MAXN<<1];
+	foru(i,1,2*n){
+		ls[i]=i;
 	}
-
-	f[1][a[1]]=1;
-	g[a[1]]=1;
-	foru(i,2,n){
-		foru(j,1,a[i]-1){
-			mdd(f[i][j],mul(g[j],inv[1]));
-		}
-		foru(o,a[i],n){
-			mdd(f[i][a[i]],mul(g[o],inv[1]));
-		}
-		foru(j,1,a[i]){
-			mdd(g[j],f[i][j]);
-		}
-	}
-
-	foru(i,1,n){
-		foru(j,1,a[i]){
-			foru(k,1,i-1){
-				mdd(ans[k],mul(min(j,a[k]),f[i][j],inv[1]));
-			}
-		}
-	}
-	foru(i,1,n){
-		foru(j,1,a[i]){
-			int N=0,S=0;
-			foru(k,1,n){
-				if(k==i)	continue;
-				if(a[k]<j){
-					N++;
-					add(S,j);
-				}
-			}
-			foru(k,1,i-1){
-				mdd(ans[i],mul(j-min(j,a[k]),f[i][j],inv[1]));
-			}
-			foru(k,i+1,n){
-				mdd(ans[i],mul(j-min(j,a[k]),f[i][j],inv[1]));
-			}
-		}
-	}
-
-	foru(i,1,n){
-		printf("%d\n",ans[i]);
-	}
+	shuffle(ls+1,ls+1+2*n,rd);
+    foru(i,1,n){
+		a[i]=ls[i];
+		b[i]=ls[i+n];
+    }
+    foru(i,1,n){
+        cout<<b[i]<<' ';
+    }
+    HH;
+    foru(i,1,n){
+        cout<<a[i]<<' ';
+    }
+    HH;
+    cout<<q<<endl;
+    foru(i,1,q){
+        int l=rd()%(n+1);
+        int r=rd()%(n+1);
+        if(l>r) swap(l,r);
+        cout<<l<<' '<<r<<endl;
+    }
 
 	return ;
 }
@@ -341,16 +306,15 @@ void solve(bool SPE){
 检查文件读写
 检查多测清空
 检查数组大小
-*/
+*///
 signed main()
 {
 	// #define MULTITEST
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen("bottle2.in","r",stdin));
-	// if(freopen("bottle.in","r",stdin));
-	// if(freopen("bottle.out","w",stdout));
+	// if(freopen(".in","r",stdin));
+	// if(freopen(".out","w",stdout));
 	#endif
 	#endif
 	
