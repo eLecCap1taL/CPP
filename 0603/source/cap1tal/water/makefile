@@ -1,6 +1,6 @@
 all: prog gen std
 
-NAME = 
+NAME = water
 
 prog: $(NAME).cpp
 	g++ $(NAME).cpp -o prog -std=c++14 -O2 -lm -DCPEDITOR

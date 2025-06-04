@@ -38,6 +38,14 @@
             "linux": {
                 "command": "g++ ${fileBasename} -o ${fileBasenameNoExtension} -std=c++17 -O2 -lm -Wall && echo build successfully && ulimit -s unlimited && ./${fileBasenameNoExtension} && echo run end"
             }
+        },
+        {
+            "label": "chksample",
+            "type": "shell",
+            "command": "make chksample",
+            "options": {
+                "cwd": "${fileDirname}"
+            }
         }
     ]
 }

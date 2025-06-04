@@ -28,9 +28,10 @@
 // #include "ext/pb_ds/tree_policy.hpp"
 // #include "ext/pb_ds/priority_queue.hpp"
 // #include <ext/rope>
-// #define PBDS __gnu_pbds
-// #include <bits/extc++.h>
-#define MAXN 5005
+// #define private public
+#define PBDS __gnu_pbds
+#include <bits/extc++.h>
+#define MAXN 200005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -59,8 +60,8 @@
 using namespace std;
 
 typedef __int128 i128;
-typedef unsigned __int128 u128;
 typedef long long i64;
+typedef unsigned __int128 u128;
 typedef unsigned long long u64;
 typedef int i32;
 typedef unsigned u32;
@@ -267,179 +268,114 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-
-int n;
-int a[MAXN];
-int b[MAXN];
-
-int t[MAXN];
-int p[MAXN];
-
-class QR{
-public:
-	int l,r;
-}qr[MAXN];
-int q;
-
-namespace SUBB{
-	int f[2][5005];
-	void work(){
-		f[0][0]=1;
-		foru(i,0,n-1){
-			// cerr<<i<<endl;
-			foru(j,0,i+1){
-				f[(i+1)&1][j]=0;
-			}
-			foru(j,0,i){
-				if(i+1>=j+2){
-					mdd(f[(i+1)&1][j+1],f[i&1][j]);
-				}
-				mdd(f[(i+1)&1][j],f[i&1][j]);
+template<class cptr,class ptr,class cmp,class alloc>
+struct sum_update{
+	typedef LL metadata_type;
+	virtual cptr node_begin()	const=0;
+	virtual cptr node_end()	const=0;
+	LL bigger_sum(pair<int,int> k){
+		LL ret=0;
+		cptr it=node_begin();
+		while(it!=node_end()){
+			cptr lc=it.get_l_child();
+			cptr rc=it.get_r_child();
+			if(cmp()(k,**it)){
+				if(rc!=node_end())	ret+=rc.get_metadata();
+				ret+=(**it).fi;
+				it=lc;
+			}else{
+				it=rc;
 			}
 		}
-
-		foru(o,1,q){
-			auto [l,r]=qr[o];
-			int ans=0;
-
-			foru(i,l,r){
-				mdd(ans,f[n&1][i]);
-			}
-			
-			cout<<ans<<'\n';
-		}
+		return ret;
 	}
-}
-
-int f[5005][5005];
-bool vis[5005];
-
+	void operator () (ptr it,cptr endit){
+		auto lc=it.get_l_child();
+		auto rc=it.get_r_child();
+		LL ls=0,rs=0;
+		if(lc!=endit)	ls=lc.get_metadata();
+		if(rc!=endit)	rs=rc.get_metadata();
+		const_cast<LL&>(it.get_metadata())=ls+rs+((**it).fi);
+	}
+};
+// typedef PBDS::tree<int,PBDS::null_type,less<int>,PBDS::splay_tree_tag,PBDS::tree_order_statistics_node_update> BST;
+// BST tr,A,B,C;
+// namespace std{
+// 	template<>
+//     iterator_traits<BST::iterator>::difference_type distance(BST::iterator L,BST::iterator R){
+// 		if(L==R)	return 0;
+// 		auto it=L.m_p_nd;
+// 		while(it->m_p_parent->m_p_parent!=it)	it=it->m_p_parent;
+// 		return it->get_metadata();
+// 	}
+// }
+PBDS::tree<int,PBDS::null_type,less<int>,PBDS::rb_tree_tag,PBDS::tree_order_statistics_node_update> tr,A;
 void solve(bool SPE){ 
-	n=RIN;
-	bool A=1;
-	bool B=1;
-	foru(i,1,n){
-		b[i]=RIN;
-		A&=b[i]<=n;
-		B&=b[i]==2*i-1;
-	}
-	foru(i,1,n){
-		a[i]=RIN;
-		B&=a[i]==2*i;
-	}
 
-	if(A){
-		q=RIN;
-		while(q--){
-			int l=RIN;
-			RIN;
-			cout<<(l==0?1:0)<<'\n';
-		}
-		return ;
-	}
-	q=RIN;
-	foru(o,1,q){
-		qr[o]={RIN,RIN};
-		foru(i,qr[o].l,qr[o].r)	vis[i]=1;
-	}
+	mt19937 rd(random_device{}());
 
-	sort(a+1,a+1+n);
-	sort(b+1,b+1+n);
+	ofstream fout("log",ios::out);
 
-	foru(i,1,n){
-		t[i]=lower_bound(b+1,b+1+n,a[i])-b;
-		// cerr<<t[i]<<' ';
-	}
-	// HH;
-	foru(i,1,n){
-		p[i]=lower_bound(a+1,a+1+n,b[i])-a;
-		// cerr<<p[i]<<' ';
-	}
-	// HH;
+	tr.insert(1);
+	// tr.insert(2);
+	tr.insert(2);
+	tr.insert(3);
 
-	if(B){
-		SUBB::work();
-		return ;
-	}
+	A.insert(4);
 
-	static int ans[MAXN];
-	static int R0[MAXN];
-	static int RS[MAXN];
-	foru(i,0,n-1){
-		R0[i]=i+1-p[i+1];
-		RS[i]=min((int)(upper_bound(t+1,t+1+n,i+1)-t-1),n);
-		// if(i>0)	assert(RS[i]>=RS[i-1]);
-		// cout<<RS[i]<<' ';
-	}
-	// cout<<endl;
-	foru(N,0,0){
-		if(!vis[N])	continue;
-		foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
-		f[0][0]=1;
-		foru(i,0,n-1){
-			int R=0;
+	tr.split(2,A);
+	// A.insert(2);
+	// tr.join(A);
+	// A.join(tr);
+	// tr.swap(A);
+	// swap(A,tr);
+	// tr.insert(2);
+	// tr.insert(2);
+	// tr.insert(4);
 
-			R=R0[i]+N;
+	// tr.erase(tr.find_by_order(tr.order_of_key(2)));
+	// tr.erase(tr.upper_bound(1));
+	for(auto x:A){
+		cout<<x<<endl;
+	}
+	// cout<<tr.size();
+	// cout<<*tr.find_by_order(3)<<endl;
 
-			foru(j,0,R){
-				f[i+1][j]=f[i][j];
-			}
+	// int n=100000;
+	// foru(i,1,n){
+	// 	tr.insert(i);
+	// }
+	// fout<<endl;
 
-			for(int j=RS[i];j>=1;j--){
-				mdd(f[i+1][j],f[i][j-1]);
-			}
-		}
-		ans[N]=f[n][N];
-	}
+	// int m=100000;
+	// int ans=0;
+	// while(m--){
+	// 	// cerr<<m<<endl;
+	// 	auto l=rd()%n+1;
+	// 	auto r=rd()%n+1;
+	// 	if(l>r)	swap(l,r);
+	// 	// l=114514,r=214514;
+	// 	// cerr<<l<<' '<<r<<endl;
 
-	static int g[5005][5005];
-	g[0][0]=1;
-	foru(i,0,n-1){
-		foru(j,0,i){
-			if(a[j+1]<b[i+1]){
-				mdd(g[i+1][j+1],g[i][j]);
-			}
-			mdd(g[i+1][j],g[i][j]);
-		}
-	}
-	foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
-	f[n+1][0]=1;
-	ford(i,n+1,2){
-		foru(j,0,n-i+1){
-			mdd(f[i-1][j],f[i][j]);
-			if(a[n-j]>b[i-1]){
-				// cerr<<"?"<<i<<' '<<j<<endl;
-				mdd(f[i-1][j+1],f[i][j]);
-			}
-		}
-	}
-	// cerr<<f[1]
-	foru(N,1,n){
-		int M=0;
-		while(M+1<=n && b[M+1]<a[N]){
-			M++;
-		}
-		// cerr<<"get "<<N<<' '<<M<<endl;1
-		// if(min(n-M,N)>N)	continue;
-		// cerr<<"calc "<<N<<endl;
-		foru(i,0,N){
-			if(n-N-(M-i)<0)	continue;
-			// cerr<<N<<' '<<i<<' '<<M<<' '<<n-N-(M-i)<<' '<<f[M+1][n-N-(M-i)]<<' '<<g[M][i]<<endl;
-			mdd(ans[N],mul(f[M+1][n-N-(M-i)],g[M][i]));
-		}
-	}
+	// 	tr.split(l-1,A);
+	// 	// cerr<<tr.size()<<endl;
+	// 	A.split(r,B);
+	// 	tr.find(*tr.begin());
+	// 	A.find(*A.begin());
+	// 	B.find(*B.begin());
 
-	foru(o,1,q){
-		auto [l,r]=qr[o];
-		int s=0;
-		
-		foru(i,l,r){
-			mdd(s,ans[i]);
-		}
-		
-		cout<<s<<'\n';
-	}
-	
+	// 	ans+=A.size();
+
+	// 	fout<<l<<' '<<r<<" : "<<A.size()<<'\n';
+
+	// 	tr.join(A);
+	// 	tr.join(B);
+
+	// 	// assert(tr.size()==n);
+	// }
+
+	// cout<<ans;
+
 	return ;
 }
 /*
@@ -453,9 +389,8 @@ signed main()
 	
 	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen("a.in","r",stdin));
-	// if(freopen("plan.in","r",stdin));
-	// if(freopen("plan.out","w",stdout));
+	// if(freopen(".in","r",stdin));
+	// if(freopen(".out","w",stdout));
 	#endif
 	#endif
 	

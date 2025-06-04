@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 5005
+#define MAXN 200005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -253,6 +253,11 @@ template<class ...T>
 constexpr int mul(const int& x,const T& ...xr){
 	return (LL)x*mul(xr...)%mod;
 }
+constexpr int rmv(int x,int y){
+	x-=y;
+	if(x<0)	x+=mod;
+	return x;
+}
 constexpr int mev(const int& x){return mod-x;}
 
 constexpr int qpow(int x,int y){
@@ -268,178 +273,111 @@ constexpr int qpow(int x,int y){
 
 */
 
-int n;
-int a[MAXN];
-int b[MAXN];
-
-int t[MAXN];
-int p[MAXN];
-
-class QR{
+int n,m;
+LL a[MAXN];
+class Range{
 public:
-	int l,r;
-}qr[MAXN];
-int q;
+	LL l,r;
 
-namespace SUBB{
-	int f[2][5005];
-	void work(){
-		f[0][0]=1;
-		foru(i,0,n-1){
-			// cerr<<i<<endl;
-			foru(j,0,i+1){
-				f[(i+1)&1][j]=0;
-			}
-			foru(j,0,i){
-				if(i+1>=j+2){
-					mdd(f[(i+1)&1][j+1],f[i&1][j]);
-				}
-				mdd(f[(i+1)&1][j],f[i&1][j]);
-			}
-		}
-
-		foru(o,1,q){
-			auto [l,r]=qr[o];
-			int ans=0;
-
-			foru(i,l,r){
-				mdd(ans,f[n&1][i]);
-			}
-			
-			cout<<ans<<'\n';
-		}
+	bool operator < (const Range& x)const{
+		if(r==x.r)	return l>x.l;
+		return r>x.r;
 	}
-}
-
-int f[5005][5005];
-bool vis[5005];
-
+};
+vector<Range> ls[MAXN];
 void solve(bool SPE){ 
-	n=RIN;
-	bool A=1;
-	bool B=1;
-	foru(i,1,n){
-		b[i]=RIN;
-		A&=b[i]<=n;
-		B&=b[i]==2*i-1;
-	}
+	n=RIN,m=RIN;
 	foru(i,1,n){
 		a[i]=RIN;
-		B&=a[i]==2*i;
 	}
-
-	if(A){
-		q=RIN;
-		while(q--){
-			int l=RIN;
-			RIN;
-			cout<<(l==0?1:0)<<'\n';
-		}
-		return ;
-	}
-	q=RIN;
-	foru(o,1,q){
-		qr[o]={RIN,RIN};
-		foru(i,qr[o].l,qr[o].r)	vis[i]=1;
-	}
-
 	sort(a+1,a+1+n);
-	sort(b+1,b+1+n);
-
-	foru(i,1,n){
-		t[i]=lower_bound(b+1,b+1+n,a[i])-b;
-		// cerr<<t[i]<<' ';
-	}
-	// HH;
-	foru(i,1,n){
-		p[i]=lower_bound(a+1,a+1+n,b[i])-a;
-		// cerr<<p[i]<<' ';
-	}
-	// HH;
-
-	if(B){
-		SUBB::work();
-		return ;
-	}
-
-	static int ans[MAXN];
-	static int R0[MAXN];
-	static int RS[MAXN];
-	foru(i,0,n-1){
-		R0[i]=i+1-p[i+1];
-		RS[i]=min((int)(upper_bound(t+1,t+1+n,i+1)-t-1),n);
-		// if(i>0)	assert(RS[i]>=RS[i-1]);
-		// cout<<RS[i]<<' ';
-	}
-	// cout<<endl;
-	foru(N,0,0){
-		if(!vis[N])	continue;
-		foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
-		f[0][0]=1;
-		foru(i,0,n-1){
-			int R=0;
-
-			R=R0[i]+N;
-
-			foru(j,0,R){
-				f[i+1][j]=f[i][j];
-			}
-
-			for(int j=RS[i];j>=1;j--){
-				mdd(f[i+1][j],f[i][j-1]);
-			}
-		}
-		ans[N]=f[n][N];
-	}
-
-	static int g[5005][5005];
-	g[0][0]=1;
-	foru(i,0,n-1){
-		foru(j,0,i){
-			if(a[j+1]<b[i+1]){
-				mdd(g[i+1][j+1],g[i][j]);
-			}
-			mdd(g[i+1][j],g[i][j]);
-		}
-	}
-	foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
-	f[n+1][0]=1;
-	ford(i,n+1,2){
-		foru(j,0,n-i+1){
-			mdd(f[i-1][j],f[i][j]);
-			if(a[n-j]>b[i-1]){
-				// cerr<<"?"<<i<<' '<<j<<endl;
-				mdd(f[i-1][j+1],f[i][j]);
-			}
-		}
-	}
-	// cerr<<f[1]
-	foru(N,1,n){
-		int M=0;
-		while(M+1<=n && b[M+1]<a[N]){
-			M++;
-		}
-		// cerr<<"get "<<N<<' '<<M<<endl;1
-		// if(min(n-M,N)>N)	continue;
-		// cerr<<"calc "<<N<<endl;
-		foru(i,0,N){
-			if(n-N-(M-i)<0)	continue;
-			// cerr<<N<<' '<<i<<' '<<M<<' '<<n-N-(M-i)<<' '<<f[M+1][n-N-(M-i)]<<' '<<g[M][i]<<endl;
-			mdd(ans[N],mul(f[M+1][n-N-(M-i)],g[M][i]));
-		}
-	}
-
-	foru(o,1,q){
-		auto [l,r]=qr[o];
-		int s=0;
-		
-		foru(i,l,r){
-			mdd(s,ans[i]);
-		}
-		
-		cout<<s<<'\n';
-	}
 	
+	foru(i,0,n){
+		ls[i].clear();
+	}
+
+	static set<pair<LL,int>> st;
+	st.clear();
+	st+=mkp(LLONG_MIN,0);
+	st+=mkp(LLONG_MAX,n+1);
+	foru(i,1,n){
+		st+=mkp(a[i],i);
+	}
+	foru(i,1,m){
+		int l=RIN,r=RIN;
+		auto it=st.lower_bound(mkp(l,0));
+		if(it->fi<=r){
+			//useless segment
+			continue;
+		}
+		ls[prev(it)->se]+=Range{l,r};
+	}
+
+	static LL f[MAXN][2];
+	foru(i,0,n+1){
+		f[i][0]=f[i][1]=0;
+	}
+
+	// init f[1];
+	{
+		int L=a[1];
+		for(auto [l,r]:ls[0]){
+			chkmin(L,r);
+		}
+		f[1][0]=2*(a[1]-L);
+		f[1][1]=(a[1]-L);
+	}
+
+	foru(i,2,n){
+		//enum segments between i-1 and i
+		sort(All(ls[i-1]));
+
+		f[i][0]=f[i][1]=LLONG_MAX;
+
+		static vector<LL> pre;
+		pre.clear();
+		pre.resize(ls[i-1].size()+1,a[i-1]);
+		for(int j=ls[i-1].size()-1;j>=0;j--){
+			pre[j]=max(pre[j+1],(LL)ls[i-1][j].l);
+		}
+
+		size_t ptr=0;
+		for(size_t j=0;j<ls[i-1].size();j++){
+			LL L=ls[i-1][j].r;
+			LL R=a[i-1];
+			while(ptr<ls[i-1].size() && ls[i-1][ptr].r==L)	ptr++;
+			// for(size_t k=j+1;k<ls[i-1].size();k++){
+			// 	if(ls[i-1][k].r!=L){
+			// 		chkmax(R,ls[i-1][k].l);
+			// 		// chkmax(R,pre[k]);
+			// 		// break;
+			// 	}
+			// }
+			chkmax(R,pre[ptr]);
+			LL v0=f[i-1][0]+(R-a[i-1]);
+			LL v1=f[i-1][1]+(R-a[i-1])*2;
+			chkmin(f[i][0],min(v0,v1)+(a[i]-L)*2);
+			chkmin(f[i][1],min(v0,v1)+(a[i]-L));
+		}
+
+		LL v0=f[i-1][0]+(pre[0]-a[i-1]);
+		LL v1=f[i-1][1]+(pre[0]-a[i-1])*2;
+		chkmin(f[i][0],min(v0,v1));
+		chkmin(f[i][1],min(v0,v1));
+	}
+
+	LL ans=LLONG_MAX;
+	
+	LL R=a[n];
+	for(auto [l,r]:ls[n]){
+		chkmax(R,l);
+	}
+
+	ans=min(f[n][0]+(R-a[n]),f[n][1]+(R-a[n])*2);
+
+	cout<<ans<<'\n';
+
+	// exit(0);
 	return ;
 }
 /*
@@ -449,15 +387,12 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
+
+	if(freopen("points.in","r",stdin));
+	if(freopen("points.out","w",stdout));
+	// if(freopen("CF1566F1.in","r",stdin));
 	
-	#ifndef ONLINE_JUDGE
-	#ifndef CPEDITOR
-	if(freopen("a.in","r",stdin));
-	// if(freopen("plan.in","r",stdin));
-	// if(freopen("plan.out","w",stdout));
-	#endif
-	#endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

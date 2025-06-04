@@ -1,11 +1,11 @@
 test_L=1
-test_R=10
+test_R=3
 
-sample_pre="ex_"
+sample_pre=""
 sample_in=".in"
-sample_out=".out"
+sample_out=".ans"
 
-WAstop=1
+WAstop=0
 
 TimeLimit=5
 

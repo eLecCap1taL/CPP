@@ -185,16 +185,16 @@ ostream& operator<<(ostream& os,u128 val){
 }
 
 #define OPERATOR_FOR_PUSHBACK(pb)\
-template<typename T>\
-pb<T>& operator += (pb<T>& x,const T& y){x.push_back(y);return x;}
+template<typename T1,typename T2>\
+pb<T1>& operator += (pb<T1>& x,const T2& y){x.push_back((T1)y);return x;}
 
 #define OPERATOR_FOR_PUSH(p)\
-template<typename T>\
-p<T>& operator += (p<T>& x,const T& y){x.push(y);return x;}
+template<typename T1,typename T2>\
+p<T1>& operator += (p<T1>& x,const T2& y){x.push((T1)y);return x;}
 
 #define OPERATOR_FOR_INSERT(i)\
-template<typename T>\
-i<T>& operator += (i<T>& x,const T& y){x.insert(y);return x;}
+template<typename T1,typename T2>\
+i<T1>& operator += (i<T1>& x,const T2& y){x.insert((T1)y);return x;}
 
 OPERATOR_FOR_PUSHBACK(vector)
 OPERATOR_FOR_PUSHBACK(deque)
@@ -253,6 +253,11 @@ template<class ...T>
 constexpr int mul(const int& x,const T& ...xr){
 	return (LL)x*mul(xr...)%mod;
 }
+constexpr int rmv(int x,int y){
+	x-=y;
+	if(x<0)	x+=mod;
+	return x;
+}
 constexpr int mev(const int& x){return mod-x;}
 
 constexpr int qpow(int x,int y){
@@ -280,8 +285,8 @@ signed main()
 {
 	// #define MULTITEST
 	
-	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
+	#ifdef ONLINE_JUDGE
 	if(freopen(".in","r",stdin));
 	if(freopen(".out","w",stdout));
 	#endif

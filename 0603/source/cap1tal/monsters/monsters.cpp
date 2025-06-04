@@ -28,9 +28,9 @@
 // #include "ext/pb_ds/tree_policy.hpp"
 // #include "ext/pb_ds/priority_queue.hpp"
 // #include <ext/rope>
-// #define PBDS __gnu_pbds
-// #include <bits/extc++.h>
-#define MAXN 5005
+#define PBDS __gnu_pbds
+#include <bits/extc++.h>
+#define MAXN 200005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -270,176 +270,359 @@ constexpr int qpow(int x,int y){
 
 int n;
 int a[MAXN];
-int b[MAXN];
-
-int t[MAXN];
-int p[MAXN];
-
-class QR{
+class OPT{
 public:
-	int l,r;
-}qr[MAXN];
-int q;
+	int t,x,y,z,w;
+}opt[MAXN<<1];
 
-namespace SUBB{
-	int f[2][5005];
-	void work(){
-		f[0][0]=1;
-		foru(i,0,n-1){
-			// cerr<<i<<endl;
-			foru(j,0,i+1){
-				f[(i+1)&1][j]=0;
-			}
-			foru(j,0,i){
-				if(i+1>=j+2){
-					mdd(f[(i+1)&1][j+1],f[i&1][j]);
-				}
-				mdd(f[(i+1)&1][j],f[i&1][j]);
-			}
-		}
-
-		foru(o,1,q){
-			auto [l,r]=qr[o];
-			int ans=0;
-
-			foru(i,l,r){
-				mdd(ans,f[n&1][i]);
-			}
+struct Info{
+	int sz;
+	LL sum;
+	Info(int sz=0,LL sum=0):sz(sz),sum(sum){}
+	Info operator + (const Info& x)const{
+		return Info(sz+x.sz,sum+x.sum);
+	}
+	void operator += (const Info& x){
+		sz+=x.sz;
+		sum+=x.sum;
+	}
+};
+template<class cptr,class ptr,class cmp,class _alloc>
+struct dsupdate{
+	typedef Info metadata_type;
+	virtual cptr node_begin() const = 0;
+	virtual cptr node_end() const = 0;
+	int rank(LL k){
+		int ret=0;
+		auto it=node_begin();
+		while(it!=node_end()){
+			auto lc=it.get_l_child();
+			auto rc=it.get_r_child();
+			// int ls=lc==node_end()?0:**lc;
+			// int rs=rc==node_end()?0:**rc;
 			
-			cout<<ans<<'\n';
+			// cerr<<"at "<<(**it)<<' '<<ls<<' '<<rs<<endl;
+			
+			if(((**it)>=k)){
+				it=lc;
+			}else{
+				ret++;
+				if(lc!=node_end())	ret+=lc.get_metadata().sz;
+				it=rc;
+			}
 		}
+		return ret;
+	}
+	LL presum_by_num(int x){
+		LL ret=0;
+		auto it=node_begin();
+		while(1){
+			auto lc=it.get_l_child();
+			auto rc=it.get_r_child();
+
+			if(lc!=node_end()){
+				if(lc.get_metadata().sz>=x){
+					it=lc;
+					continue;
+				}
+				x-=lc.get_metadata().sz;
+				ret+=lc.get_metadata().sum;
+			}
+
+			x--;
+			ret+=**it;
+			if(x==0)	return ret;
+			
+			it=rc;
+		}
+	}
+	LL sum_by_rank(int l,int r){
+		LL ret=presum_by_num(r);
+		if(l>1)	ret-=presum_by_num(l-1);
+		return ret;
+	}
+	int LOWER_BOUND(LL k){
+		int ret=n+1;
+		int lf=0;
+
+		auto it=node_begin();
+		while(it!=node_end()){
+			auto lc=it.get_l_child();
+			auto rc=it.get_r_child();
+
+			if((**it)>=k){
+				ret=lf+(lc==node_end()?0:lc.get_metadata().sz)+1;
+				it=lc;
+			}else{
+				lf+=(lc==node_end()?0:lc.get_metadata().sz)+1;
+				it=rc;
+			}
+		}
+		
+		return ret;
+	}
+	int UPPER_BOUND(LL k){
+		int ret=n+1;
+		int lf=0;
+
+		auto it=node_begin();
+		while(it!=node_end()){
+			auto lc=it.get_l_child();
+			auto rc=it.get_r_child();
+
+			if((**it)>k){
+				ret=lf+(lc==node_end()?0:lc.get_metadata().sz)+1;
+				it=lc;
+			}else{
+				lf+=(lc==node_end()?0:lc.get_metadata().sz)+1;
+				it=rc;
+			}
+		}
+		
+		return ret;
+	}
+	void operator () (ptr it,cptr endit){
+		auto lc=it.get_l_child();
+		auto rc=it.get_r_child();
+		Info res(1,**it);
+		if(lc!=endit)	res+=lc.get_metadata();
+		if(rc!=endit)	res+=rc.get_metadata();
+		const_cast<Info&>(it.get_metadata())=res;
+	}
+};
+
+PBDS::tree<LL,PBDS::null_type,less_equal<LL>,PBDS::rb_tree_tag,dsupdate> tr;
+
+class DS{
+
+public:
+	int rank(LL k){
+		return tr.rank(k)+1;
+		// cerr<<"ok ranking "<<k<<endl;
+		// int ret=0;
+		// foru(i,1,n){
+		// 	ret+=a[i]<k;
+		// 	cerr<<a[i]<<' ';
+		// }
+		// cerr<<endl;
+		// int res=tr.rank(k)+1;
+		// cerr<<' '<<ret+1<<' '<<res<<endl;
+		// return ret+1;
+	}
+	LL sum_by_rank(int l,int r){
+		if(l>r)	return 0;
+		return tr.sum_by_rank(l,r);
+
+		// LL ret=0;
+		// foru(i,l,r){
+		// 	ret+=a[i];
+		// }
+		// return ret;
+	}
+	int lower_bound(LL k){
+		return tr.LOWER_BOUND(k);
+		// foru(i,1,n){
+		// 	if(a[i]>=k)	return i;
+		// }
+		// return n+1;
+	}
+	int upper_bound(LL k){
+		return tr.UPPER_BOUND(k);
+		// foru(i,1,n){
+		// 	if(a[i]>k)	return i;
+		// }
+		// return n+1;
+	}
+}ds;
+
+LL calc(int m,int k,int l,int r){
+	// cerr<<endl;
+	// cerr<<m<<' '<<k<<' '<<l<<' '<<r<<endl;
+	LL L=-1e10,R=1e10,V=0,res=0;
+	while(L<=R){
+		LL mid=(L+R)>>1;
+
+		LL lf=0;
+		LL rf=0;
+
+		int rkmid=ds.rank(mid+1);
+		lf=min(n-k,rkmid-1)*mid;
+		if(rkmid<=n-k){
+			lf+=ds.sum_by_rank(rkmid,n-k);
+			// lf=0;
+		}
+		
+		int rkmmid=ds.rank(m+mid);
+		// if(rkmmid<=n-k+1)
+		rf=min(k,n-rkmmid+1)*(m+mid);
+		if(rkmmid>n-k+1){
+			rf+=ds.sum_by_rank(n-k+1,rkmmid-1);
+		}
+
+		lf-=(n-k)*mid;
+		rf=(m+mid)*(LL)k-rf;
+
+		if(lf>=rf){
+			V=mid;
+			res=lf-rf;
+			L=mid+1;
+		}else{
+			R=mid-1;
+		}
+	}
+
+	// foru(i,1,n){
+	// 	cerr<<a[i]<<' ';
+	// }
+	// HH;
+	// cerr<<V<<' '<<res<<endl;
+
+	// static int b[MAXN];
+	int lf=ds.lower_bound(V);
+	int rf=ds.upper_bound(m+V)-1;
+	// while(lf-1>=1 && a[lf-1]>=V)	lf--;
+	// while(rf+1<=n && a[rf+1]<=m+V)	rf++;
+
+	// foru(i,1,n){
+	// 	cerr<<b[i]<<' ';
+	// }
+	// cerr<<endl;
+	// cerr<<V<<' '<<lf<<' '<<rf<<endl;
+	assert(rf>n-k);
+
+	LL ret=0;
+	ret+=ds.sum_by_rank(max(1,l),min(r,lf-1));
+	ret+=ds.sum_by_rank(max(rf+1,l),min(r,n))-(LL)m*max(min(r,n)-max(rf+1,l)+1,0);
+	ret+=V*max(min(rf-res,(LL)r)-max(lf,l)+1,0ll);
+	ret+=(V+1)*max(min(rf,r)-max(rf-res+1,(LL)l)+1,0ll);
+	// foru(i,l,r){
+	// 	if(lf<=i && i<=rf-res)	ret+=V;
+	// 	if(rf-res<i && i<=rf)	ret+=V+1;
+	// 	// if(i>rf)	ret+=a[i]-m;
+	// }
+	return ret;
+}
+
+int M,K,q;
+namespace Q0{
+	void workQ0(){
+		LL l=-1e10,r=1e10,V=0,res=0;
+		while(l<=r){
+			LL mid=(l+r)>>1;
+
+			LL lf=0;
+			LL rf=0;
+
+			foru(i,1,n-K){
+				lf+=max(a[i]-mid,0ll);
+			}
+			foru(i,n-K+1,n){
+				rf+=max(mid-(a[i]-M),0ll);
+			}
+
+			if(lf>=rf){
+				V=mid;
+				res=lf-rf;
+				l=mid+1;
+			}else{
+				r=mid-1;
+			}
+		}
+
+		// foru(i,1,n){
+		// 	cerr<<a[i]<<' ';
+		// }
+		// HH;
+		// cerr<<V<<' '<<res<<endl;
+
+		static LL b[MAXN];
+		foru(i,1,n){
+			b[i]=a[i];
+			if(i>n-K)	b[i]-=M;
+		}
+		foru(i,1,n-K){
+			chkmin(b[i],V);
+		}
+		foru(i,n-K+1,n){
+			chkmax(b[i],V);
+		}
+		for(int i=n;i>=1;i--){
+			if(b[i]==V && res){
+				res--;
+				b[i]++;
+			}
+		}
+		sort(b+1,b+1+n);
+		foru(i,1,n){
+			printf("%lld ",b[i]);
+		}
+		HH;
 	}
 }
 
-int f[5005][5005];
-bool vis[5005];
-
 void solve(bool SPE){ 
 	n=RIN;
-	bool A=1;
-	bool B=1;
-	foru(i,1,n){
-		b[i]=RIN;
-		A&=b[i]<=n;
-		B&=b[i]==2*i-1;
-	}
+	M=RIN,K=RIN,q=RIN;
+
+	static int sa[MAXN];
 	foru(i,1,n){
 		a[i]=RIN;
-		B&=a[i]==2*i;
+		sa[i]=a[i];
+		tr.insert(a[i]);
 	}
 
-	if(A){
-		q=RIN;
-		while(q--){
-			int l=RIN;
-			RIN;
-			cout<<(l==0?1:0)<<'\n';
-		}
-		return ;
-	}
-	q=RIN;
 	foru(o,1,q){
-		qr[o]={RIN,RIN};
-		foru(i,qr[o].l,qr[o].r)	vis[i]=1;
+		opt[o].t=RIN;
+		if(opt[o].t==1){
+			opt[o].x=RIN;
+			opt[o].y=RIN;
+			opt[o].z=RIN;
+		}else if(opt[o].t==2){
+			opt[o].x=RIN;
+			opt[o].y=RIN;
+		}else{
+			opt[o].x=RIN;
+			opt[o].y=RIN;
+			opt[o].z=RIN;
+			opt[o].w=RIN;
+		}
 	}
 
 	sort(a+1,a+1+n);
-	sort(b+1,b+1+n);
-
-	foru(i,1,n){
-		t[i]=lower_bound(b+1,b+1+n,a[i])-b;
-		// cerr<<t[i]<<' ';
-	}
-	// HH;
-	foru(i,1,n){
-		p[i]=lower_bound(a+1,a+1+n,b[i])-a;
-		// cerr<<p[i]<<' ';
-	}
-	// HH;
-
-	if(B){
-		SUBB::work();
-		return ;
-	}
-
-	static int ans[MAXN];
-	static int R0[MAXN];
-	static int RS[MAXN];
-	foru(i,0,n-1){
-		R0[i]=i+1-p[i+1];
-		RS[i]=min((int)(upper_bound(t+1,t+1+n,i+1)-t-1),n);
-		// if(i>0)	assert(RS[i]>=RS[i-1]);
-		// cout<<RS[i]<<' ';
-	}
-	// cout<<endl;
-	foru(N,0,0){
-		if(!vis[N])	continue;
-		foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
-		f[0][0]=1;
-		foru(i,0,n-1){
-			int R=0;
-
-			R=R0[i]+N;
-
-			foru(j,0,R){
-				f[i+1][j]=f[i][j];
-			}
-
-			for(int j=RS[i];j>=1;j--){
-				mdd(f[i+1][j],f[i][j-1]);
-			}
-		}
-		ans[N]=f[n][N];
-	}
-
-	static int g[5005][5005];
-	g[0][0]=1;
-	foru(i,0,n-1){
-		foru(j,0,i){
-			if(a[j+1]<b[i+1]){
-				mdd(g[i+1][j+1],g[i][j]);
-			}
-			mdd(g[i+1][j],g[i][j]);
-		}
-	}
-	foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
-	f[n+1][0]=1;
-	ford(i,n+1,2){
-		foru(j,0,n-i+1){
-			mdd(f[i-1][j],f[i][j]);
-			if(a[n-j]>b[i-1]){
-				// cerr<<"?"<<i<<' '<<j<<endl;
-				mdd(f[i-1][j+1],f[i][j]);
-			}
-		}
-	}
-	// cerr<<f[1]
-	foru(N,1,n){
-		int M=0;
-		while(M+1<=n && b[M+1]<a[N]){
-			M++;
-		}
-		// cerr<<"get "<<N<<' '<<M<<endl;1
-		// if(min(n-M,N)>N)	continue;
-		// cerr<<"calc "<<N<<endl;
-		foru(i,0,N){
-			if(n-N-(M-i)<0)	continue;
-			// cerr<<N<<' '<<i<<' '<<M<<' '<<n-N-(M-i)<<' '<<f[M+1][n-N-(M-i)]<<' '<<g[M][i]<<endl;
-			mdd(ans[N],mul(f[M+1][n-N-(M-i)],g[M][i]));
-		}
-	}
+	
+	//work Q0
+	Q0::workQ0();
 
 	foru(o,1,q){
-		auto [l,r]=qr[o];
-		int s=0;
-		
-		foru(i,l,r){
-			mdd(s,ans[i]);
+		// cerr<<o<<endl;
+		auto [ty,x,y,z,w]=opt[o];
+		if(ty==1){
+			// cerr<<"q1"<<endl;
+			int m=x,k=y,x=z;
+			printf("%lld\n",calc(m,k,x,x));
+		}else if(ty==2){
+			// cerr<<"mdf"<<' '<<x<<' '<<y<<endl;
+			int p=x,v=y;
+
+			tr.erase(tr.upper_bound(sa[p]));
+			tr.insert(v);
+			
+			// foru(i,1,n){
+			// 	if(a[i]==sa[p]){
+			// 		a[i]=v;
+			// 		break;
+			// 	}
+			// }
+			sa[p]=v;
+			
+			// sort(a+1,a+1+n);
+		}else{
+			// cerr<<"q2"<<endl;
+			int m=x,k=y,l=z,r=w;
+			printf("%lld\n",calc(m,k,l,r));
 		}
-		
-		cout<<s<<'\n';
 	}
-	
+
 	return ;
 }
 /*
@@ -451,11 +634,13 @@ signed main()
 {
 	// #define MULTITEST
 	
-	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
 	if(freopen("a.in","r",stdin));
-	// if(freopen("plan.in","r",stdin));
-	// if(freopen("plan.out","w",stdout));
+	// if(freopen("monsters1.in","r",stdin));
+	if(freopen("monsters.out","w",stdout));
+	#ifdef ONLINE_JUDGE
+	if(freopen("monsters.in","r",stdin));
+	if(freopen("monsters.out","w",stdout));
 	#endif
 	#endif
 	

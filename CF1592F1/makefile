@@ -1,6 +1,6 @@
 all: prog gen std
 
-NAME = 
+NAME = CF1592F1
 
 prog: $(NAME).cpp
 	g++ $(NAME).cpp -o prog -std=c++14 -O2 -lm -DCPEDITOR

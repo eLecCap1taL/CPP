@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 5005
+#define MAXN 200005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -185,16 +185,16 @@ ostream& operator<<(ostream& os,u128 val){
 }
 
 #define OPERATOR_FOR_PUSHBACK(pb)\
-template<typename T>\
-pb<T>& operator += (pb<T>& x,const T& y){x.push_back(y);return x;}
+template<typename T1,typename T2>\
+pb<T1>& operator += (pb<T1>& x,const T2& y){x.push_back((T1)y);return x;}
 
 #define OPERATOR_FOR_PUSH(p)\
-template<typename T>\
-p<T>& operator += (p<T>& x,const T& y){x.push(y);return x;}
+template<typename T1,typename T2>\
+p<T1>& operator += (p<T1>& x,const T2& y){x.push((T1)y);return x;}
 
 #define OPERATOR_FOR_INSERT(i)\
-template<typename T>\
-i<T>& operator += (i<T>& x,const T& y){x.insert(y);return x;}
+template<typename T1,typename T2>\
+i<T1>& operator += (i<T1>& x,const T2& y){x.insert((T1)y);return x;}
 
 OPERATOR_FOR_PUSHBACK(vector)
 OPERATOR_FOR_PUSHBACK(deque)
@@ -253,6 +253,11 @@ template<class ...T>
 constexpr int mul(const int& x,const T& ...xr){
 	return (LL)x*mul(xr...)%mod;
 }
+constexpr int rmv(int x,int y){
+	x-=y;
+	if(x<0)	x+=mod;
+	return x;
+}
 constexpr int mev(const int& x){return mod-x;}
 
 constexpr int qpow(int x,int y){
@@ -268,178 +273,68 @@ constexpr int qpow(int x,int y){
 
 */
 
-int n;
-int a[MAXN];
-int b[MAXN];
-
-int t[MAXN];
-int p[MAXN];
-
-class QR{
+int n,m,t;
+class Item{
 public:
-	int l,r;
-}qr[MAXN];
-int q;
+	LL a,b;
+}a[505];
 
-namespace SUBB{
-	int f[2][5005];
-	void work(){
-		f[0][0]=1;
-		foru(i,0,n-1){
-			// cerr<<i<<endl;
-			foru(j,0,i+1){
-				f[(i+1)&1][j]=0;
-			}
-			foru(j,0,i){
-				if(i+1>=j+2){
-					mdd(f[(i+1)&1][j+1],f[i&1][j]);
-				}
-				mdd(f[(i+1)&1][j],f[i&1][j]);
-			}
-		}
+i128 f[2][200005];
 
-		foru(o,1,q){
-			auto [l,r]=qr[o];
-			int ans=0;
-
-			foru(i,l,r){
-				mdd(ans,f[n&1][i]);
-			}
-			
-			cout<<ans<<'\n';
-		}
-	}
+LL calc(LL n){
+	return n*(n+1)*(2*n+1)/6ll;
 }
 
-int f[5005][5005];
-bool vis[5005];
-
-void solve(bool SPE){ 
-	n=RIN;
-	bool A=1;
-	bool B=1;
-	foru(i,1,n){
-		b[i]=RIN;
-		A&=b[i]<=n;
-		B&=b[i]==2*i-1;
-	}
-	foru(i,1,n){
-		a[i]=RIN;
-		B&=a[i]==2*i;
-	}
-
-	if(A){
-		q=RIN;
-		while(q--){
-			int l=RIN;
-			RIN;
-			cout<<(l==0?1:0)<<'\n';
-		}
-		return ;
-	}
-	q=RIN;
-	foru(o,1,q){
-		qr[o]={RIN,RIN};
-		foru(i,qr[o].l,qr[o].r)	vis[i]=1;
-	}
-
-	sort(a+1,a+1+n);
-	sort(b+1,b+1+n);
-
-	foru(i,1,n){
-		t[i]=lower_bound(b+1,b+1+n,a[i])-b;
-		// cerr<<t[i]<<' ';
-	}
-	// HH;
-	foru(i,1,n){
-		p[i]=lower_bound(a+1,a+1+n,b[i])-a;
-		// cerr<<p[i]<<' ';
-	}
-	// HH;
-
-	if(B){
-		SUBB::work();
-		return ;
-	}
-
-	static int ans[MAXN];
-	static int R0[MAXN];
-	static int RS[MAXN];
-	foru(i,0,n-1){
-		R0[i]=i+1-p[i+1];
-		RS[i]=min((int)(upper_bound(t+1,t+1+n,i+1)-t-1),n);
-		// if(i>0)	assert(RS[i]>=RS[i-1]);
-		// cout<<RS[i]<<' ';
-	}
-	// cout<<endl;
-	foru(N,0,0){
-		if(!vis[N])	continue;
-		foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
-		f[0][0]=1;
-		foru(i,0,n-1){
-			int R=0;
-
-			R=R0[i]+N;
-
-			foru(j,0,R){
-				f[i+1][j]=f[i][j];
-			}
-
-			for(int j=RS[i];j>=1;j--){
-				mdd(f[i+1][j],f[i][j-1]);
-			}
-		}
-		ans[N]=f[n][N];
-	}
-
-	static int g[5005][5005];
-	g[0][0]=1;
-	foru(i,0,n-1){
-		foru(j,0,i){
-			if(a[j+1]<b[i+1]){
-				mdd(g[i+1][j+1],g[i][j]);
-			}
-			mdd(g[i+1][j],g[i][j]);
+i128 inf=i128(1e15)*i128(1e15);
+LL A,B;
+void work(int l,int r,int nl,int nr,i128* f,i128* g){
+	int j=(l+r)>>1;
+	f[j]=inf;
+	int nmid=0;
+	foru(k,nl,min(nr,j-1)){
+		if(chkmin(f[j],g[k]-A*k+(i128)B*calc(j-k-1))){
+			nmid=k;
 		}
 	}
-	foru(i,0,n)	foru(j,0,n)	f[i][j]=0;
-	f[n+1][0]=1;
-	ford(i,n+1,2){
-		foru(j,0,n-i+1){
-			mdd(f[i-1][j],f[i][j]);
-			if(a[n-j]>b[i-1]){
-				// cerr<<"?"<<i<<' '<<j<<endl;
-				mdd(f[i-1][j+1],f[i][j]);
-			}
-		}
-	}
-	// cerr<<f[1]
-	foru(N,1,n){
-		int M=0;
-		while(M+1<=n && b[M+1]<a[N]){
-			M++;
-		}
-		// cerr<<"get "<<N<<' '<<M<<endl;1
-		// if(min(n-M,N)>N)	continue;
-		// cerr<<"calc "<<N<<endl;
-		foru(i,0,N){
-			if(n-N-(M-i)<0)	continue;
-			// cerr<<N<<' '<<i<<' '<<M<<' '<<n-N-(M-i)<<' '<<f[M+1][n-N-(M-i)]<<' '<<g[M][i]<<endl;
-			mdd(ans[N],mul(f[M+1][n-N-(M-i)],g[M][i]));
-		}
-	}
-
-	foru(o,1,q){
-		auto [l,r]=qr[o];
-		int s=0;
-		
-		foru(i,l,r){
-			mdd(s,ans[i]);
-		}
-		
-		cout<<s<<'\n';
-	}
+	f[j]+=A*j+t;
+	chkmin(f[j],g[j]);
 	
+	if(l<j)	work(l,j-1,nl,nmid,f,g);
+	if(r>j)	work(j+1,r,nmid,nr,f,g);
+}
+void solve(bool SPE){ 
+	n=RIN,m=RIN,t=RIN;
+
+	foru(i,1,n){
+		a[i]={RIN,RIN};
+	}
+
+
+	foru(i,1,m){
+		f[0][i]=inf;
+	}
+	f[0][0]=0;
+
+	foru(i,1,n){
+		A=a[i].a;
+		B=a[i].b;
+		work(1,m,0,m-1,f[i&1],f[!(i&1)]);
+		// foru(j,1,m){
+		// 	f[i][j]=inf;
+		// 	int b=0;
+		// 	foru(k,0,j-1){
+		// 		if(chkmin(f[i][j],f[i-1][k]+t-a[i].a*k+(i128)a[i].b*calc(j-k-1))){
+		// 			b=k;
+		// 		}
+		// 	}
+		// 	f[i][j]+=a[i].a*j;
+		// 	chkmin(f[i][j],f[i-1][j]);
+		// }
+		// cerr<<endl;
+	}
+
+	cout<<f[n&1][m]-t;
+
 	return ;
 }
 /*
@@ -451,11 +346,11 @@ signed main()
 {
 	// #define MULTITEST
 	
-	#ifndef ONLINE_JUDGE
 	#ifndef CPEDITOR
-	if(freopen("a.in","r",stdin));
-	// if(freopen("plan.in","r",stdin));
-	// if(freopen("plan.out","w",stdout));
+	// if(freopen("P81791.in","r",stdin));
+	#ifdef ONLINE_JUDGE
+	// if(freopen(".in","r",stdin));
+	// if(freopen(".out","w",stdout));
 	#endif
 	#endif
 	

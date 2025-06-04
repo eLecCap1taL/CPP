@@ -1,0 +1,1 @@
+sudo dpkg -i ./LemonLime-0.3.5-debian-sid-Release.deb

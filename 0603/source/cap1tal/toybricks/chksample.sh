@@ -1,26 +1,23 @@
 test_L=1
-test_R=10
+test_R=8
 
-sample_pre="ex_"
+sample_pre=""
 sample_in=".in"
-sample_out=".out"
+sample_out=".ans"
 
-WAstop=1
+WAstop=0
 
-TimeLimit=5
+TimeLimit=1
 
 # ----------------------------------------------
 
 prog=$1
 
-ACNUM=0
-
 for((i=$test_L;i<=$test_R;i++))
 do
     if timeout $TimeLimit ./prog < $sample_pre$prog$i$sample_in > $prog.out; then
-        if diff $prog.out $sample_pre$prog$i$sample_out -Z > /dev/null; then
+        if ./checker $sample_pre$prog$i$sample_in $prog.out $sample_pre$prog$i$sample_out ; then
             echo OK accept testcase $i
-            ACNUM=`expr $ACNUM + 1`
         else
             echo Check failed testcase $i
             if [ $WAstop -eq 1 ]; then
@@ -31,6 +28,3 @@ do
         echo TLE on testcase $i
     fi
 done
-
-echo
-echo Accept $ACNUM/`expr $test_R - $test_L + 1 `
