@@ -272,148 +272,91 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-int n;
-class Node{
-public:
-	int a,b;
-}a[10000005],lf[10000005];
-int rf[10000005];
-int N,M;
-unsigned seed;
-unsigned rnd(unsigned x){
-	x^=x<<13;
-	x^=x>>17;
-	x^=x<<5;
-	return x;
-}
-int rad(int x,int y){
-	seed=rnd(seed);
-	return seed%(y-x+1)+x;
-}
-void init_data(){
-	cin>>seed;
-	for(int i=1;i<=n;i++)
-		a[i].a=1,a[i].b=rad(1,500000);
-	for(int i=1;i<=n-2;i++)
-		a[rad(1,n)].a++;
-}
-
-
-
+int n,V;
+int a[MAXN];
 void solve(bool SPE){ 
-	int type=RIN;
-	n=RIN;
-	if(type==0){
-		foru(i,1,n){
-			a[i].a=RIN;
-		}
-		foru(i,1,n){
-			a[i].b=RIN;
-		}
-	}else{
-		init_data();
-	}
-
-	sort(a+1,a+1+n,[](const Node& x,const Node& y)->bool{
-		return x.b>y.b;
-	});
-
-
-	class LEAF{
-	public:
-		queue<int> q;
-		queue<int> qn;
-		void pushsrc(int x){
-			q.push(x);
-		}
-		void push(int x){
-			qn.push(x);
-		}
-		bool empty(){
-			return q.empty() && qn.empty();
-		}
-		int get(){
-			if(q.empty())	return qn.front();
-			if(qn.empty())	return q.front();
-			if(q.front()>qn.front()){
-				return q.front();
-			}else{
-				return qn.front();
-			}
-		}
-		void pop(){
-			if(q.empty()){
-				qn.pop();
-				return ;
-			}
-			if(qn.empty()){
-				q.pop();
-				return ;
-			}
-			if(q.front()>qn.front()){
-				q.pop();
-			}else{
-				qn.pop();
-			}
-		}
-		int size(){
-			return q.size()+qn.size();
-		}
-	}leaf;
-
+	n=RIN,V=RIN;
 	foru(i,1,n){
-		if(a[i].a==1){
-			leaf.pushsrc(a[i].b);
-			// rf[++M]=a[i].b;
-		}else{
-			lf[++N]=a[i];
+		a[i]=RIN;
+	}
+
+	int N=0;
+
+	static int L[20][MAXN];
+	static int R[20][MAXN];
+	for(int o=V/2;o>=0;o>>=1){
+		foru(i,1,n){
+			if(i==1 || a[i]-a[i-1]>o){
+				L[N][i]=i;
+			}else{
+				L[N][i]=L[N][i-1];
+			}
+		}
+		ford(i,n,1){
+			if(i==n || a[i+1]-a[i]>o){
+				R[N][i]=i;
+			}else{
+				R[N][i]=R[N][i+1];
+			}
+		}
+		L[N][0]=1;
+		R[N][n+1]=n;
+		N++;
+		if(o==0)	break;
+	}
+
+	static int f[1<<20];
+	static int g[1<<20];
+
+	// f for pre
+	// g for suf
+
+	f[0]=0;
+	g[0]=n+1;
+	for(int s=1;s<(1<<N);s++){
+		//枚举最后一个区间选的哪层
+		f[s]=0;
+		g[s]=n+1;
+		for(int i=0;i<N;i++){
+			if((s>>i&1)^1)	continue;
+			chkmax(f[s],R[i][f[s^1<<i]+1]);	
+			chkmin(g[s],L[i][g[s^1<<i]-1]);
 		}
 	}
 
-	LL ans=0;
-	
-	int l=1;
-	// int ptr=0;
-
-	foru(r,1,N){
-		// cerr<<"r "<<r<<endl;
-		auto check=[&]()->bool{
-			return l==r && lf[l].a==1;
-		};
-		auto us=[&]()->void{
-			lf[l].a--;
-			if(lf[l].a==0)	l++;
-		};
-		while(!check() && !leaf.empty() && (r==N || leaf.get()>lf[r+1].b)){
-			// cerr<<lf[l].b<<' '<<leaf.get()<<endl;
-			ans+=(LL)lf[l].b*leaf.get();
-			leaf.pop();
-			us();
-		}
-		if(r==N){
-			ast(check());
-		}
-		if(!check()){
-			// cerr<<lf[l].b<<'~'<<lf[r+1].b<<endl;
-			ans+=(LL)lf[l].b*lf[r+1].b;
-			us();
-			lf[r+1].a--;
-		}else{
-			leaf.push(lf[l].b);
-			l=r+1;
-		}
+	static vector<pair<int,int>> ls;
+	for(int l=1;l<=n;){
+		int r=l;
+		while(r+1<=n && a[r+1]-a[r]<=V)	r++;
+		ls+=mkp(l,r);
+		l=r+1;
 	}
 
-	ast(leaf.size()==2);
-	LL V=leaf.get();
-	leaf.pop();
-	ans+=leaf.get()*V;
+	// cerr<<ls.size()<<' '<<N<<endl;
+	if(ls.size()>N+1){
+		foru(i,1,n){
+			printf("Impossible\n");
+		}
+		return ;
+	}
 
-	// foru(i,1,n){
-	// 	cerr<<a[i].a<<' '<<a[i].b<<endl;
-	// }
-
-	cout<<ans;
+	for(auto [l,r]:ls){
+		for(int s=0;s<(1<<N);s++){
+			int t=((1<<N)-1)^s;
+			if(f[s]>=l-1 && g[t]<=r+1){
+				// cerr<<l<<' '<<r<<' '<<s<<' '<<t<<endl;
+				// cerr<<f[s]<<' '<<g[t]<<endl;
+				foru(i,l,r){
+					printf("Possible\n");
+				}
+				goto ok;
+			}
+		}
+		foru(i,l,r){
+			printf("Impossible\n");
+		}
+		ok:;
+	}
 
 	return ;
 }
@@ -427,10 +370,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	// if(freopen("P73902.in","r",stdin));
+	// if(freopen("AT_agc012_e2.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	// if(freopen("P7390.in","r",stdin));
-	// if(freopen("P7390.out","w",stdout));
+	// if(freopen("AT_agc012_e.in","r",stdin));
+	// if(freopen("AT_agc012_e.out","w",stdout));
 	#endif
 	#endif
 	

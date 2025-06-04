@@ -272,148 +272,76 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+
 int n;
-class Node{
-public:
-	int a,b;
-}a[10000005],lf[10000005];
-int rf[10000005];
-int N,M;
-unsigned seed;
-unsigned rnd(unsigned x){
-	x^=x<<13;
-	x^=x>>17;
-	x^=x<<5;
-	return x;
-}
-int rad(int x,int y){
-	seed=rnd(seed);
-	return seed%(y-x+1)+x;
-}
-void init_data(){
-	cin>>seed;
-	for(int i=1;i<=n;i++)
-		a[i].a=1,a[i].b=rad(1,500000);
-	for(int i=1;i<=n-2;i++)
-		a[rad(1,n)].a++;
-}
+int a[5005];
 
-
+int fa[5005],sz[5005];
+int find(int x){
+	// cerr<<x<<' '<<fa[x]endl;
+	return fa[x]==x?x:fa[x]=find(fa[x]);
+}
+void Union(int x,int y){
+	x=find(x),y=find(y);
+	if(x==y)	return ;
+	fa[x]=y;
+	sz[y]+=sz[x];
+}
 
 void solve(bool SPE){ 
-	int type=RIN;
 	n=RIN;
-	if(type==0){
-		foru(i,1,n){
-			a[i].a=RIN;
-		}
-		foru(i,1,n){
-			a[i].b=RIN;
-		}
-	}else{
-		init_data();
-	}
-
-	sort(a+1,a+1+n,[](const Node& x,const Node& y)->bool{
-		return x.b>y.b;
-	});
-
-
-	class LEAF{
-	public:
-		queue<int> q;
-		queue<int> qn;
-		void pushsrc(int x){
-			q.push(x);
-		}
-		void push(int x){
-			qn.push(x);
-		}
-		bool empty(){
-			return q.empty() && qn.empty();
-		}
-		int get(){
-			if(q.empty())	return qn.front();
-			if(qn.empty())	return q.front();
-			if(q.front()>qn.front()){
-				return q.front();
-			}else{
-				return qn.front();
-			}
-		}
-		void pop(){
-			if(q.empty()){
-				qn.pop();
-				return ;
-			}
-			if(qn.empty()){
-				q.pop();
-				return ;
-			}
-			if(q.front()>qn.front()){
-				q.pop();
-			}else{
-				qn.pop();
-			}
-		}
-		int size(){
-			return q.size()+qn.size();
-		}
-	}leaf;
 
 	foru(i,1,n){
-		if(a[i].a==1){
-			leaf.pushsrc(a[i].b);
-			// rf[++M]=a[i].b;
-		}else{
-			lf[++N]=a[i];
+		a[i]=RIN;
+	}
+
+	static int mex[5005][5005];
+	foru(i,1,n){
+		foru(j,0,n+1){
+			fa[j]=j;
+			sz[j]=1;
+		}
+		for(int l=i;l>=1;l--){
+			Union(a[l],a[l]+1);
+			mex[l][i]=sz[find(0)]-1;
+			// cerr<<l<<' '<<i<<' '<<mex[l][i]<<endl;
 		}
 	}
 
-	LL ans=0;
-	
-	int l=1;
-	// int ptr=0;
-
-	foru(r,1,N){
-		// cerr<<"r "<<r<<endl;
-		auto check=[&]()->bool{
-			return l==r && lf[l].a==1;
-		};
-		auto us=[&]()->void{
-			lf[l].a--;
-			if(lf[l].a==0)	l++;
-		};
-		while(!check() && !leaf.empty() && (r==N || leaf.get()>lf[r+1].b)){
-			// cerr<<lf[l].b<<' '<<leaf.get()<<endl;
-			ans+=(LL)lf[l].b*leaf.get();
-			leaf.pop();
-			us();
-		}
-		if(r==N){
-			ast(check());
-		}
-		if(!check()){
-			// cerr<<lf[l].b<<'~'<<lf[r+1].b<<endl;
-			ans+=(LL)lf[l].b*lf[r+1].b;
-			us();
-			lf[r+1].a--;
-		}else{
-			leaf.push(lf[l].b);
-			l=r+1;
+	static int lf[5005][5005];
+	foru(i,0,n){
+		foru(j,0,n){
+			lf[i][j]=0;
 		}
 	}
 
-	ast(leaf.size()==2);
-	LL V=leaf.get();
-	leaf.pop();
-	ans+=leaf.get()*V;
+	static bitset<9000> f[5005];
 
-	// foru(i,1,n){
-	// 	cerr<<a[i].a<<' '<<a[i].b<<endl;
-	// }
+	f[0].reset();
+	f[0][0]=1;
 
-	cout<<ans;
+	foru(i,1,n){
+		f[i]=f[i-1];
+		ford(l,i,1){
+			if(l<i && mex[l][i]==mex[l+1][i])	continue;
+			lf[i][mex[l][i]]=l;
+			if(lf[i-1][mex[l][i]]==l)	continue;
+			// cerr<<'	'<<l<<' '<<i<<' '<<mex[l][i]<<endl;
+			for(int j=f[l-1]._Find_first();j<=8192;j=f[l-1]._Find_next(j)){
+				// cerr<<
+				f[i][j^mex[l][i]]=1;
+			}
+		}
+	}
+
+	int ans=0;
+	foru(i,0,8192){
+		if(f[n][i]){
+			ans=i;
+		}
+	}
+
+	cout<<ans<<'\n';
 
 	return ;
 }
@@ -424,13 +352,13 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	
 	#ifndef CPEDITOR
-	// if(freopen("P73902.in","r",stdin));
+	// if(freopen("CF1870E1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	// if(freopen("P7390.in","r",stdin));
-	// if(freopen("P7390.out","w",stdout));
+	// if(freopen("CF1870E.in","r",stdin));
+	// if(freopen("CF1870E.out","w",stdout));
 	#endif
 	#endif
 	
