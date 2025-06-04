@@ -288,6 +288,44 @@ void solve(bool SPE){
 			a[i][j]^=a[i+1][j]^a[i][j+1]^a[i+1][j+1];
 		}
 	}
+	
+	static vector<int> e[505];
+	foru(i,1,n-1){
+		if(a[i][m]!=1)	continue;
+		foru(j,1,m-1){
+			if(a[n][j]!=1)	continue;
+			if(a[i][j]){
+				e[i]+=j;
+			}
+		}
+	}
+
+	int ver=0;
+	static int vis[505];
+	static int nto[505];
+	static int mto[505];
+	int cnt=0;
+
+	auto dfs=[&ver](auto dfs,int u)->bool{
+		for(auto v:e[u]){
+			if(vis[v]==ver)	continue;
+			vis[v]=ver;
+			if(mto[v]==0 || dfs(dfs,mto[v])){
+				nto[u]=v;
+				mto[v]=u;
+				return true;
+			}
+		}
+		return false;
+	};
+	foru(i,1,n){
+		if(nto[i]!=0)	continue;
+		ver++;
+		if(dfs(dfs,i)){
+			cnt++;
+		}
+	}
+
 
 	int ans=0;
 
@@ -296,19 +334,14 @@ void solve(bool SPE){
 			ans+=a[i][j];
 		}
 	}
+	ans-=a[n][m];
 
-	foru(i,1,n-1){
-		foru(j,1,m-1){
-			if(a[i][j] && a[n][j] && a[i][m] && a[n][m]){
-				ans--;
-				goto fd;
-			}
-		}
-	}
+	ans-=cnt;
 
-	fd:
+	if((cnt&1)!=a[n][m])	ans++;
 
 	cout<<ans;
+
 	return ;
 }
 /*
@@ -321,7 +354,7 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	// if(freopen("CF1592F12.in","r",stdin));
+	// if(freopen("CF1592F22.in","r",stdin));
 	#ifdef ONLINE_JUDGE
 	// if(freopen("CF1592F1.in","r",stdin));
 	// if(freopen("CF1592F1.out","w",stdout));

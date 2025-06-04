@@ -272,43 +272,8 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-int n,m;
-int a[505][505];
-bitset<505> b[505];
 void solve(bool SPE){ 
-	n=RIN,m=RIN;
-	foru(i,1,n){
-		foru(j,1,m){
-			a[i][j]=RCIN=='B';
-		}
-	}
-	
-	foru(i,1,n){
-		foru(j,1,m){
-			a[i][j]^=a[i+1][j]^a[i][j+1]^a[i+1][j+1];
-		}
-	}
 
-	int ans=0;
-
-	foru(i,1,n){
-		foru(j,1,m){
-			ans+=a[i][j];
-		}
-	}
-
-	foru(i,1,n-1){
-		foru(j,1,m-1){
-			if(a[i][j] && a[n][j] && a[i][m] && a[n][m]){
-				ans--;
-				goto fd;
-			}
-		}
-	}
-
-	fd:
-
-	cout<<ans;
 	return ;
 }
 /*
@@ -321,10 +286,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	// if(freopen("CF1592F12.in","r",stdin));
+	if(freopen("P73901.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	// if(freopen("CF1592F1.in","r",stdin));
-	// if(freopen("CF1592F1.out","w",stdout));
+	// if(freopen("P7390.in","r",stdin));
+	// if(freopen("P7390.out","w",stdout));
 	#endif
 	#endif
 	
