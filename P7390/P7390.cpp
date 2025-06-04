@@ -272,7 +272,84 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n;
+class Node{
+public:
+	int a,b;
+}a[10000005],lf[10000005];
+int rf[10000005];
+int N,M;
+unsigned seed;
+unsigned rnd(unsigned x){
+	x^=x<<13;
+	x^=x>>17;
+	x^=x<<5;
+	return x;
+}
+int rad(int x,int y){
+	seed=rnd(seed);
+	return seed%(y-x+1)+x;
+}
+void init_data(){
+	cin>>seed;
+	for(int i=1;i<=n;i++)
+		a[i].a=1,a[i].b=rad(1,500000);
+	for(int i=1;i<=n-2;i++)
+		a[rad(1,n)].a++;
+}
+
+
+
 void solve(bool SPE){ 
+	int type=RIN;
+	n=RIN;
+	if(type==0){
+		foru(i,1,n){
+			a[i].a=RIN;
+		}
+		foru(i,1,n){
+			a[i].b=RIN;
+		}
+	}else{
+		init_data();
+	}
+
+	sort(a+1,a+1+n,[](const Node& x,const Node& y)->bool{
+		return x.b>y.b;
+	});
+
+	foru(i,1,n){
+		if(a[i].a==1){
+			rf[++M]=a[i].b;
+		}else{
+			lf[++N]=a[i];
+		}
+	}
+
+	LL ans=0;
+	
+	int l=1;
+	int ptr=0;
+
+	foru(r,1,N){
+		// cerr<<"r "<<r<<endl;
+		while((l<r || lf[l].a>1 || r==N) && (ptr<M && rf[ptr+1]>lf[r+1].b) ){
+			ptr++;
+			ans+=(LL)lf[l].b*rf[ptr];
+			// cerr<<rf[ptr]<<' '<<lf[l].b<<endl;
+			lf[l].a--;
+			if(lf[l].a==0)	l++;
+		}
+		//connect r+1
+		if(r<N){
+			ans+=(LL)lf[l].b*lf[r+1].b;
+			lf[l].a--;
+			lf[r+1].a--;
+			if(lf[l].a==0)	l++;
+		}
+	}
+
+	cout<<ans;
 
 	return ;
 }
@@ -286,7 +363,7 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	if(freopen("P73901.in","r",stdin));
+	if(freopen("P73902.in","r",stdin));
 	#ifdef ONLINE_JUDGE
 	// if(freopen("P7390.in","r",stdin));
 	// if(freopen("P7390.out","w",stdout));
