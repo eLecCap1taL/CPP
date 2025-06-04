@@ -272,8 +272,15 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n,m;
+int a[505][505];
 void solve(bool SPE){ 
-	
+	n=RIN,m=RIN;
+	foru(i,1,n){
+		foru(j,1,m){
+			a[i][j]=RCIN=='B';
+		}
+	}
 	return ;
 }
 /*
