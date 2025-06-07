@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 1000005
+#define MAXN 100005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -218,8 +218,8 @@ public:
 	}
 }TIMECHECKER;
 
-constexpr int mod=998244353;
-// constexpr int mod=1e9+7;
+// constexpr int mod=998244353;
+constexpr int mod=1e9+7;
 
 constexpr int& mdd(int& x){return x;}
 template<class T1,class ...T2>
@@ -260,7 +260,9 @@ constexpr int rmv(int x,int y){
 }
 constexpr int mev(const int& x){return mod-x;}
 
-constexpr int qpow(int x,int y){
+constexpr int qpow(int x,LL y){
+	if(y<0)	return 0;
+	// cerr<<y<<endl;
 	int ret=1;
 	while(y){
 		if(y&1)	mll(ret,x);
@@ -274,18 +276,104 @@ constexpr int qpow(int x,int y){
 */
 
 int n;
-int a[MAXN];
-int b[MAXN];
-int c[MAXN];
+class Memory{
+public:
+	int col;
+	int a;
+}a[MAXN];
+
+namespace SUB1{
+	LL N;
+	void work(){
+		int ans=0;
+
+		static int f[100005][2][2][2];
+		
+		f[0][0][0][0]=1;
+		foru(i,0,n-1){
+			// cerr<<i<<endl;
+			N+=a[i].a;
+			int MN=qpow(2,N);
+			int MN1=qpow(2,N-1);
+			int MNA=qpow(MN,a[i+1].a);
+			int MN1A=qpow(MN1,a[i+1].a);
+			int AA=qpow(2,(LL)a[i+1].a*(a[i+1].a-1)/2);
+			int A=qpow(2,a[i+1].a);
+			int A1=qpow(2,a[i+1].a-1);
+			foru(yw,0,1){
+				foru(p,0,1){
+					foru(q,0,1){
+						if(f[i][yw][p][q]==0)	continue;
+
+						// cerr<<i<<' '<<yw<<' '<<p<<' '<<q<<endl;
+						// cerr<<i<<' '<<x<<' '<<y<<' '<<z<<' '<<w<<' '<<f[i][x][y][z]<<endl;
+
+						// assert(q==(w>0));
+						int F[4]={0,0,0,0};
+						if(q){
+							F[0]=MN1;
+						}
+						F[1]=rmv(MN,F[0]);
+						if(p){
+							F[2]=MN1;
+						}
+						F[3]=rmv(MN,F[2]);
+
+						int g[2][2][2];
+						memset(g,0,sizeof g);
+
+						if(a[i+1].col==0 || a[i+1].col==-1){
+							if(!q){
+								mdd(g[(yw+a[i+1].a)&1][1][0],MNA);
+							}else{
+								mdd(g[yw][p][1],MN1A);
+								mdd(g[yw][1][1],mul(MN1A,rmv(A1,1)));
+								mdd(g[!yw][1][1],mul(MN1A,A1));
+							}
+						}
+						if(a[i+1].col==1 || a[i+1].col==-1){
+							if(!p){
+								mdd(g[(yw+a[i+1].a)&1][0][1],MNA);
+							}else{
+								mdd(g[yw][1][q],MN1A);
+								mdd(g[yw][1][1],mul(MN1A,rmv(A1,1)));
+								mdd(g[!yw][1][1],mul(MN1A,A1));
+							}
+						}
+						foru(x,0,1)	foru(y,0,1)	foru(z,0,1)	mll(g[x][y][z],f[i][yw][p][q],AA);
+						foru(x,0,1)	foru(y,0,1)	foru(z,0,1)	mdd(f[i+1][x][y][z],g[x][y][z]);
+					}
+				}
+			}
+		}
+		// cerr<<endl;
+		foru(yw,0,1){
+			foru(p,0,1){
+				foru(q,0,1){
+					if(f[n][yw][p][q]==0)	continue;
+					// cerr<<n<<' '<<x<<' '<<y<<' '<<z<<' '<<w<<' '<<f[n][x][y][z]<<endl;
+					if((yw)&1){
+						mdd(ans,f[n][yw][p][q]);
+					}
+				}
+			}
+		}
+		cout<<ans;
+	}
+}
 
 void solve(bool SPE){ 
 	n=RIN;
 
+	LL sa=0;
 	foru(i,1,n){
-		b[i]=RIN;
-		a[i]=RIN;
-		c[i]=RIN;
+		a[i]={RIN,RIN};
+		sa+=a[i].a;
 	}
+	// cerr<<C[4][2]<<endl;
+
+	SUB1::work();
+	return ;
 
 	return ;
 }
@@ -299,10 +387,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	if(freopen("journey1.in","r",stdin));
+	// if(freopen("gemini1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen("journey.in","r",stdin));
-	if(freopen("journey.out","w",stdout));
+	// if(freopen("gemini.in","r",stdin));
+	// if(freopen("gemini.out","w",stdout));
 	#endif
 	#endif
 	

@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 1000005
+#define MAXN 200005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -207,7 +207,7 @@ OPERATOR_FOR_INSERT(multiset)
 OPERATOR_FOR_INSERT(unordered_multiset)
 
 template<typename T1,typename T2>
-inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
+inline bool chkmax(T1& x,const T2& y){return x<(T1)y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 
@@ -272,21 +272,33 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-
-int n;
-int a[MAXN];
-int b[MAXN];
-int c[MAXN];
-
-void solve(bool SPE){ 
-	n=RIN;
-
-	foru(i,1,n){
-		b[i]=RIN;
-		a[i]=RIN;
-		c[i]=RIN;
+mt19937 rd(random_device{}()^time(0));
+int genrd(int l,int r){
+	return l+rd()%(r-l+1);
+}
+void gens(int n){
+	while(n--){
+		cout<<"ab"[rd()&1];
 	}
-
+}
+void gens(int l,int r){
+	gens(genrd(l,r));
+}
+void solve(bool SPE){ 
+	int n=100,m=100,q=100;
+	cout<<n<<' '<<m<<' '<<q<<endl;
+	foru(i,1,n){
+		gens(10,20);
+		cout<<endl;
+	}
+	foru(i,1,m){
+		cout<<genrd(1,n)<<' ';
+	}
+	cout<<endl;
+	foru(i,1,q){
+		gens(1,10);
+		cout<<endl;
+	}
 	return ;
 }
 /*
@@ -299,10 +311,9 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	if(freopen("journey1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen("journey.in","r",stdin));
-	if(freopen("journey.out","w",stdout));
+	if(freopen(".in","r",stdin));
+	if(freopen(".out","w",stdout));
 	#endif
 	#endif
 	

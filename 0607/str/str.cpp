@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 1000005
+#define MAXN 50005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -207,7 +207,7 @@ OPERATOR_FOR_INSERT(multiset)
 OPERATOR_FOR_INSERT(unordered_multiset)
 
 template<typename T1,typename T2>
-inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
+inline bool chkmax(T1& x,const T2& y){return x<(T1)y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 
@@ -273,18 +273,166 @@ constexpr int qpow(int x,int y){
 
 */
 
-int n;
-int a[MAXN];
-int b[MAXN];
-int c[MAXN];
+class AC{
+public:
+	class Node{
+	public:
+		int ch[2];
+		int fail;
+		int& operator [] (const int& idx){
+			return ch[idx];
+		}
+	}tr[100005];
+	int N=1;
+	int insert(const string& s){
+		int u=1;
+		for(auto c:s){
+			if(tr[u][c-'a']==0)	tr[u][c-'a']=++N;
+			u=tr[u][c-'a'];
+		}
+		return u;
+	}
+	void build(){
+		static queue<int> q;
+		tr[0][0]=tr[0][1]=1;
+		tr[0].fail=tr[1].fail=0;
+		while(!q.empty())	q.pop();
+		q.push(1);
+		while(!q.empty()){
+			int u=q.front();
+			q.pop();
+			for(int i=0;i<2;i++){
+				if(tr[u][i]){
+					tr[tr[u][i]].fail=tr[tr[u].fail][i];
+					q.push(tr[u][i]);
+				}else{
+					tr[u][i]=tr[tr[u].fail][i];
+				}
+			}
+		}
+	}
+	void clear(){
+		N=1;
+		tr[1][0]=tr[1][1]=0;
+	}
+	Node& operator [] (const int& idx){
+		return tr[idx];
+	}
+}ac;
+
+int n,m,q;
+string s[50005];
+string qs[50005];
+int a[50005];
+
+namespace SUB1{
+	int match[50005];
+	int sz[100005];
+	void work(){
+		foru(i,1,q){
+			match[i]=ac.insert(qs[i]);
+		}
+		ac.build();
+		int u=1;
+		foru(i,1,m){
+			for(auto c:s[a[i]]){
+				u=ac[u][c-'a'];
+				sz[u]++;
+			}
+		}
+
+		static vector<int> e[100005];
+		foru(i,1,ac.N){
+			e[ac[i].fail]+=i;
+		}
+		auto upd=[](auto& upd,int u)->void {
+			for(auto v:e[u]){
+				upd(upd,v);
+				sz[u]+=sz[v];
+			}
+		};
+		upd(upd,1);
+		foru(i,1,q){
+			printf("%d\n",sz[match[i]]);
+		}
+	}
+}
+
+// namespace SUB2{
+// 	vector<int> pre[50005];
+// 	vector<int> suf[50005];
+// 	int match[50005];
+// 	int sz[50005];
+// 	void work(){
+// 		foru(i,1,q){
+// 			int L=qs[i].size();
+// 			pre.resize(qs[i].size(),0);
+// 			suf.resize(qs[i].size())
+
+// 			int u=1;
+// 			for(int j=1;j<=L;j++){
+// 				int ch=qs[i][j]
+// 			}
+// 			for(auto c:s){
+// 				if(tr[u][c-'a']==0)	tr[u][c-'a']=++N;
+// 				u=tr[u][c-'a'];
+// 			}
+// 			match[i]=ac.insert(qs[i]);
+// 		}
+// 		ac.build();
+// 		int u=1;
+// 		foru(i,1,m){
+// 			for(auto c:s[a[i]]){
+// 				u=ac[u][c-'a'];
+// 				sz[u]++;
+// 			}
+// 		}
+
+// 		static vector<int> e[1000005];
+// 		foru(i,1,ac.N){
+// 			e[ac[i].fail]+=i;
+// 		}
+// 		auto upd=[](auto& upd,int u)->void {
+// 			for(auto v:e[u]){
+// 				upd(upd,v);
+// 				sz[u]+=sz[v];
+// 			}
+// 		};
+// 		upd(upd,1);
+// 		foru(i,1,q){
+// 			printf("%d\n",sz[match[i]]);
+// 		}
+// 	}
+// }
 
 void solve(bool SPE){ 
-	n=RIN;
+	n=RIN,m=RIN,q=RIN;
 
+	int smn=INT_MAX;
 	foru(i,1,n){
-		b[i]=RIN;
+		s[i]=RSIN;
+		chkmin(smn,s[i].size());
+	}
+	int N=0;
+	foru(i,1,m){
 		a[i]=RIN;
-		c[i]=RIN;
+		N+=s[a[i]].size();
+	}
+
+	int qmx=INT_MIN;
+	foru(i,1,q){
+		qs[i]=RSIN;
+		chkmax(qmx,qs[i].size());
+	}
+
+	// cerr<<smn<<' '<<qmx<<endl;
+	// if(qmx<=smn){
+	// 	SUB2::work();
+	// 	return ;
+	// }
+	if(N<=1000000){
+		SUB1::work();
+		return ;
 	}
 
 	return ;
@@ -299,10 +447,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	if(freopen("journey1.in","r",stdin));
+	if(freopen("str1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen("journey.in","r",stdin));
-	if(freopen("journey.out","w",stdout));
+	if(freopen("str.in","r",stdin));
+	if(freopen("str.out","w",stdout));
 	#endif
 	#endif
 	

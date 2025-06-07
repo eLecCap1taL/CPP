@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 1000005
+#define MAXN 10005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -272,19 +272,174 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-
-int n;
+int n,m,q,T,K;
+class Task{
+public:
+	int l,r,c;
+}b[10005];
 int a[MAXN];
-int b[MAXN];
-int c[MAXN];
+
+class OPT{
+public:
+	int l,r,v;
+}op[200005];
+
+namespace SUBM100{
+	int f[MAXN];
+	int s[MAXN];
+	void work(){
+		int lst=0;
+		foru(o,1,q){
+			auto [l,r,v]=op[o];
+			if(T){
+				l^=lst;
+				r^=lst;
+				v^=lst;
+			}
+			foru(i,1,m){
+				if(f[i])	continue;
+				auto [L,R,c]=b[i];
+				s[i]+=max(0,min(R,r)-max(L,l)+1)*v;
+				if(s[i]>=c){
+					f[i]=o;
+					lst^=L^R^c;
+				}
+			}
+		}
+		foru(i,1,m){
+			if(f[i]==0)	f[i]=-1;
+			printf("%d ",f[i]);
+		}
+	}
+}
+
+namespace SUBT0{
+	class Node{
+	public:
+		int lc,rc;
+		LL s;
+		LL tg;
+	}tr[200005*40];
+	inline int& lc(int p){return tr[p].lc;}
+	inline int& rc(int p){return tr[p].rc;}
+	int pcnt;
+	void push_up(int p,int l,int r){
+		tr[p].s=tr[lc(p)].s+tr[rc(p)].s+tr[p].tg*(r-l+1);
+	}
+	int rt[200005];
+	void build(int& p,int l,int r){
+		if(!p)	p=++pcnt;
+		if(l==r){
+			return ;
+		}
+		int mid=(l+r)>>1;
+		build(lc(p),l,mid);
+		build(rc(p),mid+1,r);
+	}
+	void modify(int& p,int l,int r,int nl,int nr,int k){
+		tr[++pcnt]=tr[p];
+		// cerr<<"vis "<<pcnt<<"("<<p<<") "<<l<<' '<<r<<' '<<nl<<' '<<nr<<' '<<k<<endl; 
+		p=pcnt;
+		if(nl<=l && r<=nr){
+			tr[p].s+=(LL)(r-l+1)*k;
+			tr[p].tg+=k;
+			return ;
+		}
+		int mid=(l+r)>>1;
+		if(nl<=mid)	modify(lc(p),l,mid,nl,nr,k);
+		if(nr>mid)	modify(rc(p),mid+1,r,nl,nr,k);
+		push_up(p,l,r);
+	}
+	// void Modify(int& p,int l,int r,int nl,int nr,int k){
+	// 	// tr[++pcnt]=tr[p];
+	// 	// cerr<<"vis "<<pcnt<<"("<<p<<") "<<l<<' '<<r<<' '<<nl<<' '<<nr<<' '<<k<<endl; 
+	// 	// p=pcnt;
+	// 	if(nl<=l && r<=nr){
+	// 		// cerr<<"upd"<<endl;
+	// 		// tr[p].s+=(LL)(r-l+1)*k;
+	// 		// tr[p].tg+=k;
+	// 		return ;
+	// 	}
+	// 	int mid=(l+r)>>1;
+	// 	if(nl<=mid)	Modify(lc(p),l,mid,nl,nr,k);
+	// 	if(nr>mid)	Modify(rc(p),mid+1,r,nl,nr,k);
+	// 	push_up(p);
+	// }
+	LL query(int p,int l,int r,int nl,int nr,LL tg){
+		if(nl<=l && r<=nr){
+			return tr[p].s+tg*(r-l+1);
+		}
+		tg+=tr[p].tg;
+		int mid=(l+r)>>1;
+		LL ret=0;
+		if(nl<=mid)	ret+=query(lc(p),l,mid,nl,nr,tg);
+		if(nr>mid)	ret+=query(rc(p),mid+1,r,nl,nr,tg);
+		return ret;
+	}
+	void work(){
+		build(rt[0],1,n);
+		foru(o,1,q){
+			auto [l,r,v]=op[o];
+			rt[o]=rt[o-1];
+			modify(rt[o],1,n,l,r,v);
+		}
+		// cerr<<pcnt<<' '<<200005*32<<endl;
+		foru(i,1,m){
+			auto [L,R,c]=b[i];
+			// if(query(rt[q],1,n,L,R,0)>=c){
+			// 	// t=q;
+			// }else{
+			// 	LL s=0;
+			// 	foru(o,1,q){
+			// 		auto [l,r,v]=op[o];
+			// 		if(r<L || l>R)	continue;
+			// 		cerr<<' '<<l<<' '<<r<<' '<<v<<endl;
+			// 		s+=max(0,min(R,r)-max(L,l)+1)*(LL)v;
+					
+			// 		LL cur=query(rt[o],1,n,L,R,0);
+			// 		cerr<<cur<<' '<<s<<endl;
+			// 		if(cur!=s){
+			// 			cerr<<query(rt[o-1],1,n,L,R,0)<<endl;
+			// 			cerr<<L<<' '<<R<<endl;
+			// 			int RT=rt[o-1];
+			// 			Modify(RT,1,n,1247,1422,2);
+			// 			cerr<<query(RT,1,n,L,R,0)<<endl;
+			// 			exit(0);
+			// 		}
+			// 	}
+
+			// 	exit(0);
+			// }
+			int l=1,r=q,t=-1;
+			while(l<=r){
+				int mid=(l+r)>>1;
+				if(query(rt[mid],1,n,L,R,0)>=c){
+					t=mid;
+					r=mid-1;
+				}else{
+					l=mid+1;
+				}
+			}
+			printf("%d ",t);
+		}
+	}
+}
 
 void solve(bool SPE){ 
-	n=RIN;
-
-	foru(i,1,n){
-		b[i]=RIN;
-		a[i]=RIN;
-		c[i]=RIN;
+	n=RIN,m=RIN,q=RIN,T=RIN,K=RIN;
+	foru(i,1,m){
+		b[i]={RIN,RIN,RIN};
+	}
+	foru(i,1,q){
+		op[i]={RIN,RIN,RIN};
+	}
+	if(T==0){
+		SUBT0::work();
+		return ;
+	}
+	if(m<=100){
+		SUBM100::work();
+		return ;
 	}
 
 	return ;
@@ -299,10 +454,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	if(freopen("journey1.in","r",stdin));
+	if(freopen("game3.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen("journey.in","r",stdin));
-	if(freopen("journey.out","w",stdout));
+	if(freopen("game.in","r",stdin));
+	if(freopen("game.out","w",stdout));
 	#endif
 	#endif
 	
