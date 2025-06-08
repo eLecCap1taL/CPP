@@ -1,5 +1,13 @@
+// Problem: F - Connecting Points
+// Contest: AtCoder - AtCoder Beginner Contest 409
+// URL: https://atcoder.jp/contests/abc409/tasks/abc409_f
+// Memory Limit: 1024 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
-// #pragma GCC optimize(3)
+#pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
 // #include <bits/stdc++.h>
 #include <cstdio>
@@ -207,14 +215,14 @@ OPERATOR_FOR_INSERT(multiset)
 OPERATOR_FOR_INSERT(unordered_multiset)
 
 template<typename T1,typename T2>
-inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
+inline bool chkmax(T1& x,const T2& y){return x<(T1)y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
@@ -272,14 +280,134 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
-	vector<int> a(10);
-	foru(i,0,9){
-		a[i]=i;
+
+
+int n,q;
+class Point{
+public:
+	int x,y;
+};
+int dis(const Point& x,const Point& y){
+	return abs(x.x-y.x)+abs(x.y-y.y);
+}
+
+// vector<int> ls[3005];
+int sz[3005];
+int fa[3005];
+int find(int x){
+	return fa[x]==x?x:fa[x]=find(fa[x]);
+}
+void Union(int x,int y){
+	x=find(x),y=find(y);
+	if(x==y)	return;
+	if(sz[x]>sz[y]){
+		swap(x,y);
 	}
-	a.resize(5,0);
-	a.resize(20,0);
-	cein<<a;
+	sz[y]+=sz[x];
+	// ls[y].insert(ls[y].end(),All(ls[x]));
+	// ls[x].clear();
+	fa[x]=y;
+}
+
+Point a[3005];
+
+class DS{
+public:
+	int id;
+	priority_queue<pair<int,int>,vector<pair<int,int>>,greater<pair<int,int>>> q;
+	void operator += (const pair<int,int>& x){
+		q.push(x);
+	}
+	void fit(){
+		while(!q.empty() && find(q.top().se)==find(id)){
+			q.pop();
+		}
+	}
+	pair<int,int> qry()const{
+		return q.top();
+	}
+	void pop(){
+		q.pop();
+		// st.erase(st.begin());
+	}
+	// void erase(const pair<int,int>& x){
+		// st.erase(x);
+	// }
+	bool empty(){
+		fit();
+		return q.empty();
+	}
+}ds[3005];
+
+int calc(){
+	int ret=INT_MAX;
+	foru(i,1,n){
+		ds[i].fit();
+		chkmin(ret,ds[i].qry().fi);
+	}
+	return ret;
+}
+
+void solve(bool SPE){ 
+	n=RIN,q=RIN;
+	foru(i,1,n){
+		a[i]={RIN,RIN};
+		fa[i]=i;
+		sz[i]=1;
+		// ls[i]+=i;
+		ds[i].id=i;
+	}
+	
+	foru(i,1,n){
+		foru(j,1,n){
+			if(i!=j){
+				ds[i]+=mkp(dis(a[i],a[j]),j);
+			}
+		}
+	}
+	
+	while(q--){
+		int ty=RIN;
+		if(ty==1){
+			int x=RIN,y=RIN;
+			a[++n]={x,y};
+			foru(i,1,n-1){
+				ds[i]+=mkp(dis(a[i],a[n]),n);
+				ds[n]+=mkp(dis(a[i],a[n]),i);
+			}
+			fa[n]=n;
+			sz[n]=1;
+			// ls[n]+=n;
+			ds[n].id=n;
+		}else if(ty==2){
+			if(n==sz[find(1)]){
+				printf("-1\n");
+				continue;
+			}
+			int k=calc();
+			foru(i,1,n){
+				while(1){
+					ds[i].fit();
+					if(ds[i].empty())	break;
+					auto res=ds[i].qry();
+					if(res.fi!=k)	break;
+					Union(i,res.se);
+					ds[i].pop();
+				}
+			}
+			printf("%d\n",k);
+		}else if(ty==3){
+			int x=RIN,y=RIN;
+			if(find(x)==find(y)){
+				printf("Yes\n");
+			}else{
+				printf("No\n");
+			}
+		}
+	}	
+	
+	
+	
 	return ;
 }
 /*
@@ -290,13 +418,6 @@ void solve(bool SPE){
 signed main()
 {
 	// #define MULTITEST
-	
-	#ifndef CPEDITOR
-	#ifdef ONLINE_JUDGE
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
-	#endif
-	#endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

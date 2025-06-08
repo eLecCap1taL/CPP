@@ -1,3 +1,11 @@
+// Problem: C - Equilateral Triangle
+// Contest: AtCoder - AtCoder Beginner Contest 409
+// URL: https://atcoder.jp/contests/abc409/tasks/abc409_c
+// Memory Limit: 1024 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -30,7 +38,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 300005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -207,14 +215,14 @@ OPERATOR_FOR_INSERT(multiset)
 OPERATOR_FOR_INSERT(unordered_multiset)
 
 template<typename T1,typename T2>
-inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
+inline bool chkmax(T1& x,const T2& y){return x<(T1)y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
@@ -272,14 +280,31 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n,L;
+int a[MAXN];
 void solve(bool SPE){ 
-	vector<int> a(10);
-	foru(i,0,9){
-		a[i]=i;
+	n=RIN,L=RIN;
+	a[1]=0;
+	foru(i,2,n){
+		a[i]=a[i-1]+RIN;
+		a[i]%=L;
 	}
-	a.resize(5,0);
-	a.resize(20,0);
-	cein<<a;
+	
+	if(L%3!=0){
+		cout<<0;
+		return ;
+	}
+	
+	sort(a+1,a+1+n);
+	static LL ct[MAXN];
+	foru(i,1,n){
+		ct[a[i]]++;
+	}
+	LL ans=0;
+	foru(i,0,L-1){
+		ans+=ct[i]*ct[(i+L/3)%L]*ct[(i+L/3*2)%L];
+	}
+	cout<<ans/3;
 	return ;
 }
 /*
@@ -290,13 +315,6 @@ void solve(bool SPE){
 signed main()
 {
 	// #define MULTITEST
-	
-	#ifndef CPEDITOR
-	#ifdef ONLINE_JUDGE
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
-	#endif
-	#endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

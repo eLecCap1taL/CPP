@@ -1,3 +1,11 @@
+// Problem: E - Pair Annihilation
+// Contest: AtCoder - AtCoder Beginner Contest 409
+// URL: https://atcoder.jp/contests/abc409/tasks/abc409_e/
+// Memory Limit: 1024 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -207,14 +215,14 @@ OPERATOR_FOR_INSERT(multiset)
 OPERATOR_FOR_INSERT(unordered_multiset)
 
 template<typename T1,typename T2>
-inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
+inline bool chkmax(T1& x,const T2& y){return x<(T1)y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
@@ -272,14 +280,30 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
-	vector<int> a(10);
-	foru(i,0,9){
-		a[i]=i;
+int n;
+int a[MAXN];
+vector<pair<int,int>> e[MAXN];
+LL ans=0;
+void dfs(int u,int fath){
+	for(auto [v,w]:e[u]){
+		if(v==fath)	continue;
+		dfs(v,u);
+		a[u]+=a[v];
+		ans+=w*(LL)abs(a[v]);
 	}
-	a.resize(5,0);
-	a.resize(20,0);
-	cein<<a;
+}
+void solve(bool SPE){ 
+	n=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+	}
+	foru(i,1,n-1){
+		int u=RIN,v=RIN,w=RIN;
+		e[u]+=mkp(v,w);
+		e[v]+=mkp(u,w);
+	}
+	dfs(1,0);
+	cout<<ans;
 	return ;
 }
 /*
@@ -290,13 +314,6 @@ void solve(bool SPE){
 signed main()
 {
 	// #define MULTITEST
-	
-	#ifndef CPEDITOR
-	#ifdef ONLINE_JUDGE
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
-	#endif
-	#endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

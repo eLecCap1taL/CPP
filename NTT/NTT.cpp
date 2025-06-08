@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 3000005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -207,7 +207,7 @@ OPERATOR_FOR_INSERT(multiset)
 OPERATOR_FOR_INSERT(unordered_multiset)
 
 template<typename T1,typename T2>
-inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
+inline bool chkmax(T1& x,const T2& y){return x<(T1)y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 
@@ -272,14 +272,58 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
-	vector<int> a(10);
-	foru(i,0,9){
-		a[i]=i;
+
+namespace NTT{
+	constexpr int g=3;
+	constexpr int _g=qpow(3,mod-2);
+	vector<int> r;
+	void NTT(vector<int>& a,bool inv){
+		int n=a.size();
+		foru(i,0,n-1)	if(i<r[i])	swap(a[i],a[r[i]]);
+		for(int len=2;len<=n;len<<=1){
+			int W=qpow(inv?_g:g,(mod-1)/len);
+			for(int i=0;i<n;i+=len){
+				for(int j=0,w=1;j*2<len;j++,mll(w,W)){
+					int x=a[i+j],y=mul(a[i+j+len/2],w);
+					a[i+j]=add(x,y);
+					a[i+j+len/2]=rmv(x,y);
+				}
+			}
+		}
+		if(inv){
+			int _n=qpow(n,mod-2);
+			for(auto& x:a)	mll(x,_n);
+		}
 	}
-	a.resize(5,0);
-	a.resize(20,0);
-	cein<<a;
+	vector<int> convolution(const vector<int>& x,const vector<int>& y){
+		vector<int> A=x,B=y;
+		int N=1,L=0,n=x.size(),m=y.size();
+		while(N<n+m-1)	N<<=1,L++;
+		A.resize(N,0),B.resize(N,0),r.resize(N,0);
+		foru(i,0,N-1)	r[i]=(r[i>>1]>>1)|((i&1)<<(L-1));
+		NTT(A,false);
+		NTT(B,false);
+		vector<int> ret(N,0);
+		foru(i,0,N-1)	ret[i]=mul(A[i],B[i]);
+		NTT(ret,true);
+		return ret;
+	}
+}
+
+void solve(bool SPE){
+	int n=RIN+1,m=RIN+1;
+	vector<int> a(n,0);
+	vector<int> b(m,0);
+	foru(i,0,n-1){
+		a[i]=RIN;
+	}
+	foru(i,0,m-1){
+		b[i]=RIN;
+	}
+	auto c=NTT::convolution(a,b);
+	for(int i=0;i<n+m-1;i++){
+		printf("%d ",c[i]);
+	}
 	return ;
 }
 /*
@@ -292,9 +336,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	if(freopen("NTT1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	// if(freopen(".in","r",stdin));
+	// if(freopen(".out","w",stdout));
 	#endif
 	#endif
 	

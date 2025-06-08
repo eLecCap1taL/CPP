@@ -207,7 +207,7 @@ OPERATOR_FOR_INSERT(multiset)
 OPERATOR_FOR_INSERT(unordered_multiset)
 
 template<typename T1,typename T2>
-inline bool chkmax(T1& x,const T2& y){return (T1)x<y?x=(T1)y,true:false;}
+inline bool chkmax(T1& x,const T2& y){return x<(T1)y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
 inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 
@@ -273,13 +273,10 @@ constexpr int qpow(int x,int y){
 
 */
 void solve(bool SPE){ 
-	vector<int> a(10);
-	foru(i,0,9){
-		a[i]=i;
-	}
-	a.resize(5,0);
-	a.resize(20,0);
-	cein<<a;
+	mt19937 rd(random_device{}()^time(0));
+	int n=rd()%100000+1;
+	int p=rd()%101;
+	cout<<n<<' '<<p;
 	return ;
 }
 /*
