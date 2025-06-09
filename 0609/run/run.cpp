@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 100005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -273,8 +273,86 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+int n,m;
+int a[MAXN];
 
+class OPT{
+public:
+	int ty,l,r;
+}op[MAXN];
+
+namespace SUB1{
+	// int qpow(int x,i128 y){
+	// 	int ret=1;
+	// 	while(y){
+	// 		if(y&1)	mll(ret,x);
+	// 		mll(x,x),y>>=1;
+	// 	}
+	// 	return ret;
+	// }
+	int work(i128 n){
+		i128 N=1;
+		int L=0;
+		while(N<n)	N<<=1,L++;
+		return mul(L+1,qpow(2,L));
+	}
+	map<i128,int> mp;
+	int solve(i128 n){
+		if(mp.find(n)!=mp.end())	return mp[n];
+		// cerr<<l<<' '<<r<<endl;
+		if(n==1)	return work(1);
+		i128 mid=(1+n)>>1;
+		i128 rd;
+		if(n&1)	rd=mid-1;
+		else	rd=mid;
+		return mp[n]=solve(mid)+solve(rd)+work(n);
+	}
+	void work(){
+		foru(o,1,m){
+			auto [ty,l,r]=op[o];
+			if(ty==1){
+				foru(i,l,r){
+					a[i]^=1;
+				}
+			}else if(ty==2){
+				foru(i,l,r){
+					a[i]=0;
+				}
+			}else if(ty==3){
+				foru(i,l,r){
+					a[i]=1;
+				}
+			}else{
+				i128 x=0;
+				ford(i,r,l){
+					x<<=1;
+					x+=a[i];
+				}
+				if(x==0){
+					printf("0\n");
+					continue;
+				}
+				int ans=solve(x);
+				printf("%d\n",ans);
+				// exit(0);
+			}
+		}
+	}
+}
+
+void solve(bool SPE){ 
+	n=RIN,m=RIN;
+	foru(i,1,n){
+		a[i]=RCIN=='1';
+	}
+	foru(i,1,m){
+		op[i]={RIN,RIN,RIN};
+	}
+
+	if(n<=20){
+		SUB1::work();
+		return ;
+	}
 	return ;
 }
 /*
@@ -287,9 +365,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	if(freopen("run1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	if(freopen("run.in","r",stdin));
+	if(freopen("run.out","w",stdout));
 	#endif
 	#endif
 	

@@ -30,13 +30,13 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 100005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
 #define uLL unsigned long long
 #define LL long long
-#define LXF int
+#define LXF LL
 #define RIN Cap1taLDebug::read()
 #define RSIN Cap1taLDebug::rdstr()
 #define RCIN Cap1taLDebug::rdchar()
@@ -273,7 +273,162 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+
+int n,m;
+
+vector<int> pls[MAXN];
+void gen(){
+	static bitset<MAXN> vis;
+	static vector<int> prim;
+	static int lowp[MAXN];
+	foru(i,2,n){
+		if(!vis[i]){
+			lowp[i]=i;
+			prim+=i;
+		}
+		for(int j=0;j<sz(prim) && i*prim[j]<=n;j++){
+			vis[i*prim[j]]=1;
+			lowp[i*prim[j]]=prim[j];
+			if(i%prim[j]==0)	break;
+		}
+	}
+	foru(i,2,n){
+		int x=i;
+		while(x>1){
+			int p=lowp[x];
+			pls[i]+=p;
+			while(x%p==0)	x/=p;
+		}
+	}
+}
+
+constexpr int M=35;
+
+class Monitor{
+public:
+	static vector<int> dead;
+	static int cnt;
+	int h;
+	int id;
+	LL r;
+	LL tar;
+	vector<int> ls;
+	Monitor(const vector<int>& pos,int idx,LL y);
+	void build();
+};
+vector<int> Monitor::dead;
+int Monitor::cnt;
+
+class Node{
+public:
+	u64 hv;
+	LL v;
+	vector<Monitor*> ls[M+5];
+	void add_buzzer(Monitor* mn,int h);
+	void increse(LL k);
+}a[MAXN];
+
+namespace utils{
+	LL pow2(int h){return 1ull<<h;}
+	LL nxt_pow2(LL v,int h){
+		return (v&(~(pow2(h)-1)))+pow2(h);
+	}
+	LL dis_to_nxt_pow2(LL v,int h){
+		return nxt_pow2(v,h)-v;
+	}
+	u64 cross_mask(u64 v,u64 w){
+		const int diff=63-__builtin_clzll(v^(v+w));
+		return pow2(diff+1)-1;
+	}
+	u64 lowbit(u64 v){
+		return __builtin_ffsll(v)-1;
+	}
+}
+
+void Node::add_buzzer(Monitor* mn,int h){
+	hv|=utils::pow2(h);
+	ls[h]+=mn;
+}
+void Node::increse(LL k){
+	if(k==0)	return ;
+
+	static queue<Monitor*> q;
+	while(!q.empty())	q.pop();
+
+	v+=k;
+
+	u64 mask=utils::cross_mask(v-k,k)&hv;
+	while(mask!=0){
+		int t=utils::lowbit(mask);
+		for(auto mn:ls[t]){
+			if(t!=mn->h)	continue;
+			q.push(mn);
+		}
+		ls[t].clear();
+		mask^=utils::pow2(t);
+	}
+
+	while(!q.empty()){
+		auto mn=q.front();
+		q.pop();
+
+		mn->r-=v-utils::nxt_pow2(v-k,mn->h)+1;
+		auto res=utils::dis_to_nxt_pow2(v,mn->h)-1;
+		if(mn->r>res){
+			mn->r-=res;
+			ls[mn->h]+=mn;
+		}else{
+			mn->build();
+		}
+	}
+}
+void Monitor::build(){
+	r=tar;
+	for(auto p:ls)	r-=a[p].v;
+	if(r<=0){
+		Monitor::dead+=id;
+		h=-1;
+		delete this;
+		return ;
+	}
+	while(r<=(utils::pow2(h)-1)*sz(ls))	h--;
+	//register
+	for(auto p:ls){
+		a[p].add_buzzer(this,h);
+		r-=utils::dis_to_nxt_pow2(a[p].v,h)-1;
+	}
+}
+Monitor::Monitor(const vector<int>& pos,int idx,LL y){
+	h=M;
+	id=idx;
+	tar=y;
+	ls=pos;
+	for(auto p:pos)	tar+=a[p].v;
+	build();
+}
+
 void solve(bool SPE){ 
+	n=RIN,m=RIN;
+
+	gen();
+
+	int lst=0;
+	while(m--){
+		LL op=RIN,x=RIN,y=RIN^lst;
+		if(op==0){
+			for(auto p:pls[x])	a[p].increse(y);
+			sort(All(Monitor::dead));
+			lst=sz(Monitor::dead);
+			printf("%d ",lst);
+			for(auto c:Monitor::dead){
+				printf("%d ",c);
+			}
+			printf("\n");
+			Monitor::dead.clear();
+		}else{
+			new Monitor(pls[x],++Monitor::cnt,y);
+		}
+	}
 
 	return ;
 }
@@ -287,9 +442,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	// if(freopen("P76032.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	// if(freopen("P7603.in","r",stdin));
+	// if(freopen("P7603.out","w",stdout));
 	#endif
 	#endif
 	

@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 1000005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -273,8 +273,77 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+int n,q;
+int a[MAXN];
 
+constexpr int M=17;
+int dp[2][1<<16][17][17];
+
+void solve(bool SPE){ 
+	n=RIN,q=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+	}
+
+	foru(i,1,n){
+		dp[1][a[i]][0][0]++;
+	}
+
+	for(int i=0;i<16;i++){
+		auto f=dp[!(i&1)];
+		auto g=dp[i&1];
+
+		for(int v=0;v<(1<<16);v++){
+			for(int AND=0;AND<=16;AND++){
+				for(int OR=0;OR<=16;OR++){
+					g[v][AND][OR]=0;
+				}
+			}
+		}
+
+		for(int v=0;v<(1<<16);v++){
+			if((v>>i)&1)	continue;
+			for(int AND=0;AND<=16;AND++){
+				for(int OR=0;OR<=16;OR++){
+					g[v][AND][OR]+=f[v][AND][OR];
+					if(OR<16){
+						g[v][AND][OR+1]+=f[v|(1<<i)][AND][OR];
+						g[v|(1<<i)][AND][OR+1]+=f[v][AND][OR];
+						g[v|(1<<i)][AND+1][OR+1]+=f[v|(1<<i)][AND][OR];
+					}
+				}
+			}
+		}
+	}
+
+	auto f=dp[15&1];
+
+	foru(o,1,q){
+		int A=RIN,B=RIN,C=RIN,k=RIN,x=RIN;
+
+		class Node{
+		public:
+			int AND,OR,val;
+			bool operator < (const Node& x)const{
+				return val<x.val;
+			}
+		};
+		vector<Node> ls;
+		for(int AND=0;AND<=16;AND++){
+			for(int OR=0;OR<=16;OR++){
+				ls.push_back({AND,OR,(A-C)*AND+(B+C)*OR});
+			}
+		}
+		sort(All(ls));
+		int rank=0;
+		for(auto [AND,OR,val]:ls){
+			rank+=f[x][AND][OR];
+			if(rank>=k){
+				printf("%d\n",val);
+				break;
+			}
+		}
+	}
 	return ;
 }
 /*
@@ -287,9 +356,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	if(freopen("bit1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	if(freopen("bit.in","r",stdin));
+	if(freopen("bit.out","w",stdout));
 	#endif
 	#endif
 	

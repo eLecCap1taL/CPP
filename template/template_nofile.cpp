@@ -56,6 +56,7 @@
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #define mkp(x,y) make_pair(x,y)
 #define ast(x) if(!(x))	{cerr<<endl<<"err at"<<__LINE__<<endl;exit(1);}
+#define sz(x) ((int)(x.size()))
 using namespace std;
 
 typedef __int128 i128;

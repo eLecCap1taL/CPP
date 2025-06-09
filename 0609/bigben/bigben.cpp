@@ -261,7 +261,7 @@ constexpr int rmv(int x,int y){
 }
 constexpr int mev(const int& x){return mod-x;}
 
-constexpr int qpow(int x,int y){
+constexpr int qpow(int x,LL y){
 	int ret=1;
 	while(y){
 		if(y&1)	mll(ret,x);
@@ -274,6 +274,8 @@ constexpr int qpow(int x,int y){
 
 */
 void solve(bool SPE){ 
+	LL n,c;
+	cin>>n>>c;
 
 	return ;
 }
@@ -287,9 +289,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	if(freopen("bigben2.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	if(freopen("bigben.in","r",stdin));
+	if(freopen("bigben.out","w",stdout));
 	#endif
 	#endif
 	

@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 1000005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -273,7 +273,40 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n,q;
+int a[MAXN];
+class QR{
+public:
+	int A,B,C,k,x;
+}qr[70005];
+
+namespace SUB1{
+	int b[MAXN];
+	void work(){
+		foru(o,1,q){
+			auto [A,B,C,k,x]=qr[o];
+			foru(i,1,n){
+				b[i]=A*__builtin_popcount(a[i]&x)+B*__builtin_popcount(a[i]|x)+C*__builtin_popcount(a[i]^x);
+			}
+			nth_element(b+1,b+k,b+1+n);
+			printf("%d\n",b[k]);
+		}
+	}
+}
+
 void solve(bool SPE){ 
+	n=RIN,q=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+	}
+
+	foru(i,1,q){
+		qr[i]={RIN,RIN,RIN,RIN,RIN};
+	}
+
+	// if(n<=10000){
+		SUB1::work();
+	// }
 
 	return ;
 }
@@ -287,9 +320,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	// if(freopen("bit1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen(".in","r",stdin));
-	if(freopen(".out","w",stdout));
+	if(freopen("bit.in","r",stdin));
+	if(freopen("bit.out","w",stdout));
 	#endif
 	#endif
 	

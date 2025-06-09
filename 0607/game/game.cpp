@@ -268,179 +268,242 @@ constexpr int qpow(int x,int y){
 	}
 	return ret;
 }
-
+#define sz(x) ((int)(x.size()))
 /*
 
 */
-int n,m,q,T,K;
-class Task{
-public:
-	int l,r,c;
-}b[10005];
-int a[MAXN];
 
-class OPT{
-public:
-	int l,r,v;
-}op[200005];
-
-namespace SUBM100{
-	int f[MAXN];
-	int s[MAXN];
-	void work(){
-		int lst=0;
-		foru(o,1,q){
-			auto [l,r,v]=op[o];
-			if(T){
-				l^=lst;
-				r^=lst;
-				v^=lst;
-			}
-			foru(i,1,m){
-				if(f[i])	continue;
-				auto [L,R,c]=b[i];
-				s[i]+=max(0,min(R,r)-max(L,l)+1)*v;
-				if(s[i]>=c){
-					f[i]=o;
-					lst^=L^R^c;
-				}
-			}
-		}
-		foru(i,1,m){
-			if(f[i]==0)	f[i]=-1;
-			printf("%d ",f[i]);
-		}
+namespace utils{
+	inline LL pow2(int h){return 1ull<<h;}
+	inline LL nxt_pow2(LL v,int h){
+		return (v&(~(pow2(h)-1)))+pow2(h);
+	}
+	inline LL dis_to_nxt_pow2(LL v,int h){
+		return nxt_pow2(v,h)-v;
+	}
+	// inline LL ceil_to_pow2(LL v,int h){
+	// 	return ((v-1)/pow2(h)+1)*pow2(h);
+	// }
+	inline u64 cross_mask(LL v,LL k){
+		int t=63-__builtin_clzll(v^(v+k));
+		return pow2(t+1)-1;
+	}
+	inline u64 lowbit(u64 x){
+		return __builtin_ffsll(x)-1;
 	}
 }
 
-namespace SUBT0{
+class Monitor;
+class Manager;
+class SegmentTree;
+
+constexpr int M=30;
+
+class Manager{
+	u64 hv;
+	vector<Monitor*> ls[M+1];
+public:
+	static SegmentTree* faT;
+	int treeid;
+	LL v;
+
+	void increse(LL k);
+	void add_buzzer(Monitor* mn,int h);
+	LL getlim()const;
+};
+
+class Monitor{
+public:
+	inline static vector<int> dead;
+	inline static int mcnt;
+	int id;
+	LL tar;
+	LL r;
+	int h;
+	vector<Manager*> ls;
+
+	void init(const vector<Manager*>& pos,LL tar,int idx);
+	void build();
+};
+
+LL Manager::getlim()const{
+	if(hv==0)	return 1e18;
+	return utils::dis_to_nxt_pow2(v,utils::lowbit(hv))-1;
+}
+
+void Manager::increse(LL k){
+	if(k==0)	return ;
+	
+	static queue<Monitor*> q;
+	while(!q.empty())	q.pop();
+
+	v+=k;
+	u64 mask=utils::cross_mask(v-k,k)&hv;
+	while(mask){
+		int t=utils::lowbit(mask);
+		for(auto mn:ls[t]){
+			if(mn->h!=t)	continue;
+			q.push(mn);
+		}
+		mask^=utils::pow2(t);
+	}
+
+	while(!q.empty()){
+		auto mn=q.front();
+		q.pop();
+
+		mn->r-=v-utils::nxt_pow2(v-k,mn->h)+1;
+		LL res=utils::dis_to_nxt_pow2(v,mn->h)-1;
+		if(mn->r>res){
+			mn->r-=res;
+			ls[mn->h]+=mn;
+		}else{
+			mn->build();
+		}
+	}
+	faT->updlim(treeid);
+}
+
+void Manager::add_buzzer(Monitor* mn,int h){
+	ls[h]+=mn;
+	hv|=utils::pow2(h);
+	faT->updlim(treeid);
+}
+
+void Monitor::build(){
+	r=tar;
+	for(auto nd:ls)	r-=nd->v;
+	if(r<=0){
+		Monitor::dead+=id;
+		h=-1;
+		return ;
+	}
+	while((utils::pow2(h)-1)*sz(ls)>=r)	h--;
+	for(auto nd:ls){
+		r-=utils::dis_to_nxt_pow2(nd->v,h)-1;
+		nd->add_buzzer(this,h);
+	}
+}
+
+void Monitor::init(const vector<Manager*>& pos,LL s,int idx){
+	this->id=idx;
+	this->ls=pos;
+	this->tar=s;
+	this->h=M;
+	this->build();
+}
+
+// Monitor
+
+
+class SegmentTree{
+public:
 	class Node{
 	public:
-		int lc,rc;
-		LL s;
-		LL tg;
-	}tr[200005*40];
-	inline int& lc(int p){return tr[p].lc;}
-	inline int& rc(int p){return tr[p].rc;}
-	int pcnt;
-	void push_up(int p,int l,int r){
-		tr[p].s=tr[lc(p)].s+tr[rc(p)].s+tr[p].tg*(r-l+1);
+		int l,r;
+		Manager node;
+		LL add;
+		LL lim;
+		inline LL calc_add(int L,int R,LL k)const{
+			return (min(R,r)-max(L,l)-1)*k;
+		}
+	}tr[MAXN<<2];
+	inline int lc(int x){return x<<1;}
+	inline int rc(int x){return x<<1|1;}
+	void push_up(int p){
+		tr[p].lim=min({tr[lc(p)].lim,tr[rc(p)].lim,tr[p].node.getlim()});
 	}
-	int rt[200005];
-	void build(int& p,int l,int r){
-		if(!p)	p=++pcnt;
+	void build(int p,int l,int r){
+		tr[p].l=l,tr[p].r=r;
+		tr[p].node.treeid=p;
 		if(l==r){
+			tr[p].lim=tr[p].node.getlim();
 			return ;
 		}
 		int mid=(l+r)>>1;
 		build(lc(p),l,mid);
 		build(rc(p),mid+1,r);
+		push_up(p);
 	}
-	void modify(int& p,int l,int r,int nl,int nr,int k){
-		tr[++pcnt]=tr[p];
-		// cerr<<"vis "<<pcnt<<"("<<p<<") "<<l<<' '<<r<<' '<<nl<<' '<<nr<<' '<<k<<endl; 
-		p=pcnt;
-		if(nl<=l && r<=nr){
-			tr[p].s+=(LL)(r-l+1)*k;
-			tr[p].tg+=k;
+	void access(int p,int l,int r,vector<Manager*>& ls){
+		if(l<=tr[p].l && tr[p].r<=r){
+			ls+=&tr[p].node;
 			return ;
 		}
-		int mid=(l+r)>>1;
-		if(nl<=mid)	modify(lc(p),l,mid,nl,nr,k);
-		if(nr>mid)	modify(rc(p),mid+1,r,nl,nr,k);
-		push_up(p,l,r);
+		int mid=(tr[p].l+tr[p].r)>>1;
+		if(l<=mid)	access(lc(p),l,r,ls);
+		if(r>mid)	access(rc(p),l,r,ls);
 	}
-	// void Modify(int& p,int l,int r,int nl,int nr,int k){
-	// 	// tr[++pcnt]=tr[p];
-	// 	// cerr<<"vis "<<pcnt<<"("<<p<<") "<<l<<' '<<r<<' '<<nl<<' '<<nr<<' '<<k<<endl; 
-	// 	// p=pcnt;
-	// 	if(nl<=l && r<=nr){
-	// 		// cerr<<"upd"<<endl;
-	// 		// tr[p].s+=(LL)(r-l+1)*k;
-	// 		// tr[p].tg+=k;
-	// 		return ;
-	// 	}
-	// 	int mid=(l+r)>>1;
-	// 	if(nl<=mid)	Modify(lc(p),l,mid,nl,nr,k);
-	// 	if(nr>mid)	Modify(rc(p),mid+1,r,nl,nr,k);
-	// 	push_up(p);
-	// }
-	LL query(int p,int l,int r,int nl,int nr,LL tg){
-		if(nl<=l && r<=nr){
-			return tr[p].s+tg*(r-l+1);
-		}
-		tg+=tr[p].tg;
-		int mid=(l+r)>>1;
-		LL ret=0;
-		if(nl<=mid)	ret+=query(lc(p),l,mid,nl,nr,tg);
-		if(nr>mid)	ret+=query(rc(p),mid+1,r,nl,nr,tg);
-		return ret;
-	}
-	void work(){
-		build(rt[0],1,n);
-		foru(o,1,q){
-			auto [l,r,v]=op[o];
-			rt[o]=rt[o-1];
-			modify(rt[o],1,n,l,r,v);
-		}
-		// cerr<<pcnt<<' '<<200005*32<<endl;
-		foru(i,1,m){
-			auto [L,R,c]=b[i];
-			// if(query(rt[q],1,n,L,R,0)>=c){
-			// 	// t=q;
-			// }else{
-			// 	LL s=0;
-			// 	foru(o,1,q){
-			// 		auto [l,r,v]=op[o];
-			// 		if(r<L || l>R)	continue;
-			// 		cerr<<' '<<l<<' '<<r<<' '<<v<<endl;
-			// 		s+=max(0,min(R,r)-max(L,l)+1)*(LL)v;
-					
-			// 		LL cur=query(rt[o],1,n,L,R,0);
-			// 		cerr<<cur<<' '<<s<<endl;
-			// 		if(cur!=s){
-			// 			cerr<<query(rt[o-1],1,n,L,R,0)<<endl;
-			// 			cerr<<L<<' '<<R<<endl;
-			// 			int RT=rt[o-1];
-			// 			Modify(RT,1,n,1247,1422,2);
-			// 			cerr<<query(RT,1,n,L,R,0)<<endl;
-			// 			exit(0);
-			// 		}
-			// 	}
 
-			// 	exit(0);
-			// }
-			int l=1,r=q,t=-1;
-			while(l<=r){
-				int mid=(l+r)>>1;
-				if(query(rt[mid],1,n,L,R,0)>=c){
-					t=mid;
-					r=mid-1;
-				}else{
-					l=mid+1;
-				}
-			}
-			printf("%d ",t);
+	void push_down(int p);
+	void upd(int p,LL k){
+		if(k<=tr[p].lim){
+			tr[p].add+=k;
+			tr[p].lim-=k;
+			tr[p].node.increse(k);
+			return ;
+		}
+		tr[p].node.increse(k);
+		if(tr[p].l==tr[p].r){
+			tr[p].lim=tr[p].node.getlim();
+			return ;
+		}
+		push_down(p);
+		push_up(p);
+	}
+	void push_down(int p){
+		if(tr[p].add==0)	return ;
+		LL tg=tr[p].add;
+		tr[p].add=0;
+		upd(lc(p),tg);
+		upd(rc(p),tg);
+	}
+
+	void updlim(int t){
+		static stack<int> st;
+		
+		int x=t>>1;
+		while(x){
+			st.push(x);
+			x>>=1;
+		}
+		while(!st.empty()){
+			int p=st.top();
+			st.pop();
+			push_down(p);
+		}
+		if(tr[t].l==tr[t].r)	tr[t].lim=tr[t].node.getlim();
+		else	push_up(t);
+		t>>=1;
+		while(t){
+			push_up(t);
+			t>>=1;
 		}
 	}
-}
+}tr;
 
+Monitor mo[MAXN];
+
+int n,m,q,T,K;
+class Task{
+public:
+	int l,r,c;
+}tsk[MAXN];
 void solve(bool SPE){ 
 	n=RIN,m=RIN,q=RIN,T=RIN,K=RIN;
+	
+	Manager::faT=&tr;
+	tr.build(1,1,n);
+	
 	foru(i,1,m){
-		b[i]={RIN,RIN,RIN};
+		int l=RIN,r=RIN,c=RIN;
+		tsk[i]={l,r,c};
+		vector<Manager*> ls;
+		tr.access(1,l,r,ls);
+		mo[i].init(ls,c,i);
 	}
-	foru(i,1,q){
-		op[i]={RIN,RIN,RIN};
-	}
-	if(T==0){
-		SUBT0::work();
-		return ;
-	}
-	if(m<=100){
-		SUBM100::work();
-		return ;
-	}
+	
+
 
 	return ;
 }
@@ -454,7 +517,7 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	if(freopen("game3.in","r",stdin));
+	if(freopen("game1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
 	if(freopen("game.in","r",stdin));
 	if(freopen("game.out","w",stdout));
