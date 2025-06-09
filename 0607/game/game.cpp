@@ -1,6 +1,6 @@
 //%^~
-// #pragma GCC optimize(3)
-// #pragma GCC optimize("Ofast")
+#pragma GCC optimize(3)
+#pragma GCC optimize("Ofast")
 // #include <bits/stdc++.h>
 #include <cstdio>
 #include <cstring>
@@ -55,7 +55,7 @@
 #define likely(x) __builtin_expect(!!(x), 1) 
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #define mkp(x,y) make_pair(x,y)
-#define ast(x) if(!(x))	{cerr<<endl<<"err at"<<__LINE__<<endl;exit(1);}
+#define ast(x) if(!(x))	{cein<<endl<<"err at"<<__LINE__<<endl;exit(1);}
 using namespace std;
 
 typedef __int128 i128;
@@ -69,7 +69,7 @@ typedef unsigned short u16;
 
 class Cap1taLDebug{
 public:
-	#define DEBUGING
+	// #define DEBUGING
 
 	ostream& buf;
 	#ifndef DEBUGING
@@ -173,8 +173,8 @@ public:
 #ifndef DEBUGING
 char Cap1taLDebug::fbuf[1<<21],*Cap1taLDebug::p1=nullptr,*Cap1taLDebug::p2=nullptr;
 #endif
-Cap1taLDebug cein(cout);
-// Cap1taLDebug cein(cerr);
+// Cap1taLDebug cein(cout);
+Cap1taLDebug cein(cerr);
 ostream& operator<<(ostream& os,i128 val){
 	os<<Cap1taLDebug::i128ToString(val);
 	return os;
@@ -274,6 +274,7 @@ constexpr int qpow(int x,int y){
 */
 
 namespace utils{
+	LL mi[40];
 	inline LL pow2(int h){return 1ull<<h;}
 	inline LL nxt_pow2(LL v,int h){
 		return (v&(~(pow2(h)-1)))+pow2(h);
@@ -281,143 +282,247 @@ namespace utils{
 	inline LL dis_to_nxt_pow2(LL v,int h){
 		return nxt_pow2(v,h)-v;
 	}
-	// inline LL ceil_to_pow2(LL v,int h){
-	// 	return ((v-1)/pow2(h)+1)*pow2(h);
-	// }
 	inline u64 cross_mask(LL v,LL k){
 		int t=63-__builtin_clzll(v^(v+k));
 		return pow2(t+1)-1;
 	}
-	inline u64 lowbit(u64 x){
+	inline int lowbit(u64 x){
 		return __builtin_ffsll(x)-1;
 	}
+	void init(){
+		foru(i,0,39)	mi[i]=1ll<<i;
+	}
 }
-
-class Monitor;
-class Manager;
-class SegmentTree;
 
 constexpr int M=30;
 
-class Manager{
-	u64 hv;
-	vector<Monitor*> ls[M+1];
-public:
-	static SegmentTree* faT;
-	int treeid;
-	LL v;
+namespace Alert{
+	class Monitor;
+	class Manager;
 
-	void increse(LL k);
-	void add_buzzer(Monitor* mn,int h);
-	LL getlim()const;
-};
+	class Manager{
+		int hv;
+		vector<int> ls[M+1];
+		LL v;
 
-class Monitor{
-public:
-	inline static vector<int> dead;
-	inline static int mcnt;
-	int id;
-	LL tar;
-	LL r;
-	int h;
-	vector<Manager*> ls;
+	public:
 
-	void init(const vector<Manager*>& pos,LL tar,int idx);
-	void build();
-};
+		// int hook_L;
+		// int hook_R;
 
-LL Manager::getlim()const{
-	if(hv==0)	return 1e18;
-	return utils::dis_to_nxt_pow2(v,utils::lowbit(hv))-1;
-}
+		LL get_lim()const;
+		LL get_value()const;
+		void increse(LL k);
+		void add_buzzer(int i,int h);
+	};
 
-void Manager::increse(LL k){
-	if(k==0)	return ;
-	
-	static queue<Monitor*> q;
-	while(!q.empty())	q.pop();
+	class Monitor{
+		inline static pair<int,int> rebuild_queue[10001];
+		inline static int rebuild_queue_top;
+		// inline static stack<pair<int,int>,vector<pair<int,int>>> rebuild_queue;
 
-	v+=k;
-	u64 mask=utils::cross_mask(v-k,k)&hv;
-	while(mask){
-		int t=utils::lowbit(mask);
-		for(auto mn:ls[t]){
-			if(mn->h!=t)	continue;
-			q.push(mn);
+		int id;
+		int h;
+		LL tar;
+		LL r;
+		int L,R;
+		vector<Manager*> ls;
+
+	public:
+		inline static vector<int> dead;
+
+		void add_rebuild();
+		LL get_r()const;
+		int get_h()const;
+		LL get_target()const;
+		pair<int,int> get_range()const;
+		int get_id()const;
+		void reduce_r(const LL& k);
+		void init(const vector<Manager*>& pos,int _L,int _R,LL t,int idx);
+
+		static void rebuild(const function<void(int l,int r)>& prefetch,const function<void(int l,int r)>& callback);
+	};
+
+	Monitor tsk[MAXN];
+
+	LL Manager::get_lim()const{
+		if(hv==0)	return 1e18;
+		const LL lb=hv&(-hv);
+		return (v&(~(lb-1)))+lb-v-1;
+	}
+	LL Manager::get_value()const{
+		return this->v;
+	}
+
+	void Manager::increse(LL k){
+		if(k==0)	return ;
+		static int q[5000],qtop=0;
+		// while(!q.empty())	q.pop();
+		qtop=0;		
+
+		v+=k;
+		if(hv==0)	return ;
+		// cein<<hook_L<<' '<<hook_R<<" do add "<<k<<endl;
+		u32 mask=((1<<(32-__builtin_clz(v^(v-k))))-1)&hv;
+		// cein<<"	mask="<<bitset<10>(mask)<<endl;
+		while(mask){
+			int t=utils::lowbit(mask);
+			for(auto i:ls[t]){
+				// cein<<"	find monitor "<<mn->get_id()<<"'s buzzer"<<endl;
+				if(t!=tsk[i].get_h()){
+					// cein<<"	ignoreing..."<<endl;
+					continue;
+				}
+				q[qtop++]=i;
+				// q.push(i);
+			}
+			ls[t].clear();
+			mask^=1<<t;
 		}
-		mask^=utils::pow2(t);
-	}
+		
+		while(qtop){
+			// auto i=q.top();
+			// q.pop();
+			auto i=q[--qtop];
 
-	while(!q.empty()){
-		auto mn=q.front();
-		q.pop();
-
-		mn->r-=v-utils::nxt_pow2(v-k,mn->h)+1;
-		LL res=utils::dis_to_nxt_pow2(v,mn->h)-1;
-		if(mn->r>res){
-			mn->r-=res;
-			ls[mn->h]+=mn;
-		}else{
-			mn->build();
+			// cein<<"	"<<"trigger monitor "<<tsk[i].get_id()<<endl;
+			tsk[i].reduce_r(v-utils::nxt_pow2(v-k,tsk[i].get_h())+1);
+			LL res=utils::dis_to_nxt_pow2(v,tsk[i].get_h())-1;
+			if(tsk[i].get_r()>res){
+				// cein<<"	replace with r="<<tsk[i].get_r()<<endl;
+				ls[tsk[i].get_h()]+=i;
+				tsk[i].reduce_r(res);
+			}else{
+				// cein<<"	ask "<<tsk[i].get_id()<<" to rebuild."<<endl;
+				tsk[i].add_rebuild();
+			}
 		}
 	}
-	faT->updlim(treeid);
-}
 
-void Manager::add_buzzer(Monitor* mn,int h){
-	ls[h]+=mn;
-	hv|=utils::pow2(h);
-	faT->updlim(treeid);
-}
-
-void Monitor::build(){
-	r=tar;
-	for(auto nd:ls)	r-=nd->v;
-	if(r<=0){
-		Monitor::dead+=id;
-		h=-1;
-		return ;
+	void Manager::add_buzzer(int i,int h){
+		ls[h]+=i;
+		hv|=utils::pow2(h);
+		// cein<<"yes ("<<hook_L<<' '<<hook_R<<")receive buzzer("<<h<<") from monitor "<<mn->get_id()<<endl;;
 	}
-	while((utils::pow2(h)-1)*sz(ls)>=r)	h--;
-	for(auto nd:ls){
-		r-=utils::dis_to_nxt_pow2(nd->v,h)-1;
-		nd->add_buzzer(this,h);
+
+
+	void Monitor::add_rebuild(){
+		// cein<<"yes I put "<<this->id<<endl; 
+		Monitor::rebuild_queue[Monitor::rebuild_queue_top++]={id,this->h};
+	}
+	LL Monitor::get_r()const{
+		return r;
+	}
+	int Monitor::get_h()const{
+		return h;
+	}
+	pair<int,int> Monitor::get_range()const{
+		return mkp(L,R);
+	}
+	LL Monitor::get_target()const{
+		return tar;
+	}
+	int Monitor::get_id()const{
+		return id;
+	}
+	void Monitor::reduce_r(const LL& k){
+		r-=k;
+	}
+	void Monitor::init(const vector<Manager*>& pos,int _L,int _R,LL t,int idx){
+		id=idx;
+		h=M;
+		tar=t;
+		// id=0;
+		ls=pos;
+		L=_L,R=_R;
+		// cein<<"i called rebuild for "<<idx<<endl;
+		// cein<<"i called rebuild for "<<id<<endl;
+		// exit(0);
+		this->add_rebuild();
+	}
+	void Monitor::rebuild(const function<void(int l,int r)>& prefetch,const function<void(int l,int r)>& callback){
+		while(rebuild_queue_top){
+			auto [i,H]=rebuild_queue[--rebuild_queue_top];
+
+			if(tsk[i].h!=H)	continue;
+
+			// cein<<"rebuild monitor "<<tsk[i].id<<endl;
+			// exit(0);
+
+			prefetch(tsk[i].L,tsk[i].R);
+			
+			tsk[i].r=tsk[i].tar;
+			for(auto p:tsk[i].ls){
+				tsk[i].r-=p->get_value();
+			}
+
+			if(tsk[i].r<=0){
+				// cein<<"monitor "<<tsk[i].id<<" dead"<<endl;
+				Monitor::dead+=tsk[i].id;
+				tsk[i].h=-1;
+				continue;
+			}
+			// cein<<"monitor "<<tsk[i].id<<": "<<tsk[i].tar-tsk[i].r<<"/"<<tsk[i].tar<<endl;
+
+			while((utils::pow2(tsk[i].h)-1)*sz(tsk[i].ls)>=tsk[i].r)	tsk[i].h--;
+
+			for(auto p:tsk[i].ls){
+				p->add_buzzer(tsk[i].id,tsk[i].h);
+				tsk[i].r-=utils::dis_to_nxt_pow2(p->get_value(),tsk[i].h)-1;
+			}
+
+			callback(tsk[i].L,tsk[i].R);
+		}
 	}
 }
 
-void Monitor::init(const vector<Manager*>& pos,LL s,int idx){
-	this->id=idx;
-	this->ls=pos;
-	this->tar=s;
-	this->h=M;
-	this->build();
-}
-
-// Monitor
-
+using namespace Alert;
 
 class SegmentTree{
-public:
 	class Node{
 	public:
 		int l,r;
-		Manager node;
 		LL add;
 		LL lim;
-		inline LL calc_add(int L,int R,LL k)const{
-			return (min(R,r)-max(L,l)-1)*k;
-		}
+		Manager node;
 	}tr[MAXN<<2];
+
+	int N;
+
 	inline int lc(int x){return x<<1;}
 	inline int rc(int x){return x<<1|1;}
-	void push_up(int p){
-		tr[p].lim=min({tr[lc(p)].lim,tr[rc(p)].lim,tr[p].node.getlim()});
+
+	inline void push_up(const int& p){
+		tr[p].lim=min({tr[lc(p)].lim,tr[rc(p)].lim,tr[p].node.get_lim()/(tr[p].r-tr[p].l+1)});
+	}
+	inline void push_up_leaf(const int& p){
+		tr[p].lim=tr[p].node.get_lim();
+	}
+	inline void add_single(const int& p,const LL& k,const LL& rangek){
+		// if(tr[p].node.get_lim()>=rangek){
+			tr[p].node.increse(rangek);
+		// }else{
+		// 	SegmentTree::increseQueue.push(mkp(&tr[p].node,rangek));
+		// }
+	}
+	inline void add_sub(const int& p,const LL& k){
+		tr[p].add+=k;
+		tr[p].lim-=k;
+		add_single(p,k,k*(tr[p].r-tr[p].l+1));
+	}
+	void push_down(int p){
+		if(tr[p].add!=0){
+			add_sub(lc(p),tr[p].add);
+			add_sub(rc(p),tr[p].add);
+			tr[p].add=0;
+		}
 	}
 	void build(int p,int l,int r){
 		tr[p].l=l,tr[p].r=r;
-		tr[p].node.treeid=p;
+		// tr[p].node.hook_L=l;
+		// tr[p].node.hook_R=r;
 		if(l==r){
-			tr[p].lim=tr[p].node.getlim();
+			push_up_leaf(p);
 			return ;
 		}
 		int mid=(l+r)>>1;
@@ -434,75 +539,141 @@ public:
 		if(l<=mid)	access(lc(p),l,r,ls);
 		if(r>mid)	access(rc(p),l,r,ls);
 	}
-
-	void push_down(int p);
-	void upd(int p,LL k){
-		if(k<=tr[p].lim){
-			tr[p].add+=k;
-			tr[p].lim-=k;
-			tr[p].node.increse(k);
+	void pushdown_range(int p,int l,int r){
+		if(l<=tr[p].l && tr[p].r<=r)	return ;
+		push_down(p);
+		int mid=(tr[p].l+tr[p].r)>>1;
+		if(l<=mid)	pushdown_range(lc(p),l,r);
+		if(r>mid)	pushdown_range(rc(p),l,r);
+	}
+	void pushup_range(int p,int l,int r){
+		if(tr[p].l==tr[p].r){
+			push_up_leaf(p);
 			return ;
 		}
-		tr[p].node.increse(k);
-		if(tr[p].l==tr[p].r){
-			tr[p].lim=tr[p].node.getlim();
+		if(l<=tr[p].l && tr[p].r<=r){
+			push_down(p);
+			push_up(p);
+			// cein<<"pushup range access "<<tr[p].l<<' '<<tr[p].r<<' '<<tr[p].lim<<endl;
 			return ;
 		}
 		push_down(p);
+		int mid=(tr[p].l+tr[p].r)>>1;
+		if(l<=mid)	pushup_range(lc(p),l,r);
+		if(r>mid)	pushup_range(rc(p),l,r);
 		push_up(p);
 	}
-	void push_down(int p){
-		if(tr[p].add==0)	return ;
-		LL tg=tr[p].add;
-		tr[p].add=0;
-		upd(lc(p),tg);
-		upd(rc(p),tg);
-	}
-
-	void updlim(int t){
-		static stack<int> st;
-		
-		int x=t>>1;
-		while(x){
-			st.push(x);
-			x>>=1;
-		}
-		while(!st.empty()){
-			int p=st.top();
-			st.pop();
+	void modify(int p,int l,int r,int k){
+		// cein<<"vis modify "<<tr[p].l<<' '<<tr[p].r<<' '<<tr[p].lim<<endl;
+		if(l<=tr[p].l && tr[p].r<=r){
+			if(tr[p].l==tr[p].r){
+				add_sub(p,k);
+				return ;
+			}
+			if(tr[p].lim>=k){
+				add_sub(p,k);
+				return ;
+			}
+			add_single(p,k,(tr[p].r-tr[p].l+1)*(LL)k);
 			push_down(p);
+			// increseNode.push(p);
+			modify(lc(p),l,r,k);
+			modify(rc(p),l,r,k);
+			push_up(p);
+			// cerr<<"exit moidfy "<<tr[p].l<<' '<<tr[p].r<<' '<<tr[p].lim<<endl;
+			return ;
 		}
-		if(tr[t].l==tr[t].r)	tr[t].lim=tr[t].node.getlim();
-		else	push_up(t);
-		t>>=1;
-		while(t){
-			push_up(t);
-			t>>=1;
-		}
+		// cein<<tr[p].l<<' '<<tr[p].r<<' '<<(min(r,tr[p].r)-max(l,tr[p].l)+1)*(LL)k<<endl;
+		add_single(p,k,(min(r,tr[p].r)-max(l,tr[p].l)+1)*(LL)k);
+		push_down(p);
+		int mid=(tr[p].l+tr[p].r)>>1;
+		// increseNode.push(p);
+		if(l<=mid)	modify(lc(p),l,r,k);
+		if(r>mid)	modify(rc(p),l,r,k);
+		push_up(p);
+		// cerr<<"exit moidfy "<<tr[p].l<<' '<<tr[p].r<<' '<<tr[p].lim<<endl;
 	}
-}tr;
+public:
+	void init(int n){
+		N=n;
+		build(1,1,N);
+	}
+	void get_manager_list(int l,int r,vector<Manager*>& ls){
+		access(1,l,r,ls);
+	}
+	void pushdown_range(int l,int r){
+		pushdown_range(1,l,r);
+	}
+	void pushup_range(int l,int r){
+		pushup_range(1,l,r);
+	}
+	void increse(int l,int r,int k){
+		modify(1,l,r,k);
+		Monitor::rebuild([this](const int& l,const int& r)->void {
+			this->pushdown_range(l,r);
+		},[this](const int& l,const int& r)->void {
+			this->pushup_range(l,r);
+		});
+	}
+};
 
-Monitor mo[MAXN];
+SegmentTree tr;
 
 int n,m,q,T,K;
-class Task{
-public:
-	int l,r,c;
-}tsk[MAXN];
+
 void solve(bool SPE){ 
 	n=RIN,m=RIN,q=RIN,T=RIN,K=RIN;
 	
-	Manager::faT=&tr;
-	tr.build(1,1,n);
-	
+	tr.init(n);
+	utils::init();
+
 	foru(i,1,m){
 		int l=RIN,r=RIN,c=RIN;
-		tsk[i]={l,r,c};
-		vector<Manager*> ls;
-		tr.access(1,l,r,ls);
-		mo[i].init(ls,c,i);
+		// if(i!=25)	continue;
+		// cein<<"Monitor "<<i<<": "<<l<<' '<<r<<' '<<c<<endl;
+		vector<Manager*> mls;
+		tr.get_manager_list(l,r,mls);
+		tsk[i].init(mls,l,r,c,i);
 	}
+	Monitor::rebuild([](int l,int r)->void {
+		// prefetch do nothing;	
+	},[](int l,int r)->void {
+		tr.pushup_range(l,r);
+	});
 	
+	static int ans[MAXN];
+	foru(i,1,m){
+		ans[i]=-1;
+	}
+	int lst=0;
+	foru(o,1,q){
+		// cein<<endl;
+		// cein<<o<<" OPT~~~~~~~~~~~~~~~~~~~~~"<<endl;
+		int l=RIN,r=RIN,v=RIN;
+		// cein<<l<<' '<<r<<' '<<v<<endl;
+		if(T){
+			l^=lst;
+			r^=lst;
+			v^=lst;
+		}
+		tr.increse(l,r,v);
+		// tr.pushup_range(l,r);
+		
+		for(auto id:Monitor::dead){
+			// printf("%d get dead monitor %d\n",o,id);
+			ans[id]=o;
+			lst^=tsk[id].get_range().fi;
+			lst^=tsk[id].get_range().se;
+			lst^=tsk[id].get_target();
+		}
+		Monitor::dead.clear();
+	}
+
+	foru(i,1,m){
+		// if(i!=25)	continue;
+		// printf("(%d)",i);
+		printf("%d ",ans[i]);
+	}
 
 
 	return ;
@@ -517,7 +688,8 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	if(freopen("game1.in","r",stdin));
+	if(freopen("game3.in","r",stdin));
+	if(freopen("game.out","w",stdout));
 	#ifdef ONLINE_JUDGE
 	if(freopen("game.in","r",stdin));
 	if(freopen("game.out","w",stdout));

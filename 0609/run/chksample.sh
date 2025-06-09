@@ -7,13 +7,15 @@ sample_out=".ans"
 
 WAstop=0
 
-TimeLimit=5
+TimeLimit=1
 
 # ----------------------------------------------
 
 prog=$1
 
 ACNUM=0
+
+ulimit -s unlimited
 
 for((i=$test_L;i<=$test_R;i++))
 do
