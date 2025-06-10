@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 5005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -273,8 +273,90 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+int n;
+int a[MAXN];
+namespace SUB1{
+	int p[15];
+	int b[15][15];
+	int lfu[15];
+	int rfu[15];
+	int lfd[15];
+	int rfd[15];
+	// inline bool check1(int x,int y,int L,int X,int Y){
+	// 	if(!(x<=X && X<=x+L-1 && y<=Y && Y<=y+L-1))	return false;
+	// 	if(x+L-1>n)	return false;
+	// 	return rf[x]>=L;
+	// 	// foru(i,0,L-1){
+	// 	// 	if(p[x+i]!=y+i)	return false;
+	// 	// }
+	// 	// return true;
+	// }
+	// inline bool check2(int x,int y,int L,int X,int Y){
+	// 	if(!(x-L+1<=X && X<=x && y<=Y && Y<=y+L-1))	return false;
+	// 	if(x-L+1<1)	return false;
+	// 	return lf[x]>=L;
+	// 	// foru(i,0,L-1){
+	// 	// 	if(p[x-i]!=y+i)	return false;
+	// 	// }
+	// 	// return true;
+	// }
+	void work(){
+		foru(i,1,n){
+			p[i]=i;
+		}
+		int ans=0;
+		p[0]=-1;
+		p[n+1]=-1;
+		do{
+			foru(i,1,n){
+				lfu[i]=p[i-1]==p[i]-1?lfu[i-1]+1:1;
+				lfd[i]=p[i-1]==p[i]+1?lfd[i-1]+1:1;
+			}
+			ford(i,n,1){
+				rfu[i]=p[i+1]==p[i]+1?rfu[i+1]+1:1;
+				rfd[i]=p[i+1]==p[i]-1?rfd[i+1]+1:1;
+			}
 
+			bool fail=0;
+			foru(i,1,n){
+				int j=p[i];
+				int L=a[j]+1;
+				if(L==n+1)	continue;
+				if(lfu[i]+rfu[i]-1>=L || lfd[i]+rfd[i]-1>=L){
+					fail=1;
+					goto checkend;
+				}
+				// foru(x,1,n){
+				// 	int y=p[x];
+				// 	if(y>n-L+1)	continue;
+				// 	if(check1(x,y,L,i,j) || check2(x,y,L,i,j)){
+				// 		fail=1;
+				// 		goto checkend;
+				// 	}
+				// }
+			}
+			checkend:
+			if(!fail){
+                ans++;
+                // foru(i,1,n){
+                //     cout<<p[i]<<' ';
+                // }
+                // HH;
+            }
+		}while(next_permutation(p+1,p+1+n));
+		cout<<ans;
+	}
+}
+void solve(bool SPE){ 
+	n=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+	}
+
+	if(n<=10){
+		SUB1::work();
+		return ;
+	}
 	return ;
 }
 /*
@@ -287,9 +369,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	if(freopen("permutation0.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen("fame.in","r",stdin));
-	if(freopen(".out","w",stdout));
+	if(freopen("permutation.in","r",stdin));
+	if(freopen("permutation.out","w",stdout));
 	#endif
 	#endif
 	

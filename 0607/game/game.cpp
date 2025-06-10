@@ -274,7 +274,6 @@ constexpr int qpow(int x,int y){
 */
 
 namespace utils{
-	LL mi[40];
 	inline LL pow2(int h){return 1ull<<h;}
 	inline LL nxt_pow2(LL v,int h){
 		return (v&(~(pow2(h)-1)))+pow2(h);
@@ -289,19 +288,16 @@ namespace utils{
 	inline int lowbit(u64 x){
 		return __builtin_ffsll(x)-1;
 	}
-	void init(){
-		foru(i,0,39)	mi[i]=1ll<<i;
-	}
 }
 
-constexpr int M=30;
+constexpr int M=35;
 
 namespace Alert{
 	class Monitor;
 	class Manager;
 
 	class Manager{
-		int hv;
+		LL hv;
 		vector<int> ls[M+1];
 		LL v;
 
@@ -317,9 +313,7 @@ namespace Alert{
 	};
 
 	class Monitor{
-		inline static pair<int,int> rebuild_queue[10001];
-		inline static int rebuild_queue_top;
-		// inline static stack<pair<int,int>,vector<pair<int,int>>> rebuild_queue;
+		inline static stack<pair<int,int>,vector<pair<int,int>>> rebuild_queue;
 
 		int id;
 		int h;
@@ -356,14 +350,14 @@ namespace Alert{
 
 	void Manager::increse(LL k){
 		if(k==0)	return ;
-		static int q[5000],qtop=0;
-		// while(!q.empty())	q.pop();
-		qtop=0;		
+		static stack<int,vector<int>> q;
+		while(!q.empty())	q.pop();
+		
 
 		v+=k;
 		if(hv==0)	return ;
 		// cein<<hook_L<<' '<<hook_R<<" do add "<<k<<endl;
-		u32 mask=((1<<(32-__builtin_clz(v^(v-k))))-1)&hv;
+		u64 mask=utils::cross_mask(v-k,k)&hv;
 		// cein<<"	mask="<<bitset<10>(mask)<<endl;
 		while(mask){
 			int t=utils::lowbit(mask);
@@ -373,17 +367,15 @@ namespace Alert{
 					// cein<<"	ignoreing..."<<endl;
 					continue;
 				}
-				q[qtop++]=i;
-				// q.push(i);
+				q.push(i);
 			}
 			ls[t].clear();
-			mask^=1<<t;
+			mask-=utils::pow2(t);
 		}
 		
-		while(qtop){
-			// auto i=q.top();
-			// q.pop();
-			auto i=q[--qtop];
+		while(!q.empty()){
+			auto i=q.top();
+			q.pop();
 
 			// cein<<"	"<<"trigger monitor "<<tsk[i].get_id()<<endl;
 			tsk[i].reduce_r(v-utils::nxt_pow2(v-k,tsk[i].get_h())+1);
@@ -408,7 +400,7 @@ namespace Alert{
 
 	void Monitor::add_rebuild(){
 		// cein<<"yes I put "<<this->id<<endl; 
-		Monitor::rebuild_queue[Monitor::rebuild_queue_top++]={id,this->h};
+		Monitor::rebuild_queue.push({id,this->h});
 	}
 	LL Monitor::get_r()const{
 		return r;
@@ -441,8 +433,9 @@ namespace Alert{
 		this->add_rebuild();
 	}
 	void Monitor::rebuild(const function<void(int l,int r)>& prefetch,const function<void(int l,int r)>& callback){
-		while(rebuild_queue_top){
-			auto [i,H]=rebuild_queue[--rebuild_queue_top];
+		while(!rebuild_queue.empty()){
+			auto [i,H]=rebuild_queue.top();
+			rebuild_queue.pop();
 
 			if(tsk[i].h!=H)	continue;
 
@@ -625,7 +618,6 @@ void solve(bool SPE){
 	n=RIN,m=RIN,q=RIN,T=RIN,K=RIN;
 	
 	tr.init(n);
-	utils::init();
 
 	foru(i,1,m){
 		int l=RIN,r=RIN,c=RIN;
@@ -688,8 +680,8 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	if(freopen("game3.in","r",stdin));
-	if(freopen("game.out","w",stdout));
+	if(freopen("game0.in","r",stdin));
+	// if(freopen("game.out","w",stdout));
 	#ifdef ONLINE_JUDGE
 	if(freopen("game.in","r",stdin));
 	if(freopen("game.out","w",stdout));

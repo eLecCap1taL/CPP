@@ -273,8 +273,102 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
 
+
+template<int N,int M,class T,T INF>
+class ISAP{
+	struct edge{
+		int v;
+		int nxt;
+		T w;
+	}e[M*2+5];
+	int ecnt=1;
+	int head[N+5],cur[N+5],dep[N+5],gap[N+5];
+	int n,s,t;
+
+	void add_e(int u,int v,T w){
+		e[++ecnt]={v,head[u],w};
+		head[u]=ecnt;
+	}
+
+	void bfs(){
+		static queue<int> q;
+		while(!q.empty())	q.pop();
+		foru(i,1,n)	dep[i]=-1,gap[i]=0;
+		dep[t]=0,gap[0]=1;
+		q.push(t);
+		while(!q.empty()){
+			int u=q.front();
+			q.pop();
+			for(int i=head[i];i;i=e[i].nxt){
+				int v=e[i].v;
+				if(dep[v]!=-1)	continue;
+				dep[v]=dep[u]+1;
+				gap[dep[v]]++;
+				q.push(v);
+			}
+		}
+	}
+	T dfs(int u,T flow){
+		if(u==t)	return flow;
+		T used=0;
+		for(int &i=cur[u];i;i=e[i].nxt){
+			int v=e[i].v;
+			if(e[i].w==0 || dep[u]!=dep[v]+1)	continue;
+			T x=dfs(v,min(flow-used,e[i].w));
+			e[i].w-=x;
+			e[i^1].w+=x;
+			used+=x;
+			if(used==flow)	return used;
+		}
+		gap[dep[u]]--;
+		if(gap[dep[u]]==0)	dep[s]=n+1;
+		dep[u]++;
+		gap[dep[u]]++;
+		return used;
+	}
+public:
+	void clear(){
+		foru(i,1,n)	head[i]=dep[i]=gap[i]=0;
+		n=s=t=0;
+		ecnt=1;
+	}
+	void set(int _n,int _s,int _t){
+		n=_n,s=_s,t=_t;
+	}
+	int add_edge(int u,int v,T w){
+		add_e(u,v,w);
+		add_e(v,u,0);
+		return ecnt-1;
+	}
+	T qry_w(int id)const{
+		return e[id].w;
+	}
+	T maxflow(){
+		bfs();
+		T flow=0;
+		while(dep[s]<n){
+			foru(i,1,n)	cur[i]=head[i];
+			flow+=dfs(s,INF);
+		}
+		return flow;
+	}
+};
+
+ISAP<200,5000,LL,LLONG_MAX> g;
+
+int n,m,s,t;
+void solve(bool SPE){ 
+	n=RIN,m=RIN,s=RIN,t=RIN;
+
+	g.set(n,s,t);
+
+	foru(i,1,m){
+		int u=RIN,v=RIN,w=RIN;
+		g.add_edge(u,v,w);
+	}
+
+	cout<<g.maxflow();
 	return ;
 }
 /*
@@ -287,9 +381,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	// if(freopen("ISAP1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen("fame.in","r",stdin));
-	if(freopen(".out","w",stdout));
+	// if(freopen("ISAP.in","r",stdin));
+	// if(freopen("ISAP.out","w",stdout));
 	#endif
 	#endif
 	

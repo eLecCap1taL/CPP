@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 5005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -273,7 +273,90 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n;
+int a[MAXN];
+
+int f[5005][5005][2];
+
+int fac[5005];
+
+int gmin(int l,int r){
+	int ret=INT_MAX;
+	foru(i,l,r){
+		chkmin(ret,a[i]);
+	}
+	return ret;
+}
+
 void solve(bool SPE){ 
+	n=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+	}
+	
+	fac[0]=1;
+	foru(i,1,n){
+		fac[i]=mul(fac[i-1],i);
+	}
+
+
+	static int s[5005][5005];
+
+	f[0][0][1]=1;
+	s[0][0]=1;
+
+	foru(i,1,n){
+		int mn=a[i];
+		int l=i;
+
+		ford(k,i-1,1){
+			chkmin(mn,a[k]);
+			if(i-k+1>=mn+1)	break;
+			l=k;
+		}
+		foru(j,0,i){
+			
+			if(i-2>=0){
+				if(j>0){
+					mdd(f[i][j][1],mul(s[i-2][j-1],2));
+				}
+				mdd(f[i][j][0],s[i-2][j]);
+
+				if(l-2>=0){
+					if(j>0){
+						mmv(f[i][j][1],mul(s[l-2][j-1],2));
+					}
+					mmv(f[i][j][0],s[l-2][j]);
+				}
+			}
+			// foru(k,l-1,i-2){
+			// 	if(j>0){
+			// 		mdd(f[i][j][1],mul(rmv(f[k][j-1][1],f[k][j-1][0]),2));
+			// 	}
+
+			// 	mdd(f[i][j][0],rmv(f[k][j][1],f[k][j][0]));
+			// }
+
+
+			
+			if(j>0){
+				mmv(f[i][j][1],mul(f[i-1][j-1][0],2));
+				mdd(f[i][j][1],mul(f[i-1][j-1][1],1));
+			}
+
+			mmv(f[i][j][0],f[i-1][j][0]);
+			mdd(f[i][j][0],f[i-1][j][1]);
+
+			s[i][j]=add(s[i-1][j],rmv(f[i][j][1],f[i][j][0]));
+		}
+	}
+
+	int ans=0;
+	foru(i,0,n){
+		mdd(ans,mul(f[n][i][1],fac[i]));
+	}
+
+	cout<<ans;
 
 	return ;
 }
@@ -287,9 +370,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	if(freopen("permutation1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen("fame.in","r",stdin));
-	if(freopen(".out","w",stdout));
+	if(freopen("permutation.in","r",stdin));
+	if(freopen("permutation.out","w",stdout));
 	#endif
 	#endif
 	

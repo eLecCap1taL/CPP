@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 505
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -273,7 +273,329 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+
+template<int N,int M,class D,D INF>
+class ISAP{
+	struct edge{
+		int v;
+		int nxt;
+		D w;
+	}e[M*2+5];
+	int ecnt=1;
+	int head[N+5],cur[N+5],dep[N+5],gap[N+5];
+	int n,s,t;
+
+	void add_e(int u,int v,D w){
+		e[++ecnt]={v,head[u],w};
+		head[u]=ecnt;
+	}
+
+	void bfs(){
+		static queue<int> q;
+		while(!q.empty())	q.pop();
+		foru(i,1,n)	dep[i]=-1,gap[i]=0;
+		dep[t]=0,gap[0]=1;
+		q.push(t);
+		while(!q.empty()){
+			int u=q.front();
+			q.pop();
+			for(int i=head[i];i;i=e[i].nxt){
+				int v=e[i].v;
+				if(dep[v]!=-1)	continue;
+				dep[v]=dep[u]+1;
+				gap[dep[v]]++;
+				q.push(v);
+			}
+		}
+	}
+	D dfs(int u,D flow){
+		if(u==t)	return flow;
+		D used=0;
+		for(int &i=cur[u];i;i=e[i].nxt){
+			int v=e[i].v;
+			if(e[i].w==0 || dep[u]!=dep[v]+1)	continue;
+			D x=dfs(v,min(flow-used,e[i].w));
+			e[i].w-=x;
+			e[i^1].w+=x;
+			used+=x;
+			if(used==flow)	return used;
+		}
+		gap[dep[u]]--;
+		if(gap[dep[u]]==0)	dep[s]=n+1;
+		dep[u]++;
+		gap[dep[u]]++;
+		return used;
+	}
+public:
+	void clear(){
+		foru(i,1,n)	head[i]=dep[i]=gap[i]=0;
+		n=s=t=0;
+		ecnt=1;
+	}
+	void set(int _n,int _s,int _t){
+		n=_n,s=_s,t=_t;
+	}
+	int add_edge(int u,int v,D w){
+		add_e(u,v,w);
+		add_e(v,u,0);
+		return ecnt-1;
+	}
+	int S()const{
+		return s;
+	}
+	int T()const{
+		return t;
+	}
+	D qry_w(int id)const{
+		return e[id].w;
+	}
+	D maxflow(){
+		bfs();
+		D flow=0;
+		while(dep[s]<n){
+			foru(i,1,n)	cur[i]=head[i];
+			flow+=dfs(s,INF);
+		}
+		return flow;
+	}
+};
+
+
+
+int n;
+int U[MAXN];
+int D[MAXN];
+int L[MAXN];
+int R[MAXN];
+
+ISAP<500*500+500*5,500*500*10,int,INT_MAX> g;
+
+int gid(int x,int y){
+	return n*(x-1)+y;
+}
+int goid(char dr,int i){
+	switch (dr)
+	{
+	case 'U':
+		return n*n+i;
+	case 'D':
+		return n*n+n+i;
+	case 'R':
+		return n*n+n*2+i;
+	case 'L':
+		return n*n+n*3+i;
+	}
+	exit(1);
+}
+
+int to[505][505];
+void out(int id){
+	int x=(id-1)/n+1;
+	int y=id-(x-1)*n;
+	// cerr<<' '<<x<<' '<<y<<endl;
+	cout<<"UDRL"[to[x][y]];
+	if(to[x][y]==0 || to[x][y]==1){
+		cout<<y;
+	}else{
+		cout<<x;
+	}
+	cout<<'\n';
+}
+
+vector<int> dp[505*505];
+
 void solve(bool SPE){ 
+	n=RIN;
+	foru(i,1,n){
+		U[i]=RIN;
+	}
+	foru(i,1,n){
+		D[i]=RIN;
+	}
+	foru(i,1,n){
+		L[i]=RIN;
+	}
+	foru(i,1,n){
+		R[i]=RIN;
+	}
+
+	g.set(n*n+4*n+2,n*n+4*n+1,n*n+4*n+2);
+	static int id[505][505][4];
+	foru(i,1,n){
+		foru(j,1,n){
+			g.add_edge(g.S(),gid(i,j),1);
+			id[i][j][0]=g.add_edge(gid(i,j),goid('U',j),1);
+			id[i][j][1]=g.add_edge(gid(i,j),goid('D',j),1);
+			id[i][j][2]=g.add_edge(gid(i,j),goid('R',i),1);
+			id[i][j][3]=g.add_edge(gid(i,j),goid('L',i),1);
+		}
+	}
+	foru(i,1,n){
+		g.add_edge(goid('U',i),g.T(),U[i]);
+		g.add_edge(goid('D',i),g.T(),D[i]);
+		g.add_edge(goid('R',i),g.T(),R[i]);
+		g.add_edge(goid('L',i),g.T(),L[i]);
+	}
+
+	int num=g.maxflow();
+
+	if(num!=n*n){
+		cout<<"NO";
+		return ;
+	}
+	
+	foru(i,1,n){
+		foru(j,1,n){
+			foru(c,0,3){
+				if(g.qry_w(id[i][j][c])!=1){
+					to[i][j]=c;
+					break;
+				}
+			}
+			// cout<<to[i][j];
+		}
+		// HH;
+	}
+	
+	static bool vis[505][505];
+	static stack<pair<pair<int,int>,int>> st;
+	static bool in[505][505];
+	auto dfs=[](auto& dfs,int u,int v,int come)->void {
+		in[u][v]=1;
+		st+=mkp(mkp(u,v),come);
+		// cein<<"pushed "<<mkp(mkp(u,v),come)<<endl;
+
+		auto tryout=[&u,&v,&dfs](int x,int y)->bool {
+			if(vis[x][y])	return false;
+
+			// cerr<<u<<' '<<v<<" tryout "<<x<<' '<<y<<endl;
+			if(in[x][y]){
+				// cerr<<u<<' '<<v<<" boom "<<x<<' '<<y<<endl;
+				// cerr<<"change "<<x<<" "<<y<<" from "<<to[x][y]<<" to "<<to[u][v]<<endl;
+				to[x][y]=to[u][v];
+				while(1){
+					auto [p,q]=st.top().fi;
+					int dr=st.top().se;
+					// cerr<<"take out "<<p<<' '<<q<<' '<<dr<<endl;
+					st.pop();
+					in[p][q]=0;
+					if(p==x && q==y){
+						break;
+					}else{
+						// cerr<<"change "<<p<<" "<<q<<" from "<<to[p][q]<<" to "<<dr<<endl;
+						to[p][q]=dr;
+					}
+				}
+				return true;
+			}
+			while(!vis[x][y]){
+				dfs(dfs,x,y,to[u][v]);
+				if(in[u][v]==0)	return true;	
+			}
+			return false;
+		};
+
+		switch (to[u][v])
+		{
+		case 0:
+			foru(i,1,u-1){
+				if(tryout(i,v))	return ;
+			}
+			break;
+		case 1:
+			foru(i,u+1,n){
+				if(tryout(i,v))	return ;
+			}
+			break;
+		case 2:
+			foru(i,v+1,n){
+				if(tryout(u,i))	return ;
+			}
+			break;
+		case 3:
+			foru(i,1,v-1){
+				if(tryout(u,i))	return ;
+			}
+			break;
+		}
+		assert(in[u][v]==1);
+		in[u][v]=0;
+		vis[u][v]=1;
+		// cerr<<"exit "<<u<<' '<<v<<endl;
+		// cein<<"exitpop "<<st.top()<<endl;
+		st.pop();
+	};
+	foru(i,1,n){
+		foru(j,1,n){
+			if(vis[i][j])	continue;
+			while(!vis[i][j]){
+				dfs(dfs,i,j,-1);
+			}
+		}
+	}
+	// dfs(dfs,3,2,1);
+	// foru(i,1,n){
+	// 	foru(j,1,n){
+	// 		cout<<to[i][j];
+	// 	}
+	// 	HH;
+	// }
+
+	// exit(0);
+
+	foru(i,1,n){
+		foru(j,1,n){
+			switch (to[i][j])
+			{
+			case 0:
+				foru(k,1,i-1){
+					dp[gid(k,j)]+=gid(i,j);
+				}
+				break;
+			case 1:
+				foru(k,i+1,n){
+					dp[gid(k,j)]+=gid(i,j);
+				}
+				break;
+			case 2:
+				foru(k,j+1,n){
+					dp[gid(i,k)]+=gid(i,j);
+				}
+				break;
+			case 3:
+				foru(k,1,j-1){
+					dp[gid(i,k)]+=gid(i,j);
+				}
+				break;
+			}
+		}
+	}
+
+	static queue<int> q;
+	static int d[505*505];
+	foru(u,1,n*n){
+		for(auto v:dp[u]){
+			d[v]++;
+		}
+	}
+	foru(u,1,n*n){
+		if(d[u]==0){
+			q.push(u);
+		}
+	}
+	while(!q.empty()){
+		int u=q.front();
+		q.pop();
+		out(u);
+		for(auto v:dp[u]){
+			d[v]--;
+			if(d[v]==0){
+				q.push(v);
+			}
+		}
+	}
+
+
 
 	return ;
 }
@@ -287,9 +609,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	// if(freopen("game0.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen("fame.in","r",stdin));
-	if(freopen(".out","w",stdout));
+	// if(freopen("game.in","r",stdin));
+	// if(freopen("game.out","w",stdout));
 	#endif
 	#endif
 	

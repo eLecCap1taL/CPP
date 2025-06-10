@@ -273,7 +273,80 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n;
+int a[MAXN];
+int b[MAXN];
+int c[MAXN];
+
+multiset<int> st;
+
 void solve(bool SPE){ 
+	n=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+	}
+	foru(i,1,n){
+		b[i]=RIN;
+		st.insert(b[i]);
+	}
+
+	ford(i,n,1){
+		auto it=st.upper_bound(a[i]);
+		if(it==st.end())	continue;
+		c[i]=*it;
+		st.erase(it);
+	}
+
+	static set<pair<int,int>> suf;
+	foru(i,1,n){
+		if(c[i]!=0){
+			suf.insert(mkp(c[i],i));
+		}
+	}
+	foru(i,1,n){
+		if(c[i]==0){
+			if(!suf.empty()){
+				// auto it=suf.upper_bound(mkp(a[i],INT_MAX));
+				auto it=prev(suf.end());
+				if(it->fi>a[i]){
+					int p=it->se;
+					suf.erase(it);
+					swap(c[i],c[p]);
+				}
+			}
+			// int mx=-1,p=0;
+			// foru(j,i+1,n){
+			// 	if(chkmax(mx,c[j])){
+			// 		p=j;
+			// 	}
+			// }
+			// if(mx>a[i]){
+			// 	swap(c[i],c[p]);
+			// }
+			assert(st.size());
+			if(!st.empty() && *prev(st.end())>c[i]){
+				int y=*prev(st.end());
+				st.erase(prev(st.end()));
+				st.insert(c[i]);
+				c[i]=y;
+			}
+		}else{
+			suf.erase(mkp(c[i],i));
+			if(!st.empty() && *prev(st.end())>c[i]){
+				int y=*prev(st.end());
+				st.erase(prev(st.end()));
+				st.insert(c[i]);
+				c[i]=y;
+			}
+		}
+	}
+	
+
+
+
+	foru(i,1,n){
+		cout<<c[i]<<' ';
+	}
 
 	return ;
 }
@@ -287,9 +360,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
+	if(freopen("game1.in","r",stdin));
 	#ifdef ONLINE_JUDGE
-	if(freopen("fame.in","r",stdin));
-	if(freopen(".out","w",stdout));
+	if(freopen("game.in","r",stdin));
+	if(freopen("game.out","w",stdout));
 	#endif
 	#endif
 	
