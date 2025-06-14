@@ -1,3 +1,11 @@
+// Problem: #216. 【UNR #1】Jakarta Skyscrapers
+// Contest: UOJ
+// URL: https://uoj.ac/problem/216
+// Memory Limit: 256 MB
+// Time Limit: 1000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,108 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+LL a,b,c;
 
+map<LL,int> mp; 
+vector<pair<LL,LL>> ans;
+void opt(LL x,LL y){
+	if(x<=y){
+		cerr<<"Error opt "<<x<<"-"<<y<<endl;
+		exit(1);
+	}
+	if(mp[x]==0){
+		cerr<<"Error opt "<<x<<"-"<<y<<", x does not exist!";
+		exit(1);
+	}
+	if(mp[y]==0){
+		cerr<<"Error opt "<<x<<"-"<<y<<", y does not exist!";
+		exit(1);
+	}
+	if(mp[x-y]!=0){
+		// cerr<<x<<"-"<<y<<" = "<<x-y<<" exists. ignoring......\n";
+		return ;
+	}
+	mp[x-y]=1;
+	// cerr<<x<<' '<<y<<endl;
+	ans+=mkp(x,y);
+}
+void finish(){
+	if(mp[c]==0){
+		cerr<<"c does not exist!\n";
+		exit(1);
+	}
+	cout<<ans.size()<<endl;
+	for(auto [x,y]:ans){
+		cout<<x<<' '<<y<<'\n';
+	}
+}
+
+void makedouble(LL x){
+	// cerr<<a<<' '<<x<<endl;
+	// assert(a-x>=1);
+	// assert(a-x*2>=1);
+	if(mp[2*x]!=0){
+		return ;
+	}
+	// cerr<<"double "<<x<<endl;
+	opt(a,x);
+	opt(a-x,x);
+	opt(a,a-2*x);
+	// cerr<<"double end"<<endl;
+}
+void decre(LL x,LL y,LL num){
+	if(mp[x-y*num]!=0)	return ;
+	LL res=y;
+	// cerr<<"decre "<<x<<' '<<y<<' '<<num<<endl;
+	for(int i=0;i<=61;i++){
+		if(num&(1ll<<i)){
+			opt(x,res);
+			x-=res;
+			num-=1ll<<i;
+			if(num==0)	break;
+		}
+		makedouble(res);
+		res*=2;
+	}
+	// while(num--){
+		// opt(x,y);
+		// x-=y;
+	// }
+}
+void GCD(LL x,LL y){
+	if(x<y){
+		GCD(y,x);
+		return ;
+	}
+	if(x%y==0){
+		return ;
+	}
+	decre(x,y,x/y);
+	GCD(y,x%y);
+}
+
+void solve(bool SPE){ 
+	cin>>a>>b>>c;
+	
+	if(a<b)	swap(a,b);
+	
+	LL g=__gcd(a,b);
+	if(c%g!=0 || c>a){
+		cout<<"-1";
+		return ;
+	}
+	
+	mp[a]=1;
+	mp[b]=1;
+	
+	GCD(a,b);
+	
+	decre(a,g,(a-c)/g);
+	
+	// assert(mp[g]!=0);
+	
+	
+	finish();
 	return ;
 }
 /*
@@ -288,8 +396,8 @@ signed main()
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE
-	// if(freopen(".in","r",stdin));
-	// if(freopen(".out","w",stdout));
+	// if(freopen("uoj.in","r",stdin));
+	// if(freopen("uoj.out","w",stdout));
 	// #endif
 	// #endif
 	

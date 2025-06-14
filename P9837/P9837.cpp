@@ -1,3 +1,11 @@
+// Problem: P9837 汪了个汪
+// Contest: Luogu
+// URL: https://www.luogu.com.cn/problem/P9837
+// Memory Limit: 512 MB
+// Time Limit: 1000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,42 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n,t;
+vector<int> ls[4005];
 void solve(bool SPE){ 
-
+	n=RIN,t=RIN;
+	
+	int l=1,r=n;
+	int L=1,R=n;
+	foru(i,1,n){
+		if(i>1){
+			if(i&1){
+				l=ls[L].back()-(i-1);
+			}else{
+				l=ls[L].back()+i-1;
+			}
+		}
+		r=l+(R-L);
+		foru(j,l,r){
+			ls[L+j-l]+=j;
+		}
+		if(i&1){
+			R--;
+		}else{
+			L++;
+		}
+	}
+	
+	sort(ls+1,ls+1+n,[](const vector<int>& x,const vector<int>& y)->bool {
+		return x.size()<y.size();
+	});
+	
+	foru(i,1,n){
+		foru(j,0,i-1){
+			cout<<ls[i][j]<<' ';
+		}
+		cout<<'\n';
+	}
 	return ;
 }
 /*

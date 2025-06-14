@@ -1,3 +1,11 @@
+// Problem: A. Equal Subsequences
+// Contest: Codeforces - Codeforces Round 1030 (Div. 2)
+// URL: https://codeforces.com/contest/2118/problem/0
+// Memory Limit: 256 MB
+// Time Limit: 1000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,17 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n,k;
 void solve(bool SPE){ 
-
+	n=RIN,k=RIN;
+	
+	foru(i,1,k){
+		cout<<1;
+	}
+	foru(i,k+1,n){
+		cout<<0;
+	}
+	cout<<'\n';
 	return ;
 }
 /*
@@ -284,7 +301,7 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE

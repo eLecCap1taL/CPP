@@ -1,3 +1,11 @@
+// Problem: B. Make It Permutation
+// Contest: Codeforces - Codeforces Round 1030 (Div. 2)
+// URL: https://codeforces.com/contest/2118/problem/B
+// Memory Limit: 256 MB
+// Time Limit: 1000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,56 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
 
+int n;
+int a[5005][5005];
+void opt(int* d,int x,int y){
+	reverse(d+x,d+y+1);
+}
+void solve(bool SPE){ 
+	n=RIN;
+	// foru(i,1,n){
+		// foru(j,1,n){
+			// a[i][j]=j;
+		// }
+	// }
+	
+	// foru(r,1,n){
+		// foru(l,1,n){
+			// foru(i,1,n){
+				// a[1][i]=i;
+			// }
+			// opt(a[1],1,r);
+			// opt(a[1],l,n);
+			// cout<<1<<' '<<r<<' '<<l<<' '<<n<<endl;
+			// foru(i,1,n){
+				// cout<<a[1][i]<<' ';
+			// }
+			// cout<<endl;
+		// }
+	// }
+	
+	cout<<2*n-2<<'\n';
+	
+	cout<<1<<' '<<2<<' '<<n<<endl;
+	// opt(a[1],2,n);
+	foru(i,2,n){
+		cout<<i<<' '<<1<<' '<<i<<'\n';
+		if(i<n)cout<<i<<' '<<i+1<<' '<<n<<'\n';
+		// opt(a[i],1,i);
+		// opt(a[i],i+1,n);
+	}
+	
+	// foru(i,1,n){
+		// foru(j,1,n){
+			// cout<<a[i][j]<<' ';
+		// }
+		// cout<<endl;
+	// }
+	// cout<<endl;
+	
+	
+	
 	return ;
 }
 /*
@@ -284,7 +340,7 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE

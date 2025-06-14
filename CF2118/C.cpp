@@ -1,3 +1,11 @@
+// Problem: C. Make It Beautiful
+// Contest: Codeforces - Codeforces Round 1030 (Div. 2)
+// URL: https://codeforces.com/contest/2118/problem/C
+// Memory Limit: 512 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,38 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+int n;
+LL k;
+LL a[5005];
 
+void solve(bool SPE){ 
+	cin>>n>>k;
+	foru(i,1,n){
+		cin>>a[i];
+	}
+	
+	int ans=0;
+	foru(i,1,n){
+		ans+=__builtin_popcount(a[i]);
+	}
+	
+	priority_queue<LL,vector<LL>,greater<LL>> q;
+	
+	foru(i,1,n){
+		for(int j=0;j<=62;j++){
+			if((a[i]>>j)&1)	continue;
+			q.push(1ll<<j);
+		}
+	}
+	
+	while(!q.empty() && q.top()<=k){
+		k-=q.top();
+		ans++;
+		q.pop();
+	}
+	
+	cout<<ans<<endl;
+	
 	return ;
 }
 /*
@@ -284,7 +322,7 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE

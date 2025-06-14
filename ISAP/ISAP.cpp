@@ -275,18 +275,18 @@ constexpr int qpow(int x,int y){
 */
 
 
-template<int N,int M,class T,T INF>
+template<int N,int M,class D,D INF>
 class ISAP{
 	struct edge{
 		int v;
 		int nxt;
-		T w;
+		D w;
 	}e[M*2+5];
 	int ecnt=1;
 	int head[N+5],cur[N+5],dep[N+5],gap[N+5];
 	int n,s,t;
 
-	void add_e(int u,int v,T w){
+	void add_e(int u,int v,D w){
 		e[++ecnt]={v,head[u],w};
 		head[u]=ecnt;
 	}
@@ -300,7 +300,7 @@ class ISAP{
 		while(!q.empty()){
 			int u=q.front();
 			q.pop();
-			for(int i=head[i];i;i=e[i].nxt){
+			for(int i=head[u];i;i=e[i].nxt){
 				int v=e[i].v;
 				if(dep[v]!=-1)	continue;
 				dep[v]=dep[u]+1;
@@ -309,13 +309,13 @@ class ISAP{
 			}
 		}
 	}
-	T dfs(int u,T flow){
+	D dfs(int u,D flow){
 		if(u==t)	return flow;
-		T used=0;
+		D used=0;
 		for(int &i=cur[u];i;i=e[i].nxt){
 			int v=e[i].v;
 			if(e[i].w==0 || dep[u]!=dep[v]+1)	continue;
-			T x=dfs(v,min(flow-used,e[i].w));
+			D x=dfs(v,min(flow-used,e[i].w));
 			e[i].w-=x;
 			e[i^1].w+=x;
 			used+=x;
@@ -336,17 +336,19 @@ public:
 	void set(int _n,int _s,int _t){
 		n=_n,s=_s,t=_t;
 	}
-	int add_edge(int u,int v,T w){
+	int add_edge(int u,int v,D w){
 		add_e(u,v,w);
 		add_e(v,u,0);
 		return ecnt-1;
 	}
-	T qry_w(int id)const{
+	int S(){return s;}
+	int T(){return t;}
+	D qry_w(int id)const{
 		return e[id].w;
 	}
-	T maxflow(){
+	D maxflow(){
 		bfs();
-		T flow=0;
+		D flow=0;
 		while(dep[s]<n){
 			foru(i,1,n)	cur[i]=head[i];
 			flow+=dfs(s,INF);

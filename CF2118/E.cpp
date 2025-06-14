@@ -1,3 +1,11 @@
+// Problem: E. Grid Coloring
+// Contest: Codeforces - Codeforces Round 1030 (Div. 2)
+// URL: https://codeforces.com/contest/2118/problem/E
+// Memory Limit: 256 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,7 +281,189 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+
+int n,m;
+
+vector<int> a[5005];
+
+int dis1(pair<int,int> x,pair<int,int> y){
+	return max(abs(x.fi-y.fi),abs(x.se-y.se));
+}
+int dis2(pair<int,int> x,pair<int,int> y){
+	return abs(x.fi-y.fi)+abs(x.se-y.se);
+}
+bool fst;
+bool rev;
+
+void out(){
+	foru(i,1,n){
+		foru(j,1,m){
+			cout<<a[i][j]<<' ';
+			// assert(a[i][j]<=4);
+		}
+		cout<<endl;
+	}
+	cout<<endl;
+}
+void opt(int x,int y){
+	if(a[x][y]!=0){
+		exit(1);
+	}
+	vector<pair<int,int>> ls;
+	foru(i,1,n){
+		foru(j,1,m){
+			if(a[i][j]==0)	continue;
+			if(ls.empty()){
+				ls+=mkp(i,j);
+				continue;
+			}
+			if(dis1(mkp(i,j),mkp(x,y))>dis1(ls.back(),mkp(x,y))){
+				ls.clear();
+				ls+=mkp(i,j);
+				continue;
+			}
+			if(dis1(mkp(i,j),mkp(x,y))<dis1(ls.back(),mkp(x,y)))	continue;
+			if(dis2(mkp(i,j),mkp(x,y))>dis2(ls.back(),mkp(x,y))){
+				ls.clear();
+				ls+=mkp(i,j);
+				continue;
+			}
+			if(dis2(mkp(i,j),mkp(x,y))<dis2(ls.back(),mkp(x,y)))	continue;
+			ls+=mkp(i,j);
+		}
+	}
+	cerr<<endl;
+	cerr<<"opt "<<x<<' '<<y<<endl;
+	a[x][y]=1;
+	for(auto [u,v]:ls){
+		a[u][v]++;
+		cerr<<"hurt "<<u<<' '<<v<<endl;
+		if(a[u][v]>=5){
+			out();
+			exit(1);
+		}
+	}
+	
+	if(rev){
+		swap(x,y);
+	}
+	// cout<<x<<' '<<y<<'\n';
+	
+	if(fst==0){
+		fst=1;
+		opt(n/2+1,m/2+1);
+	}
+}
+
+void fillborder(int X,int Y,int L,int mx,int my,int dr,int del){
+	if(dr==0){
+		int x=X;
+		int y=Y+L/2-del;
+		while(1){
+			opt(x,y);
+			opt(2*mx-x,2*my-y);
+			if(y==Y+L-1)	break;
+			y++;
+		}
+		x++;
+		while(1){
+			opt(x,y);
+			opt(2*mx-x,2*my-y);
+			if(x==X+L-1)	break;
+			x++;
+		}
+		y--;
+		while(y>Y+L/2+del){
+			opt(x,y);
+			opt(2*mx-x,2*my-y);
+			y--;
+		}
+	}else{
+		int x=X;
+		int y=Y+L/2+del;
+		while(1){
+			opt(x,y);
+			opt(2*mx-x,2*my-y);
+			if(y==Y)	break;
+			y--;
+		}
+		x++;
+		while(1){
+			opt(x,y);
+			opt(2*mx-x,2*my-y);
+			if(x==X+L-1)	break;
+			x++;
+		}
+		y++;
+		while(y<Y+L/2-del){
+			opt(x,y);
+			opt(2*mx-x,2*my-y);
+			y++;
+		}
+	}
+}
 void solve(bool SPE){ 
+	fst=0;
+	n=RIN,m=RIN;
+	
+	rev=0;
+	if(n>m){
+		swap(n,m);
+		rev=1;
+	}
+	
+	foru(i,0,n+1){
+		a[i].clear();
+		a[i].resize(m+2,0);
+	}
+	
+	if(n==1 && m==1){
+		cout<<"1 1\n";
+		// cout<<endl;
+		return ;
+	}
+	
+	
+	int x=n/2+1;
+	int y=m/2+1;
+	int L=1;
+	bool t=0;
+	while(1){
+		x--,y--;
+		L+=2;
+		if(x<1)	break;
+		fillborder(x,y,L,n/2+1,m/2+1,t,L!=3);
+		t^=L<=3;
+	}
+	
+	int mx=n/2+1;
+	int my=m/2+1;
+	// bool fst=0;
+	for(int j=(m-n)/2,res=0;j>=1;j--,res^=1){
+		if(res&1){
+			for(int i=1;i<=n;i++){
+				opt(i,j);
+				opt(2*mx-i,2*my-j);
+			}
+		}else{
+			for(int i=n;i>=1;i--){
+				opt(i,j);
+				// goto test;
+				opt(2*mx-i,2*my-j);
+			}
+		}
+		// break;
+	}
+	// test:
+	
+	foru(i,1,n){
+		foru(j,1,m){
+			cout<<a[i][j]<<' ';
+			// assert(a[i][j]<=4);
+		}
+		cout<<endl;
+	}
+	cout<<endl;
 
 	return ;
 }
@@ -284,7 +474,7 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE

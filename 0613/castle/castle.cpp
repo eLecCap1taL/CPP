@@ -1,5 +1,5 @@
 //%^~
-// #pragma GCC optimize(3)
+#pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
 // #include <bits/stdc++.h>
 #include <cstdio>
@@ -215,7 +215,7 @@ inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
@@ -273,7 +273,353 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+
+template<int N,int M,class D,D INF>
+class ISAP{
+	struct edge{
+		int v;
+		int nxt;
+		D w;
+	}e[M*2+5];
+	int ecnt=1;
+	int head[N+5],cur[N+5],dep[N+5],gap[N+5];
+	int n,s,t;
+
+	void add_e(int u,int v,D w){
+		e[++ecnt]={v,head[u],w};
+		head[u]=ecnt;
+	}
+
+	bool bfs(){
+		static queue<int> q;
+		foru(i,0,n)	dep[i]=INF;
+		memcpy(cur,head,sizeof head);
+		dep[s]=0;
+		q.push(s);
+		while(!q.empty()){
+			int u=q.front();
+			q.pop();
+			for(int i=head[u];i;i=e[i].nxt){
+				int v=e[i].v;
+				if(dep[u]+1>=dep[v] || e[i].w==0)	continue;
+				dep[v]=dep[u]+1;
+				q.push(v);
+			}
+		}
+		return (dep[t]!=INF);
+	}
+	D dfs(int u,D flow){
+		if(u==t)	return flow;
+		D used=0;
+		for(int &i=cur[u];i;i=e[i].nxt){
+			// cur[u]=i;
+			int v=e[i].v;
+			if(e[i].w==0 || dep[u]!=dep[v]-1)	continue;
+			D x=dfs(v,min(flow-used,e[i].w));
+
+			if(x>0){
+				e[i].w-=x;
+				e[i^1].w+=x;
+				used+=x;
+				if(used==flow)	return used;
+			}
+		}
+		return used;
+	}
+public:
+	void clear(){
+		foru(i,1,n)	head[i]=dep[i]=gap[i]=0;
+		n=s=t=0;
+		ecnt=1;
+	}
+	void set(int _n,int _s,int _t){
+		n=_n,s=_s,t=_t;
+	}
+	int add_edge(int u,int v,D w){
+		add_e(u,v,w);
+		add_e(v,u,0);
+		return ecnt-1;
+	}
+	int S(){return s;}
+	int T(){return t;}
+	D qry_w(int id)const{
+		return e[id].w;
+	}
+	D maxflow(){
+		D flow=0;
+		while(bfs()){
+			flow+=dfs(s,INF);
+			// cerr<<flow<<endl;
+		}
+		return flow;
+	}
+};
+
+int n,m;
+
+string s[1005];
+
+int N,M;
+pair<int,int> lf[405*405];
+pair<int,int> rf[405*405];
+vector<int> el[405*405];
+vector<int> el_id[405*405];
+vector<int> er[405*405];
+
+const int dx[4]={-1,1,0,0};
+const int dy[4]={0,0,1,-1};
+
+int id[405][405];
+
+ISAP<405*405,405*405*3,int,INT_MAX> g;
+
+void solve(bool SPE){
+	
+	// g.set(3,1,3);
+	// g.add_edge(1,2,1);
+	// g.add_edge(2,3,2);
+
+	// cerr<<g.maxflow();
+	
+	// exit(0);
+	n=RIN,m=RIN;
+
+	// if(n>20)	return ;
+	if(n==1 && m==1){
+		cout<<"Yes\n###\n#.#\n###";
+		return ;
+	}
+
+	foru(i,1,2*n+1){
+		s[i]=" "+RSIN;
+	}
+
+	foru(i,1,n){
+		foru(j,1,m){
+			if(s[2*i][2*j]=='#'){
+				continue;
+			}
+			if((i+j)&1){
+				N++;
+				lf[N]={i,j};
+				id[i][j]=N;
+			}else{
+				M++;
+				rf[M]={i,j};
+				id[i][j]=M;
+			}
+		}
+	}
+	foru(i,1,n){
+		foru(j,1,m){
+			if(s[2*i][2*j]=='#'){
+				continue;
+			}
+			auto& e=((i+j)&1)?el[id[i][j]]:er[id[i][j]];
+			for(int k=0;k<4;k++){
+				int u=i+dx[k],v=j+dy[k];
+				if(id[u][v]==0)	continue;
+				if(s[i*2+dx[k]][2*j+dy[k]]=='#')	continue;
+				e+=id[u][v];
+			}
+		}
+	}
+
+	cerr<<N<<' '<<M<<endl;
+	cerr<<N+M<<endl;
+	cerr<<n*m<<endl;
+
+	// foru(i,1,M){
+	// 	cein<<rf[i]<<endl;
+	// }
+	if(N>M){
+		foru(i,1,N){
+			swap(el[i],er[i]);
+			swap(lf[i],rf[i]);
+		}
+		swap(N,M);
+		// exit(1);
+	}
+
+	if(N==M){
+		cout<<"No";
+		return ;
+	}
+
+	g.set(N+M+2,N+M+1,N+M+2);
+
+	// cerr<<N<<' '<<M<<endl;
+	
+	int ct=0;
+	// map<int,int> mp;
+	foru(u,1,N){
+		el_id[u].resize(el[u].size(),0);
+		// cerr<<el[u].size()<<endl;
+		// mp[sz(el[u])]++;
+		for(int i=0;i<sz(el[u]);i++){
+			int v=el[u][i];
+			el_id[u][i]=g.add_edge(u,N+v,1);
+			ct++;
+		}
+	}
+	// for(auto [X,Y]:mp){
+	// 	cerr<<X<<'~'<<Y<<endl;
+	// }
+	foru(u,1,N)	g.add_edge(g.S(),u,1),ct++;
+	foru(u,1,M)	g.add_edge(u+N,g.T(),1),ct++;
+	// cerr<<ct<<endl;
+
+	// exit(0);
+	LL mxflow=g.maxflow();
+	// cerr<<mxflow<<endl;
+	// exit(0);
+	// cerr<<mxflow<<endl;
+	if(mxflow!=N){
+		cout<<"No";
+		return ;
+	}
+	// cerr<<"OK";
+
+	// cerr<<mxflow<<endl;
+	static int match[405*405];
+	static int matched[405*405];
+
+	foru(u,1,N){
+		for(int i=0;i<sz(el[u]);i++){
+			int v=el[u][i];
+			// cerr<<el_id[u][i]<<endl;
+			// cerr<<' '<<g.qry_w(el_id[u][i])<<endl;
+			if(g.qry_w(el_id[u][i])==0){
+				match[u]=v;
+				matched[v]=u;
+				// cerr<<u<<' '<<v<<endl;
+				break;
+			}
+		}
+	}
+	// vector<int> chk;
+	// foru(u,1,N){
+	// 	chk+=match[u];
+	// }
+	// sort(All(chk));
+	// for(int i=1;i<sz(chk);i++){
+	// 	assert(chk[i]!=chk[i-1]);
+	// }
+
+	static string os[1005];
+	foru(i,1,2*n+1){
+		os[i]=" ";
+		foru(j,1,2*m+1)	os[i]+='#';
+	}
+	
+	
+	static int fa[405*405*2];
+	foru(i,1,N+M){
+		fa[i]=i;
+	}
+	auto find=[](auto& find,int x)->int {
+		return fa[x]==x?x:fa[x]=find(find,fa[x]);
+	};
+	auto Union=[&find](int x,int y,int sta=3)->void {
+		x=find(find,x),y=find(find,y);
+		// assert(x!=y);
+		if(x==y)	exit(sta);
+		fa[x]=y;
+	};
+
+	auto con=[](pair<int,int> x,pair<int,int> y)->void {
+		// cein<<x<<' '<<y<<endl;
+		if(x>y)	swap(x,y);
+		os[2*x.fi][2*x.se]='.';
+		os[2*y.fi][2*y.se]='.';
+		if(x.fi==y.fi){
+			// assert(y.se-x.se==1);
+			os[2*x.fi][2*x.se+1]='.';
+		}else if(x.se==y.se){
+			// assert(y.fi-x.fi==1);
+			os[2*x.fi+1][2*x.se]='.';
+		}else{
+			// assert(0);
+		}
+	};
+
+	// cerr<<M<<endl;
+	static bitset<405*405> vis;
+
+	static queue<int> q;
+	foru(i,1,M){
+		// cein<<rf[i]<<endl;
+		if(matched[i])	continue;
+		q.push(i);
+	}
+
+	while(!q.empty()){
+		int u=q.front();
+		q.pop();
+		for(auto v:er[u]){
+			if(vis[v])	continue;
+			if(v==matched[u])	continue;
+			vis[v]=1;
+			// if(u==match[v])	exit(11);
+			// if(find(find,N+u)==find(find,N+match[v]))	exit(12);
+			Union(v,N+match[v],1);
+			Union(v,N+u,2);
+			con(lf[v],rf[u]);
+			con(lf[v],rf[match[v]]);
+			q.push(match[v]);
+		}
+	}
+
+	int num=0;
+	foru(i,1,N)	num+=vis[i];
+	if(num!=N){
+		cout<<"No";
+		return ;
+	}
+
+	foru(v,1,M){
+		for(auto u:er[v]){
+			if(find(find,u)==find(find,N+v))	continue;
+			con(lf[u],rf[v]);
+			Union(u,N+v);
+		}
+	}
+
+	// int rt=find(find,1);
+	// foru(i,2,N){
+	// 	if(!(rt==find(find,i)))	exit(21);
+	// }
+	// foru(i,1,M){
+	// 	if(!(rt==find(find,N+i)))	exit(22);
+	// }
+
+	// int tot=0;
+	// foru(i,1,n){
+	// 	foru(j,1,m){
+	// 		if(s[i*2][j*2]=='.')	tot++;
+	// 	}
+	// }
+	// if(tot!=N+M)	exit(23);
+	
+	foru(i,1,n){
+		foru(j,1,m){
+			if(os[i*2][j*2]=='#' && s[i*2][j*2]=='.'){
+				os[i*2][j*2]='.';
+				// cout<<"No\n";
+				// exit(0);
+				// assert(i==1 && j==1);
+				// exit((s[2][3]=='#')+(s[3][2]=='#'));
+			}
+		}
+	}
+
+	cout<<"Yes\n";
+	foru(i,1,2*n+1){
+		foru(j,1,2*m+1){
+			putchar(os[i][j]);
+		}
+		putchar('\n');
+	}
 
 	return ;
 }
@@ -286,12 +632,14 @@ signed main()
 {
 	// #define MULTITEST
 	
-	// #ifndef CPEDITOR
-	// #ifdef ONLINE_JUDGE
-	// if(freopen(".in","r",stdin));
-	// if(freopen(".out","w",stdout));
-	// #endif
-	// #endif
+	#ifndef CPEDITOR
+	if(freopen("castle4.in","r",stdin));
+	if(freopen("castle.out","w",stdout));
+	#ifdef ONLINE_JUDGE
+	if(freopen("castle.in","r",stdin));
+	if(freopen("castle.out","w",stdout));
+	#endif
+	#endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

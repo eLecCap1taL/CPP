@@ -1,3 +1,11 @@
+// Problem: CF618F Double Knapsack
+// Contest: Luogu
+// URL: https://www.luogu.com.cn/problem/CF618F
+// Memory Limit: 250 MB
+// Time Limit: 2500 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,57 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n;
+LL sa[1000005];
+LL sb[1000005];
 void solve(bool SPE){ 
-
+	n=RIN;
+	foru(i,1,n){
+		sa[i]=sa[i-1]+RIN;
+	}
+	foru(i,1,n){
+		sb[i]=sb[i-1]+RIN;
+	}
+	
+	bool rev=0;
+	if(sa[n]>sb[n]){
+		foru(i,1,n){
+			swap(sa[i],sb[i]);
+		}
+		rev=1;
+	}
+	
+	static unordered_map<int,pair<int,int>> mp;
+	int j=0;
+	int i1=0,i2=0,j1=0,j2=0;
+	foru(i,0,n){
+		while(j+1<=n && sb[j]<sa[i])	j++;
+		int dx=sb[j]-sa[i];
+		if(mp.find(dx)==mp.end()){
+			mp[dx]=mkp(i,j);
+			continue;
+		}
+		i1=mp[dx].fi;
+		j1=mp[dx].se;
+		i2=i;
+		j2=j;
+		break;
+	}
+	
+	if(rev){
+		swap(i1,j1);
+		swap(i2,j2);
+	}
+	cout<<i2-i1<<endl;
+	foru(x,i1+1,i2){
+		cout<<x<<' ';
+	}
+	cout<<endl;
+	cout<<j2-j1<<endl;
+	foru(x,j1+1,j2){
+		cout<<x<<' ';
+	}
+	cout<<endl;
 	return ;
 }
 /*

@@ -1,3 +1,11 @@
+// Problem: CF1896F Bracket Xoring
+// Contest: Luogu
+// URL: https://www.luogu.com.cn/problem/CF1896F
+// Memory Limit: 250 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -30,7 +38,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 2000005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -273,8 +281,104 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+int n;
+int a[MAXN];
 void solve(bool SPE){ 
-
+	n=RIN*2;
+	foru(i,1,n){
+		a[i]=RCIN=='1';
+	}
+	
+	int cnt=0;
+	foru(i,1,n){
+		cnt+=a[i];
+	}
+	if(cnt&1){
+		cout<<"-1\n";
+		return ;
+	}
+	if(a[1]!=a[n]){
+		cout<<"-1\n";
+		return ;
+	}
+	if(cnt==0){
+		cout<<"0\n";
+		return ;
+	}
+	if(n==2){
+		cout<<"1\n()\n";
+		return ;
+	}
+	
+	static vector<string> ans;
+	ans.clear();
+	string s="";
+	
+	// opt 1
+	s="(()";
+	a[1]^=1;
+	for(int i=4;i<n;i+=2){
+		if(a[i]!=a[i-1]){
+			a[i]^=1;
+			a[i+1]^=1;
+			s+=")(";
+		}else{
+			s+="()";
+		}
+	}
+	a[n]^=1;
+	s+=")";
+	ans+=s;
+	
+	assert(a[2]==a[n-1]);
+	
+	// opt 2
+	s="((";
+	a[1]^=1;
+	for(int i=3;i<n-1;i+=2){
+		assert(a[i]==a[i+1]);
+		if(a[i]!=a[2]){
+			a[i]^=1;
+			a[i+1]^=1;
+			s+="()";
+		}else{
+			s+=")(";
+		}
+	}
+	a[n]^=1;
+	s+="))";
+	ans+=s;
+	
+	if(a[1]!=a[2]){
+		a[1]^=1;
+		a[n]^=1;
+		s="(";
+		for(int i=2;i<n;i+=2){
+			s+="()";
+		}
+		s+=")";
+		ans+=s;
+	}
+	
+	if(a[1]!=0){
+		s="";
+		foru(i,1,n/2){
+			s+="()";
+		}
+		ans+=s;
+	}
+	
+	// foru(i,1,n){
+		// cout<<a[i]<<' ';
+	// }
+	// HH;
+	
+	
+	cout<<ans.size()<<'\n';
+	for(auto& S:ans){
+		cout<<S<<'\n';
+	}
+	
 	return ;
 }
 /*
@@ -284,7 +388,7 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE

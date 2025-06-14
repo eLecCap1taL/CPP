@@ -215,7 +215,7 @@ inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
@@ -274,7 +274,20 @@ constexpr int qpow(int x,int y){
 
 */
 void solve(bool SPE){ 
-
+	int n=10,m=1000;
+	int k=1;
+	int p=100;
+	int V=100;
+	mt19937 rd(random_device{}()^time(0));
+	cout<<n<<' '<<k<<' '<<m<<' '<<p<<endl;
+	foru(o,1,n){
+		int l=rd()%m;
+		int r=rd()%m;
+		if(l>r)	swap(l,r);
+		int b=rd()%m;
+		int a=rd()%V;
+		cout<<l<<' '<<r<<' '<<b<<' '<<a<<endl;
+	}
 	return ;
 }
 /*
@@ -286,12 +299,12 @@ signed main()
 {
 	// #define MULTITEST
 	
-	// #ifndef CPEDITOR
-	// #ifdef ONLINE_JUDGE
-	// if(freopen(".in","r",stdin));
-	// if(freopen(".out","w",stdout));
-	// #endif
-	// #endif
+	#ifndef CPEDITOR
+	#ifdef ONLINE_JUDGE
+	if(freopen(".in","r",stdin));
+	if(freopen(".out","w",stdout));
+	#endif
+	#endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

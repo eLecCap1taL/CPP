@@ -30,13 +30,13 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 55
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
 #define uLL unsigned long long
 #define LL long long
-#define LXF int
+#define LXF LL
 #define RIN Cap1taLDebug::read()
 #define RSIN Cap1taLDebug::rdstr()
 #define RCIN Cap1taLDebug::rdchar()
@@ -215,12 +215,12 @@ inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
-constexpr int mod=998244353;
-// constexpr int mod=1e9+7;
+// constexpr int mod=998244353;
+constexpr int mod=1e9+7;
 
 constexpr int& mdd(int& x){return x;}
 template<class T1,class ...T2>
@@ -273,8 +273,185 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+int n,p;
+LL k,m;
+class OPT{
+public:
+	LL l,r,b,a;
+}op[MAXN];
+namespace SUB1{
+	void work(){
+		int ans=0;
+		foru(o,1,n){
+			auto [l,r,b,a]=op[o];
 
+			mdd(ans,mul((r-l+1)%mod,a));
+		}
+		cout<<ans;
+	}
+}
+namespace SUB2{
+	LL d[1000005];
+	int F[2][105][2];
+	void work(){
+		foru(o,1,n){
+			auto [l,r,b,a]=op[o];
+			foru(j,l,r){
+				d[(k*j+b)%m]+=a;
+			}
+		}
+		F[0][0][0]=1;
+		foru(i,1,m){
+			auto f=F[i&1];
+			auto g=F[(i-1)&1];
+
+			foru(j,0,p)	f[j][0]=f[j][1]=0;
+
+			d[i-1]%=mod;
+			foru(j,0,p){
+				f[j][0]=add(g[j][0],g[j][1]);
+				if(j>0){
+					f[j][1]=mul(g[j-1][0],d[i-1]);
+				}
+			}
+		}
+		cout<<add(F[m&1][p][0],F[m&1][p][1]);
+	}
+}
+
+namespace SUB3{
+	map<LL,int> mp;
+	
+	int fac[105];
+	int ifac[105];
+
+	int C(LL N,int M){
+		if(N<M)	return 0;
+		int ret=1;
+		for(LL x=N;x>(N-M);x--)	mll(ret,x%mod);
+		return mul(ret,ifac[M]);
+	}
+	int calc(LL N,int M){
+		if(N<0 || M<0)	return 0;
+		return C(N-M+1,M);
+	}
+
+	int f[105][2],g[105][2];
+	void work(){
+		fac[0]=1;
+		foru(i,1,100){
+			fac[i]=mul(fac[i-1],i);
+		}
+		foru(i,0,100){
+			ifac[i]=qpow(fac[i],mod-2);
+		}
+
+		// cout<<calc(3,2)<<endl;
+
+
+		mp[m]=0;
+		foru(o,1,n){
+			auto [l,r,b,a]=op[o];
+			LL L=(l+b)%m;
+			LL R=(r+b)%m;
+			if(L<=R){
+				mdd(mp[L],a);
+				mmv(mp[L+1],a);
+			}else{
+				mdd(mp[L],a);
+				mmv(mp[m],a);
+				mdd(mp[0],a);
+				mmv(mp[R+1],a);
+			}
+		}
+
+			// cerr<<calc(7,0)<<endl;
+		f[0][0]=1;
+		auto process=[&](LL N,int v){
+			foru(i,0,p){
+				g[i][0]=f[i][0];
+				g[i][1]=f[i][1];
+				f[i][0]=f[i][1]=0;
+			}
+
+			static int val[105][2][2];
+
+			int top=min((LL)p,(N+1)/2);
+			if(N==1){
+				val[0][0][0]=val[0][1][1]=1;
+				val[0][0][1]=val[0][1][0]=0;
+
+				val[1][0][0]=val[1][1][1]=v;
+				val[1][0][1]=val[1][1][0]=0;
+			}else{
+				int V=1;
+				foru(i,0,top){
+					val[i][0][0]=mul(calc(N-2,i),V);
+					val[i][0][1]=val[i][1][0]=mul(calc(N-3,i-1),V);
+					val[i][1][1]=mul(calc(N-4,i-2),V);
+					
+					mll(V,v);
+				}
+			}
+			cerr<<N<<'~'<<v<<endl;
+			// cerr<<val[1][1][1]<<endl;
+			foru(i,0,p){
+				foru(j,0,min(top,p-i)){
+					// if(g[i])
+					// cerr<<g[i][0]<<"~"<<' '<<valendl;
+					mdd(f[i+j][1],mul(g[i][0],val[j][0][1]));
+					mdd(f[i+j][1],mul(g[i][0],val[j][1][1]));
+
+					mdd(f[i+j][1],mul(g[i][1],val[j][0][1]));
+					
+					mdd(f[i+j][0],mul(g[i][0],val[j][0][0]));
+					mdd(f[i+j][0],mul(g[i][0],val[j][1][0]));
+
+					mdd(f[i+j][0],mul(g[i][1],val[j][0][0]));
+				}
+			}
+
+			// cout<<f[1][0]<<' '<<f[1][1]<<endl;
+			// cout<<val[0][0][0]<<endl;
+			// foru(i,0,p){
+			// 	cout<<f[i][0]<<' '<<f[i][1]<<endl;
+			// }
+			// cout<<endl;
+			// exit(0);
+		};
+		int x=0;
+		int i=0;
+		for(auto it=mp.begin();it->fi<m;it++){
+			mdd(x,it->se);
+			process(next(it)->fi-it->fi,x);
+			// break;
+			// i++;
+			// if(i==2)	break;
+		}
+
+		cout<<add(f[p][0],f[p][1]);
+	}
+}
+
+void solve(bool SPE){ 
+	n=RIN,k=RIN,m=RIN,p=RIN;
+
+	foru(i,1,n){
+		op[i]={RIN,RIN,RIN,RIN};
+	}
+
+	if(p==1){
+		SUB1::work();
+		return ;
+	}
+	// if(m<=1000000){
+	// 	SUB2::work();
+	// 	return ;
+	// }
+	if(k==1){
+		SUB3::work();
+		return ;
+	}
 	return ;
 }
 /*
@@ -286,12 +463,13 @@ signed main()
 {
 	// #define MULTITEST
 	
-	// #ifndef CPEDITOR
-	// #ifdef ONLINE_JUDGE
-	// if(freopen(".in","r",stdin));
-	// if(freopen(".out","w",stdout));
-	// #endif
-	// #endif
+	#ifndef CPEDITOR
+	if(freopen("count3.in","r",stdin));
+	#ifdef ONLINE_JUDGE
+	if(freopen("count.in","r",stdin));
+	if(freopen("count.out","w",stdout));
+	#endif
+	#endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

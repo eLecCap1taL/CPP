@@ -1,3 +1,11 @@
+// Problem: AT_arc132_e [ARC132E] Paw
+// Contest: Luogu
+// URL: https://www.luogu.com.cn/problem/AT_arc132_e
+// Memory Limit: 1024 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,64 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
 
+int n;
+int a[MAXN];
+int s[MAXN];
+void solve(bool SPE){ 
+	n=RIN;
+	foru(i,1,n){
+		char c=RCIN;
+		switch(c){
+			case '<':
+				a[i]=1;
+				break;
+			case '>':
+				a[i]=0;
+				break;
+			case '.':
+				a[i]=2;
+				break;
+		}
+	}
+	foru(i,1,n+1){
+		s[i]=s[i-1]+(a[i]==1);
+	}
+	int N=0;
+	static int p[MAXN];
+	foru(i,1,n){
+		if(a[i]==2){
+			p[++N]=i;
+		}
+	}
+	p[0]=0;
+	p[N+1]=n+1;
+	
+	static int f[MAXN];
+	f[0]=1;
+	foru(i,1,N){
+		f[i]=mul(f[i-1],rmv(1,qpow(2*i,mod-2)));
+	}
+	
+	
+	int ans=0;
+	
+	int lf=0;
+	int rf=N;
+	foru(i,0,N){
+		int num=p[i]+s[p[i+1]]-s[p[i]];
+			
+		// cout<<lf<<' '<<rf<<endl;
+		// cout<<s[p[i+1]]-s[p[i]]<<endl;
+		// cout<<num<<' '<<f[lf]<<' '<<f[rf]<<endl;
+		mdd(ans,mul(num,f[lf],f[rf]));
+		// exit(0);
+		lf++,rf--;
+	}
+	
+	cout<<ans;
+	
+	
 	return ;
 }
 /*

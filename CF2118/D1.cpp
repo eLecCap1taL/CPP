@@ -1,3 +1,11 @@
+// Problem: D1. Red Light, Green Light (Easy version)
+// Contest: Codeforces - Codeforces Round 1030 (Div. 2)
+// URL: https://codeforces.com/contest/2118/problem/D1
+// Memory Limit: 512 MB
+// Time Limit: 4000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -36,7 +44,7 @@
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
 #define uLL unsigned long long
 #define LL long long
-#define LXF int
+#define LXF LL
 #define RIN Cap1taLDebug::read()
 #define RSIN Cap1taLDebug::rdstr()
 #define RCIN Cap1taLDebug::rdchar()
@@ -273,8 +281,107 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
 
+int n;
+LL k;
+LL p[MAXN];
+map<LL,vector<LL>> Dr;
+map<LL,vector<LL>> Dl;
+LL d[MAXN];
+
+LL getcater(LL X,LL D){
+	X-=D;
+	if(X<0)	X+=k;
+	return X%k;
+}
+LL getcatel(LL X,LL D){
+	X+=D;
+	return X%k;
+}
+
+map<LL,array<map<LL,int>,2>> mp;
+int check(LL t,LL x,bool tor){
+	// cout<<t<<' '<<x<<' '<<tor<<endl;
+	{
+		auto it=mp[t][tor].find(x);
+		if(it!=mp[t][tor].end()){
+			if(it->se==2)	return mp[t][tor][x]=0;
+			return it->se;
+		}
+	}
+	// exit()
+	if(tor){
+		if(Dr.find(getcater(x,t))==Dr.end()){
+			return mp[t][tor][x]=1;
+		}
+		mp[t][tor][x]=2;
+		
+		auto& ls=Dr[getcater(x,t)];
+
+		auto it=lower_bound(All(ls),x);
+		
+		if(it==ls.end() || *it!=x){
+			if(it==ls.end())	return mp[t][tor][x]=1;
+			return mp[t][tor][x]=check((t+*it-x)%k,*it,1);
+		}else{
+			bool src=tor;
+			tor^=1;
+			return mp[t][src][x]=check((t+1)%k,x-1,0);
+		}
+		
+	}else{
+		
+		if(Dl.find(getcatel(x,t))==Dl.end()){
+			return mp[t][tor][x]=1;
+		}
+		mp[t][tor][x]=2;
+		
+		auto& ls=Dl[getcatel(x,t)];
+		
+		auto it=lower_bound(All(ls),x);
+		
+		if(it==ls.end() || *it!=x){
+			if(it==ls.begin())	return mp[t][tor][x]=1;
+			it--;
+			return mp[t][tor][x]=check((t+x-*it)%k,*it,0);
+		}else{
+			bool src=tor;
+			tor^=1;
+			return mp[t][src][x]=check((t+1)%k,x+1,1);
+		}
+		
+	}
+	
+}
+
+void solve(bool SPE){ 
+	n=RIN,k=RIN;
+	foru(i,1,n){
+		p[i]=RIN;
+	}
+	
+	Dr.clear();
+	Dl.clear();
+	foru(i,1,n){
+		d[i]=RIN;
+		Dr[getcater(p[i],d[i])].push_back(p[i]);
+		Dl[getcatel(p[i],d[i])].push_back(p[i]);
+	}
+	
+	mp.clear();
+	
+	
+	int q=RIN;
+	while(q--){
+		LL x=RIN;
+		
+		if(check(0,x,1)){
+			printf("YES\n");
+		}else{
+			printf("NO\n");
+		}
+		
+	}
 	return ;
 }
 /*
@@ -284,7 +391,7 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE

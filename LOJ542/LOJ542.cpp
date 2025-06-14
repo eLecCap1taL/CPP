@@ -1,3 +1,11 @@
+// Problem: #542. 「LibreOJ NOIP Round #1」序列划分
+// Contest: LibreOJ
+// URL: https://loj.ac/p/542
+// Memory Limit: 512 MB
+// Time Limit: 1000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -30,7 +38,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 1000005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -273,8 +281,160 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+int n,k;
+int a[MAXN];
+int L[MAXN];
+int R[MAXN];
+int s[MAXN];
 
+void try1(){
+	int us=0;
+	foru(i,1,k-1){
+		us+=k-2;
+		while(us<s[L[i+1]])	us+=k;
+		if(us>s[R[i]])	return ;
+	}
+	cout<<"Yes\n";
+	
+	us=0;
+	static stack<int> st;
+	ford(i,n,1){
+		if(s[i]!=s[i-1])	st.push(i);
+	}
+	
+	cout<<k<<'\n';
+	foru(i,1,k-1){
+		static vector<int> ls;
+		ls+=L[i];
+		us+=k-2;
+		foru(o,1,k-2)	ls+=st.top(),st.pop();
+		while(us<s[L[i+1]]){
+			us+=k;
+			foru(o,1,k)	ls+=st.top(),st.pop();
+		}
+		ls+=R[i];
+		
+		cout<<ls.size()<<' ';
+		for(auto x:ls)	cout<<x<<' ';
+		cout<<'\n';
+		
+		ls.clear();
+	}
+	cout<<st.size()+2<<' ';
+	cout<<L[k]<<' ';
+	while(!st.empty()){
+		cout<<st.top()<<' ';
+		st.pop();
+	}
+	cout<<R[k];
+	
+	
+	exit(0);
+}
+
+void try2(){
+	int us=0;
+	foru(i,2,k){
+		chkmax(us,s[L[i]]);
+		us+=k-2;
+		if(us>s[R[i-1]])	return ;
+	}
+	cout<<"Yes\n";
+	
+	us=0;
+	static stack<int> st;
+	ford(i,n,1){
+		if(s[i]!=s[i-1])	st.push(i);
+	}
+	
+	vector<int> fls;
+	fls+=L[1];
+	
+	cout<<k<<'\n';
+	foru(i,2,k){
+		static vector<int> ls;
+		ls+=L[i];
+		
+		while(st.top()<L[i]){
+			fls+=st.top();
+			st.pop();
+		}
+		
+		foru(o,1,k-2){
+			ls+=st.top();
+			st.pop();
+		}
+		
+		ls+=R[i-1];
+		
+		cout<<ls.size()<<' ';
+		for(auto x:ls)	cout<<x<<' ';
+		cout<<'\n';
+		
+		ls.clear();
+	}
+	while(!st.empty()){
+		fls+=st.top();
+		st.pop();
+	}
+	fls+=R[k];
+	cout<<fls.size()<<' ';
+	for(auto x:fls)	cout<<x<<' ';
+	
+	
+	exit(0);
+}
+
+void solve(bool SPE){ 
+	RIN;
+	
+	n=RIN,k=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+		a[i]=a[i]%k!=0;
+	}
+	
+	if(n%k!=0 || (LL)k*k>n || a[1] || a[n]){
+		cout<<"No";
+		return ;
+	}
+	
+	int N=0;
+	foru(i,1,n){
+		if(a[i]==0)	L[++N]=i;
+	}
+	
+	N=0;
+	ford(i,n,1){
+		if(a[i]==0)	R[++N]=i;
+	}
+	
+	if(N<k){
+		cout<<"No";
+		return ;
+	}
+	
+	reverse(R+1,R+1+k);
+	
+	if(L[k]>=R[1]){
+		cout<<"No";
+		return ;
+	}
+	
+	foru(i,1,k){
+		s[L[i]]=s[R[i]]=1;
+	}
+	foru(i,1,n){
+		s[i]=s[i-1]+(s[i]==0);
+	}
+	
+	try1();
+	try2();
+	
+	cout<<"No";
+	
+	
+	
 	return ;
 }
 /*

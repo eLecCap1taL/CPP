@@ -273,8 +273,78 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+int n;
+int M[5005][5005];
 
+void solve(bool SPE){ 
+	n=RIN;
+	foru(i,1,n){
+		foru(j,i,n){
+			M[i][j]=RIN;
+		}
+	}
+	
+	int L=1,R=n;
+	
+	while(M[L+1][n]==M[L][n])	L++;
+	while(M[1][R-1]==M[1][R])	R--;
+	
+	cout<<L<<' ';
+	
+	int bnum=1;
+	int tot=M[1][n];
+	
+	foru(i,L+1,R-1){
+		if(M[L][i-1]==M[L+1][i-1]+1){
+			if(M[L][i-1]+1==M[L][i]){
+				cout<<i<<' ';
+				bnum++;
+			}
+			continue;
+		}
+		if(M[L][i]==M[L+1][i]+1){
+			if(M[L][i-1]+1==M[L][i]){
+				cout<<i<<' ';
+				bnum++;
+			}
+			continue;
+		}
+		if(M[i+1][R]==M[i+1][R-1]+1){
+			if(M[i+1][R]+1==M[i][R]){
+				cout<<i<<' ';
+				bnum++;
+			}
+			continue;
+		}
+		if(M[i][R]==M[i][R-1]+1){
+			if(M[i][R]==M[i+1][R]+1){
+				cout<<i<<' ';
+				bnum++;
+			}
+			continue;
+		}
+		if(M[L][i]==M[L][i-1]+1){
+			continue;
+		}
+		//M[L][i]==M[L][i-1]
+		if(bnum==M[L][i-1]){
+			continue;
+		}
+		int rb=tot-bnum;
+		int rf=R;
+		if(rb==M[i][R]){
+			rf=R-1;
+		}
+		if(M[i][rf]==M[i+1][rf]){
+			cout<<i<<' ';
+			bnum++;
+		}else{
+			continue;
+		}
+	}
+	
+	if(L!=R)	cout<<R;
+	
 	return ;
 }
 /*
@@ -288,8 +358,8 @@ signed main()
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE
-	// if(freopen(".in","r",stdin));
-	// if(freopen(".out","w",stdout));
+	if(freopen("baby.in","r",stdin));
+	if(freopen("baby.out","w",stdout));
 	// #endif
 	// #endif
 	

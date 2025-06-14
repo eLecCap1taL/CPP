@@ -1,3 +1,11 @@
+// Problem: P10441 [JOISC 2024] 乒乓球 (Day4)
+// Contest: Luogu
+// URL: https://www.luogu.com.cn/problem/P10441
+// Memory Limit: 1024 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,163 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
 
+LL C2(LL n){
+	return n*(n-1)/2;
+}
+LL C3(LL n){
+	return n*(n-1)*(n-2)/6;
+}
+LL f[5005];
+LL n,m;
+
+bitset<5005> g[5005];
+
+
+
+void solve(bool SPE){
+	cin>>n>>m;
+	int N=3;
+	while(f[N]<m)	N++;
+	// cout<<N<<'\n';
+	// exit(0);
+	
+	foru(i,1,n){
+		foru(j,1,i-1){
+			g[i][j]=0;
+		}
+	}
+	
+	if(N>n){
+		cout<<"No\n";
+		return ;
+	}
+	
+	static pair<int,int> d[5005];
+	if(N&1){
+		foru(i,1,N){
+			d[i]=mkp(N/2,i);
+		}
+	}else{
+		foru(i,1,N/2){
+			d[i]=mkp(N/2-1,i);
+			d[i+N/2]=mkp(N/2,i+N/2);
+		}
+	}
+	
+	foru(i,1,N-1){
+		sort(d+i,d+1+N);
+		// foru(j,1,N){
+			// cout<<d[j].fi<<"("<<d[j].se<<")";
+		// }
+		// HH;
+		foru(j,i+1,N){
+			int u=d[i].se;
+			int v=d[j].se;
+			if(d[i].fi){
+				d[i].fi--;
+				// cout<<v<<" to "<<u<<endl;
+				g[v][u]=1;
+			}else{
+				d[j].fi--;
+				// cout<<u<<" to "<<v<<endl;
+				g[u][v]=1;
+			}
+		}
+	}
+	
+	if(N&1){
+		foru(i,1,N){
+			d[i]=mkp(N/2,i);
+		}
+	}else{
+		foru(i,1,N/2){
+			d[i]=mkp(N/2-1,i);
+			d[i+N/2]=mkp(N/2,i+N/2);
+		}
+	}
+	
+	static unordered_set<int> st[5005];
+	foru(i,0,N-1){
+		st[i].clear();
+	}
+	foru(i,1,N){
+		st[d[i].fi]+=i;
+	}
+	static unordered_set<int> bg;
+	bg.clear();
+	foru(i,1,N-2){
+		if(st[i].size()>1)	bg+=i;
+	}
+	
+	// cout<<f[N]-m<<endl;
+	// exit(0);
+	foru(i,1,f[N]-m){
+		auto sz=*bg.begin();
+		
+		int u=*st[sz].begin();
+		st[sz].erase(st[sz].begin());
+		
+		int v=*st[sz].begin();
+		st[sz].erase(st[sz].begin());
+		
+		if((int)st[sz].size()<=1)	bg.erase(bg.begin());
+		
+		if(u>v)	swap(u,v);
+		
+		int res=1;
+		if(g[v][u])	res*=-1;
+		
+		
+		d[u].fi+=res;
+		d[v].fi-=res;
+		
+		st[d[u].fi]+=u;
+		st[d[v].fi]+=v;
+		
+		if((int)st[d[u].fi].size()==2 && d[u].fi!=0 && d[u].fi!=N-1)	bg+=d[u].fi;
+		if((int)st[d[v].fi].size()==2 && d[v].fi!=0 && d[v].fi!=N-1)	bg+=d[v].fi;
+		
+		
+		// cerr<<"flip "<<v<<' '<<u<<endl;
+		g[v][u]=!g[v][u];
+	}
+	
+	// static int D[5005];
+	// LL ans=C3(n);
+	// foru(i,1,n){
+		// D[i]=0;
+	// }
+	// foru(i,1,n){
+		// foru(j,1,i-1){
+			// if(g[i][j]){
+				// D[i]++;
+			// }else{
+				// D[j]++;
+			// }
+		// }
+	// }
+	// foru(i,1,n){
+		// // cout<<D[i]<<' ';
+		// ans-=C2(D[i]);
+	// }
+	// cout<<endl;
+	
+	
+	cout<<"Yes";
+	foru(i,1,n){
+		foru(j,1,i-1){
+			cout<<g[i][j];
+		}
+		cout<<'\n';
+	}
+	
+	// if(ans!=m){
+		// cerr<<n<<' '<<m<<endl;
+		// cerr<<ans<<' '<<m<<endl;
+		// exit(1);
+	// }
+	
 	return ;
 }
 /*
@@ -284,7 +447,24 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	ios::sync_with_stdio(0);
+	cin.tie(0),cout.tie(0);
+	
+	foru(i,3,5000){
+		f[i]=C3(i);
+		if(i&1){
+			foru(j,1,i){
+				f[i]-=C2(i/2);
+			}
+		}else{
+			foru(j,1,i/2){
+				f[i]-=C2(i/2);
+				f[i]-=C2(i/2-1);
+			}
+		}
+	}
+	
+	#define MULTITEST
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE
@@ -294,7 +474,8 @@ signed main()
 	// #endif
 	
 	#ifdef MULTITEST
-	int T=RIN;
+	int T;
+	cin>>T;
 	#else
 	int T=1;
 	#endif

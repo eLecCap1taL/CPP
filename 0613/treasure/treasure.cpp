@@ -30,7 +30,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 2005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -215,7 +215,7 @@ inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
@@ -269,38 +269,324 @@ constexpr int qpow(int x,int y){
 	}
 	return ret;
 }
+#include "treasure.h"
+#define UP '^'
+#define DOWN 'v'
+#define RIGHT '>'
+#define LEFT '<'
 
-/*
+struct ExitForFoundTreasure{};
 
-*/
-void solve(bool SPE){ 
+int X,Y;
+char C;
 
-	return ;
-}
-/*
-检查文件读写
-检查多测清空
-检查数组大小
-*/
-signed main()
-{
-	// #define MULTITEST
-	
-	// #ifndef CPEDITOR
-	// #ifdef ONLINE_JUDGE
-	// if(freopen(".in","r",stdin));
-	// if(freopen(".out","w",stdout));
-	// #endif
-	// #endif
-	
-	#ifdef MULTITEST
-	int T=RIN;
-	#else
-	int T=1;
-	#endif
-	
-	for(int i=1;i<=T;i++){
-		solve(i==0);
+char dat[5005][5005];
+
+int cnt=0;
+char Walk(char c){
+	C=walk(c);
+	cnt++;
+	switch(c){
+		case UP:
+			X--;
+			break;
+		case DOWN:
+			X++;
+			break;
+		case RIGHT:
+			Y++;
+			break;
+		case LEFT:
+			Y--;
+			break;
 	}
-	return 0;
+	if(C=='G')	throw ExitForFoundTreasure();
+	dat[X][Y]=C;
+	return C;
+}
+
+
+class Node{
+public:
+	int a,b,c,d;
+	Node(int a=0,int b=0,int c=0,int d=0):a(a),b(b),c(c),d(d){}
+	Node operator + (const Node& x)const{
+		return Node(a+x.a,b+x.b,c+x.c,d+x.d);
+	}
+	Node& operator +=(const Node& x){
+		*this=(*this)+x;
+		return *this;
+	}
+	Node& operator +=(const char& x){
+		switch(x){
+			case UP:
+				a++;break;
+			case DOWN:
+				b++;break;
+			case RIGHT:
+				c++;break;
+			case LEFT:
+				d++;break;
+			case '.':
+				break;
+			case 'e':
+				break;
+			default:
+				throw runtime_error("InvalidNodeChar");
+		}
+		return *this;
+	}
+	int& operator [] (const char& x){
+		switch(x){
+			case UP:
+				return a;
+			case DOWN:
+				return b;
+			case RIGHT:
+				return c;
+			case LEFT:
+				return d;
+		}
+		throw runtime_error("InvalidNodeChar");
+	}
+};
+
+void clear(){
+	cnt=0;
+}
+void out(const string& msg=""){
+	cerr<<"[cnt"<<msg<<"] "<<cnt<<endl;
+}
+int n;
+
+void access_x(int x,int y){
+	if(dat[x][y]!='e')	return ;
+	while(X<x)	Walk(DOWN);
+	while(X>x)	Walk(UP);
+	while(Y>y)	Walk(LEFT);
+	while(Y<y)	Walk(RIGHT);
+}
+void access_y(int x,int y){
+	if(dat[x][y]!='e')	return ;
+	while(Y>y)	Walk(LEFT);
+	while(Y<y)	Walk(RIGHT);
+	while(X<x)	Walk(DOWN);
+	while(X>x)	Walk(UP);
+}
+// auto access=access_x;
+
+
+void access_line_x(int x,int l,int r){
+	if(abs(Y-l)<abs(Y-r)){
+		foru(i,l,r){
+			access_x(x,i);
+		}
+	}else{
+		ford(i,r,l){
+			access_x(x,i);
+		}
+	}
+}
+void smart_access_line_x(int x,int l,int r){
+	access_x(x,Y);
+	int bg=min(max(Y,l),r);
+	access_x(x,l);
+	access_x(x-1,r);
+	access_x(x,bg);
+}
+void access_line_y(int y,int l,int r){
+	if(abs(X-l)<abs(X-r)){
+		foru(i,l,r){
+			access_y(i,y);
+		}
+	}else{
+		ford(i,r,l){
+			access_y(i,y);
+		}
+	}
+}
+
+Node qry_line_x(int x,int l,int r){
+	// cerr<<X<<' '<<Y<<endl;
+	access_line_x(x,l,r);
+	// out();
+	// cerr<<X<<' '<<Y<<endl;
+	Node ret;
+	foru(i,l,r)	ret+=dat[x][i];
+	return ret;
+}
+Node qry_line_y(int y,int l,int r){
+	access_line_y(y,l,r);
+	Node ret;
+	foru(i,l,r)	ret+=dat[i][y];
+	return ret;
+}
+
+pair<int,int> borderpair_x(int x,int l,int r){
+	// cerr<<" "<<X<<' '<<Y<<endl;
+	// access_x(x,l);
+	// out();
+	// cerr<<" "<<X<<' '<<Y<<endl;
+	// cerr<<x<<' '<<l<<' '<<r<<endl;
+	return mkp(qry_line_x(x,l,r)[UP],qry_line_x(x-1,l,r)[DOWN]);
+}
+
+void border_x(int x,int l,int r,int& down_i,int& down_o,int& up_i,int& up_o){
+	//[x,l,r] is the line lower
+	if(x<=1 || x>=2*n+2)	return ;
+
+	smart_access_line_x(x,l,r);
+	auto res=borderpair_x(x,l,r);
+	// out();
+	down_o+=res.fi,up_i+=res.fi;
+	down_i+=res.se,up_o+=res.se;
+}
+void border_y(int y,int l,int r,int& left_i,int& left_o,int& right_i,int& right_o){
+	//[y,l,r] is the line on the left
+	if(y<=0 || y>=2*n+1)	return ;
+
+	Node res;
+	res=qry_line_y(y,l,r);
+	left_o+=res[RIGHT],right_i+=res[RIGHT];
+	res=qry_line_y(y+1,l,r);
+	left_i+=res[LEFT],right_o+=res[LEFT];
+}
+
+
+void solve(int xl,int xr,int yl,int yr){
+	if(xl==xr)	return access_line_x(xl,yl,yr);
+	if(yl==yr)	return access_line_y(yl,xl,xr);
+	if(xl>xr)	throw runtime_error("Invalid solve x-region");
+	if(yl>yr)	throw runtime_error("Invalid solve y-region");
+	if(xr-xl<yr-yl){
+		int mid=(yl+yr)>>1;
+
+		int L_i=0;
+		int L_o=0;
+		int R_i=0;
+		int R_o=0;
+		int X_i=0;
+		int X_o=0;
+
+		clear();
+		border_y(mid,xl,xr,L_i,L_o,R_i,R_o);
+		out("by");
+		// exit(1);
+		clear();
+		border_y(yl-1,xl,xr,X_i,X_o,L_i,L_o);
+		border_y(yr,xl,xr,R_i,R_o,X_i,X_o);
+
+		border_x(xl,yl,mid,L_i,L_o,X_i,X_o);
+		border_x(xl,mid+1,yr,R_i,R_o,X_i,X_o);
+		border_x(xr+1,yl,mid,X_i,X_o,L_i,L_o);
+		border_x(xr+1,mid+1,yr,X_i,X_o,R_i,R_o);
+		// out();
+
+		int L=L_o-L_i;
+		int R=R_o-R_i;
+		int X=X_o-X_i;
+
+		int chk=(L!=0)+(R!=0)+(X!=0);
+		
+		if(chk!=0 && chk!=2)	throw runtime_error("Invalid Graph degrees (1)");
+		
+		if(L==0 && R==0 && X==0){
+			if(n+1<xl || n+1>xr || n+1<yl || n+1>yr)	throw runtime_error("expect (n+1,n+1) in solve region, but not found");
+			if(n+1<=mid)	solve(xl,xr,yl,mid);
+			else	solve(xl,xr,mid+1,yr);
+			return ;
+		}
+
+		if(min({L,R,X})!=-1 || max({L,R,X})!=1)	throw runtime_error("Invalid Graph degrees(2)");
+		if(X==-1)	throw runtime_error("-1 should be in the region");
+
+		if(L==-1)	solve(xl,xr,yl,mid);
+		else	solve(xl,xr,mid+1,yr);
+	}else{
+		int mid=(xl+xr)>>1;
+
+		int U_i=0;
+		int U_o=0;
+		int D_i=0;
+		int D_o=0;
+		int X_i=0;
+		int X_o=0;
+
+		clear();
+		border_x(mid+1,yl,yr,D_i,D_o,U_i,U_o);
+		out("bx");
+		clear();
+		border_x(xl,yl,yr,U_i,U_o,X_i,X_o);
+		border_x(xr+1,yl,yr,X_i,X_o,D_i,D_o);
+
+		border_y(yl-1,xl,mid,X_i,X_o,U_i,U_o);
+		border_y(yl-1,mid+1,xr,X_i,X_o,D_i,D_o);
+		border_y(yr,xl,mid,U_i,U_o,X_i,X_o);
+		border_y(yr,mid+1,xr,D_i,D_o,X_i,X_o);
+		// out();
+
+		int U=U_o-U_i;
+		int D=D_o-D_i;
+		int X=X_o-X_i;
+
+		int chk=(U!=0)+(D!=0)+(X!=0);
+		
+		if(chk!=0 && chk!=2)	throw runtime_error("Invalid Graph degrees (1)");
+		
+		if(U==0 && D==0 && X==0){
+			if(n+1<xl || n+1>xr || n+1<yl || n+1>yr)	throw runtime_error("expect (n+1,n+1) in solve region, but not found");
+			if(n+1<=mid)	solve(xl,mid,yl,yr);
+			else	solve(mid+1,xr,yl,yr);
+			return ;
+		}
+
+		if(min({U,D,X})!=-1 || max({U,D,X})!=1)	throw runtime_error("Invalid Graph degrees(2)");
+		if(X==-1)	throw runtime_error("-1 should be in the region");
+
+		if(U==-1)	solve(xl,mid,yl,yr);
+		else	solve(mid+1,xr,yl,yr);
+	}
+}
+
+void init(){
+	const int NL=1;
+	const int NMID=n+1;
+	const int NR=2*n+1;
+
+	foru(i,NL,NR)	foru(j,NL,NR)	dat[i][j]='e';
+
+	X=NMID,Y=NMID;
+	dat[X][Y]=UP;
+	
+	int U_i=0;
+	int U_o=0;
+	int D_i=0;
+	int D_o=0;
+
+	smart_access_line_x(NMID+1,NL,NR);
+	border_x(NMID+1,NL,NR,D_i,D_o,U_i,U_o);
+	out();
+	// exit(1);
+
+	if(U_o==D_o){
+		solve(NL,NMID,NL,NR);
+	}else if(U_o==D_o+1){
+		solve(NMID+1,NR,NL,NR);
+	}else{
+		throw runtime_error("Unexpect Init Status");
+	}
+
+	throw runtime_error("init didn't find treasure");
+}
+void find_treasure(int _n){
+	n=_n;
+	try{
+		init();
+	}catch(ExitForFoundTreasure){
+		return ;
+	}catch(const runtime_error& e){
+		cerr<<"Error: "<<e.what()<<endl;
+		exit(1);
+		return ;
+	}
 }

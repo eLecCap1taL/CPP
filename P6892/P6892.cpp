@@ -1,3 +1,11 @@
+// Problem: P6892 [ICPC 2014 WF] Baggage
+// Contest: Luogu
+// URL: https://www.luogu.com.cn/problem/P6892
+// Memory Limit: 1024 MB
+// Time Limit: 1000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,254 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+int n;
+unordered_map<int,int> a;
+void init(int n){
+	for(int i=1;i<=2*n;i+=2){
+		a[i]=2;
+		a[i+1]=1;
+	}
+}
+int cnt=0;
+void opt(int x,int y){
+	if(a[x]==0 || a[x+1]==0){
+		cout<<"Invalid opt "<<x<<' '<<y<<", x is empty.";
+		exit(1);
+	}
+	int L=a[x],R=a[x+1];
+	a[x]=0,a[x+1]=0;
+	if(a[y]!=0 || a[y+1]!=0){
+		cout<<"Invalid opt "<<x<<' '<<y<<", y is not empty.";
+		exit(1);
+	}
+	a[y]=L,a[y+1]=R;
+	cnt++;
+	cout<<x<<" to "<<y<<'\n';
+}
+void finish(int l,int r){
+	if(r-l+1!=2*n){
+		cout<<"Invalid final length";
+		exit(1);
+	}
+	foru(i,0,n-1){
+		if(a[l+i]!=1){
+			cout<<"expect A at "<<l+i<<endl;
+			exit(1);
+		}
+	}
+	foru(i,n,2*n-1){
+		if(a[l+i]!=2){
+			cout<<"expect B at "<<l+i<<endl;
+			exit(1);
+		}
+	}
+	if(cnt!=n){
+		cerr<<"cnt not equal to N!"<<endl;
+	}
+	cerr<<"check ok, use "<<cnt<<' '<<"times.";
+}
+void out(){
+	foru(i,-1,2*n){
+		if(i==0)	cout<<'|';
+		if(i==n-1)	cout<<'|';
+		if(i==2*n-1)	cout<<'|';
+		cout<<"OAB"[a[i]];
+	}
+	cout<<endl;
+}
+namespace SUB0{
+	void work(){
+		int b=n-1;
+		opt(b+3,-1);
+		
+		// cout<<"~"<<endl;
+		for(int i=b+7,j=3;i<=2*n;i+=4,j+=4){
+			opt(j,i-4);
+			opt(i,j);
+		}
+		
+		// cout<<"~"<<endl;
+		opt(b,2*n-2);
+		opt(0,b);
+		
+		for(int i=b+4,j=0;i<=2*n;i+=4,j+=4){
+			// cout<<"~";
+			opt(i,j);
+			if(i==2*n-1)	break;
+			opt(j+4,i);
+		}
+		
+		finish(-1,2*n-2);
+	}
+}
 
+namespace SUB1{
+	void work(){
+		int b=n-1;
+		
+		if(n==5){
+			opt(8,-1);
+			opt(3,8);
+			opt(6,3);
+			opt(0,6);
+			opt(9,0);
+			finish(-1,2*n-2);
+			return ;
+		}
+		
+		opt(2*n-2,-1);
+		opt(b-1,2*n-2);
+		
+		opt(b+4,b-1);
+		
+		for(int i=b+4,j=3;;i+=4,j+=4){
+			opt(j,i);
+			if(i+4>=2*n-2){
+				opt(b+2,j);
+				break;
+			}
+			opt(i+4,j);
+		}
+		
+		for(int i=b;i<=2*n;i++){
+			if(a[i]==0){
+				assert(a[i+1]==0);
+				
+				foru(j,-1,b-2){
+					if(a[j]==2 && a[j+1]==2){
+						opt(j,i);
+						foru(k,i+3,2*n-1){
+							if(a[k]==1 && a[k+1]==1){
+								opt(k,j);
+								break;
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+		
+		finish(-1,2*n-2);
+	}
+}
+namespace SUB2{
+	void work(){
+		int b=n-1;
+		
+		opt(2*n-2,-1);
+		opt(2*n-5,2*n-2);
+		
+		for(int i=2*n-5,j=b-3;;i-=4,j-=4){
+			opt(j,i);
+			if(j==2)	break;
+			opt(i-4,j);
+		}
+		
+		
+		while(1){
+			bool ok=0;
+			for(int i=-1;i<=b-2;i++){
+				if(a[i]==0){
+					assert(a[i+1]==0);
+					ok=1;
+					
+					foru(j,b,2*n-1){
+						if(a[j]==1 && a[j+1]==1){
+							opt(j,i);
+							foru(k,-1,b-2){
+								if(a[k]==2 && a[k+1]==2){
+									opt(k,j);
+									break;
+								}
+							}
+							break;
+						}
+					}
+					break;
+				}
+			}
+			if(ok)	continue;
+			break;
+		}
+		
+		finish(-1,2*n-2);
+	}
+}
+
+namespace SUB3{
+	void work(){
+		int b=n-1;
+		
+		opt(2*n-2,-1);
+		opt(b-1,2*n-2);
+		
+		opt(b+2,b-1);
+		
+		// cout<<"~"<<endl;
+		for(int i=b+2,j=3;;i+=4,j+=4){
+			opt(j,i);
+			if(i+4>=2*n-2)	break;
+			opt(i+4,j);
+		}
+		
+		// out();
+		while(1){
+			bool ok=0;
+			for(int i=-1;i<=b-2;i++){
+				if(a[i]==0){
+					assert(a[i+1]==0);
+					ok=1;
+					
+					foru(j,b,2*n-1){
+						if(a[j]==1 && a[j+1]==1){
+							opt(j,i);
+							foru(k,-1,b-2){
+								if(a[k]==2 && a[k+1]==2){
+									opt(k,j);
+									break;
+								}
+							}
+							break;
+						}
+					}
+					break;
+				}
+			}
+			if(ok)	continue;
+			break;
+		}
+		
+		
+		finish(-1,2*n-2);
+	}
+}
+void solve(bool SPE){ 
+	n=RIN;
+	// exit(n);
+	init(n);
+	if(n==3){
+		opt(2,-1);
+		opt(5,2);
+		opt(3,-3);
+		finish(-3,2);
+		return ;
+	}
+	if(n%4==0){
+		SUB0::work();
+		return ;
+	}
+	if(n%4==1){
+		SUB1::work();
+		return ;
+	}
+	if(n%4==2){
+		SUB2::work();
+		return ;
+	}
+	if(n%4==3){
+		SUB3::work();
+	}
 	return ;
 }
 /*

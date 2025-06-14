@@ -273,8 +273,111 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
+class String : public string {
+	
+};
+map<map<int,int>,int> mp;
+map<map<int,int>,map<int,int>> fr;
+ 
+int n=3;
+int L=-10,R=2*n+10;
 
+map<int,int> opt(const map<int,int>& a,int x,int y){
+	auto ret=a;
+	int L=ret[x],R=ret[x+1];
+	ret[x]=0,ret[x+1]=0;
+	ret[y]=L,ret[y+1]=R;
+	return ret;
+}
+
+bool check(const map<int,int>& a){
+	foru(i,L,R-2*n+1){
+		foru(j,0,n-1){
+			if(a.at(i+j)!=1){
+				goto fail;
+			}
+		}
+		foru(j,n,2*n-1){
+			if(a.at(i+j)!=2){
+				goto fail;
+			}
+		}
+		return true;
+		fail:;
+	}
+	return false;
+}
+void out(const map<int,int>& a){
+	int b=n-1;
+	foru(i,L,R){
+		if(i==1)	cout<<'|';
+		if(i==b)	cout<<'|';
+		if(i==2*n-1)	cout<<'|';
+		cout<<"OAB"[a.at(i)];
+	}
+	cout<<endl;
+}
+
+void solve(bool SPE){
+	map<int,int> a;
+	foru(i,L,R)	a[i]=0;
+	foru(i,1,2*n){
+		if(i&1)	a[i]=2;
+		else	a[i]=1;
+	}
+	
+	mp[a]=0;
+	static queue<map<int,int>> q;
+// 	
+	// auto b=a;
+// 	
+	// b[-1]=1;
+	// b[0]=2;
+// 	
+	// b[2*n-2]=0;
+	// b[2*n-1]=0;
+// 	
+	// mp[b]=1;
+	// fr[b]=a;
+	
+	q.push(a);
+	
+	while(!q.empty()){
+		auto u=q.front();
+		q.pop();
+		int d=mp[u];
+		
+		// out(u);
+		assert(sz(u)==R-L+1);
+		// foru(i,L,R){
+			// cout<<u[i];
+		// }
+		// cout<<endl;
+		if(check(u)){
+			cout<<d<<endl;
+			out(u);
+			cout<<endl;
+			while(d--){
+				u=fr[u];
+				out(u);
+			}
+			exit(0);
+		}
+		foru(i,L,R-1){
+			if(u[i]==0 || u[i+1]==0)	continue;
+			foru(j,L,R-1){
+				if(j==i-1 || j==i || j==i+1)	continue;
+				if(u[j]!=0 || u[j+1]!=0)	continue;
+				auto v=opt(u,i,j);
+				if(mp.find(v)!=mp.end())	continue;
+				mp[v]=d+1;
+				fr[v]=u;
+				q.push(v);
+			}
+		}
+	}
+	
+	
 	return ;
 }
 /*

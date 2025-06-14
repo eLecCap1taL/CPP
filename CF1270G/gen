@@ -274,7 +274,18 @@ constexpr int qpow(int x,int y){
 
 */
 void solve(bool SPE){ 
-
+	int n=10;
+	mt19937 rd(random_device{}());
+	
+	cout<<10<<endl;
+	foru(o,1,10){
+		cout<<n<<endl;
+		foru(i,1,n){
+			int v=rd()%n+1;
+			cout<<i-v<<' ';
+		}
+		cout<<endl;
+	}
 	return ;
 }
 /*

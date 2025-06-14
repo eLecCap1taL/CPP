@@ -1,3 +1,11 @@
+// Problem: CF1270G Subset with Zero Sum
+// Contest: Luogu
+// URL: https://www.luogu.com.cn/problem/CF1270G
+// Memory Limit: 250 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -30,7 +38,7 @@
 // #include <ext/rope>
 // #define PBDS __gnu_pbds
 // #include <bits/extc++.h>
-#define MAXN 200005
+#define MAXN 1000005
 #define eps 1e-10
 #define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
@@ -273,8 +281,69 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
 
+int n;
+int a[MAXN];
+bool vis[MAXN];
+bool in[MAXN];
+void solve(bool SPE){ 
+	n=RIN;
+	foru(i,1,n){
+		a[i]=RIN;
+		vis[i]=0;
+		in[i]=0;
+	}
+	
+	static stack<int> st;
+	while(!st.empty())	st.pop();
+	
+	bool ed=0;
+	auto dfs=[&](auto& dfs,int u)->void {
+		in[u]=1;
+		st.push(u);
+		
+		int v=u-a[u];
+		// cout<<u<<"->"<<v<<endl;
+		
+		if(vis[v]){
+			st.pop();
+			vis[u]=1;
+			in[u]=0;
+			return ;
+		}
+		if(!in[v]){
+			dfs(dfs,v);
+			if(ed)	return ;
+			st.pop();
+			vis[u]=1;
+			in[u]=0;
+			return ;
+		}
+		
+		vector<int> ls;
+		while(1){
+			int x=st.top();
+			ls+=x;
+			st.pop();
+			if(x==v)	break;
+		}
+		cout<<sz(ls)<<'\n';
+		for(auto x:ls){
+			cout<<x<<' ';
+		}
+		cout<<'\n';
+		ed=1;
+		
+		return ;
+	};
+	// cout<<endl;
+	foru(i,1,n){
+		if(vis[i])	continue;
+		dfs(dfs,i);
+		// if(ed)	exit(0);
+		if(ed)	return ;
+	}
+	
 	return ;
 }
 /*
@@ -284,7 +353,7 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE

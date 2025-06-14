@@ -274,7 +274,11 @@ constexpr int qpow(int x,int y){
 
 */
 void solve(bool SPE){ 
-
+	foru(i,3,100){
+		ofstream fout(format("{}.in",i),ios::out);
+		fout<<i;
+		fout.close();
+	}
 	return ;
 }
 /*

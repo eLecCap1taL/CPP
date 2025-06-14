@@ -1,3 +1,11 @@
+// Problem: #75. 【UR #6】智商锁
+// Contest: UOJ
+// URL: https://uoj.ac/problem/75
+// Memory Limit: 256 MB
+// Time Limit: 1000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -273,8 +281,154 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-void solve(bool SPE){ 
 
+
+
+
+int k;
+typedef array<array<int,12>,12> mat;
+void gen(mat& a){
+	static mt19937 rd(random_device{}());
+	
+	foru(i,0,11){
+		foru(j,0,11){
+			a[i][j]=0;
+		}
+	}
+	foru(i,0,11){
+		foru(j,i+1,11){
+			if(rd()%100<=80 || j==i+1){
+				a[i][j]=a[j][i]=mod-1;
+				a[i][i]++;
+				a[j][j]++;
+			}
+		}
+	}
+}
+int calc(mat a){
+	int ret=1;
+	// foru(i,0,11){
+		// foru(j,0,11){
+			// cout<<a[i][j]<<' ';
+		// }
+		// HH;
+	// }
+	foru(i,0,10){
+		int mx=INT_MIN,p=0;
+		foru(j,i,10){
+			if(chkmax(mx,a[j][i]))	p=j;
+		}
+		swap(a[i],a[p]);
+		if(i!=p)	ret=rmv(0,ret);
+		
+		// assert(a[i][i]!=0);
+		// if(a[i][i]==0){
+// 			
+			// foru(i,0,11){
+				// foru(j,0,11){
+					// cout<<a[i][j]<<' ';
+				// }
+				// HH;
+			// }
+			// exit(0);
+		// }
+		
+		mll(ret,a[i][i]);
+		int inv=qpow(a[i][i],mod-2);
+		
+		foru(j,i+1,10){
+			int scale=mul(a[j][i],inv);
+			foru(k,i,10){
+				mmv(a[j][k],mul(a[i][k],scale));
+			}
+		}
+	}
+	// exit(0);
+	
+	return ret;
+}
+mat a[1005];
+int f[1005];
+int _f[1005];
+unordered_map<int,pair<int,int>> mp;
+void pre(){
+	foru(i,1,1000){
+		gen(a[i]);
+		f[i]=calc(a[i]);
+		_f[i]=qpow(f[i],mod-2);
+	}
+	foru(i,1,1000){
+		foru(j,1,1000){
+			mp[mul(f[i],f[j])]=mkp(i,j);
+		}
+	}
+	
+	// foru(o,1,1000){
+		// tr.clear();
+		// tr.set(12);
+		// foru(u,0,11){
+			// foru(v,u+1,11){
+				// if(a[o][u][v]!=0){
+					// tr.add_edge(u+1,v+1);
+				// }
+			// }
+		// }
+		// cout<<tr.calc()<<' '<<f[o]<<endl;
+		// assert(tr.calc()==f[o]);
+	// }
+}
+
+vector<pair<int,int>> ls;
+void push(mat& a,int base){
+	foru(i,0,11){
+		foru(j,i+1,11){
+			if(a[i][j]!=0){
+				ls+=mkp(base+i,base+j);
+			}
+		}
+	}
+}
+void finish(){
+	// tr.set(48);
+	ls+=mkp(1,13);
+	ls+=mkp(13,25);
+	ls+=mkp(25,37);
+	cout<<12*4<<' '<<ls.size()<<'\n';
+	for(auto [x,y]:ls){
+		// tr.add_edge(x,y);
+		cout<<x<<' '<<y<<'\n';
+	}
+	// cout<<tr.calc()<<endl;
+	ls.clear();
+}
+void solve(bool SPE){ 
+	k=RIN;
+	
+	
+	int x=0,y=0,z=0,w=0;
+	foru(i,1,1000){
+		foru(j,1,1000){
+			auto it=mp.find(mul(k,_f[i],_f[j]));
+			if(it!=mp.end()){
+				x=i,y=j,z=it->se.fi,w=it->se.se;
+				goto ok;
+			}
+		}
+	}
+	
+	ok:
+	
+	// cout<<mul(f[x],f[y],f[z],f[w])<<endl;
+	// cout<<x<<' '<<y<<' '<<z<<' '<<w<<endl;
+	
+	push(a[x],1);
+	push(a[y],13);
+	push(a[z],25);
+	push(a[w],37);
+	
+	// tr.clear();
+	finish();
+	
 	return ;
 }
 /*
@@ -284,7 +438,7 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
 	
 	// #ifndef CPEDITOR
 	// #ifdef ONLINE_JUDGE
@@ -292,6 +446,8 @@ signed main()
 	// if(freopen(".out","w",stdout));
 	// #endif
 	// #endif
+	
+	pre();
 	
 	#ifdef MULTITEST
 	int T=RIN;

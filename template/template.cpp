@@ -288,7 +288,7 @@ signed main()
 	
 	#ifndef CPEDITOR
 	#ifdef ONLINE_JUDGE
-	if(freopen("fame.in","r",stdin));
+	if(freopen(".in","r",stdin));
 	if(freopen(".out","w",stdout));
 	#endif
 	#endif
