@@ -1,0 +1,59 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// 构造满足位数条件和 LCM 位数条件的解
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int T;
+    cin >> T;
+    while (T--) {
+        int A1, A2, A3;
+        cin >> A1 >> A2 >> A3;
+        int a = A1, b = A2;
+        bool swapped = false;
+        if (a > b) {
+            swap(a, b);
+            swapped = true;
+        }
+        // 可行性：b <= A3 <= a+b
+        if (A3 < b || A3 > a + b) {
+            cout << "-1 -1";
+        } else {
+            string X1, X2;
+            // 特殊情况：A3 == a+b，直接构造使 gcd=1 且 lcm=product
+            if (A3 == a + b) {
+                // X1 = 10^(a-1) + 1, X2 = 10^b - 1
+                X1 = "1";
+                X1.append(a - 1, '0');
+                X1.back() = '1';  // 例如 a=3 -> "101"
+                X2.assign(b, '9'); // b 个 '9'
+            } else {
+                int k = a + b - 1 - A3;
+                int d = b - k;
+                // X1 = 10^(a-1)
+                X1 = "1";
+                X1.append(a - 1, '0');
+                // 构造 q = 10^(d-1) + 1
+                string q;
+                if (d == 1) {
+                    q = "2";
+                } else {
+                    q = "1";
+                    q.append(d - 2, '0');
+                    q.push_back('1');
+                }
+                // X2 = q * 10^k -> 在末尾补 k 个 '0'
+                X2 = q;
+                X2.append(k, '0');
+            }
+            if (swapped) swap(X1, X2);
+            cout << X1 << ' ' << X2;
+            
+            
+        }
+        if (T) cout << '\n';
+    }
+    return 0;
+}
