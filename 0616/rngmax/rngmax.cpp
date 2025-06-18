@@ -1,11 +1,3 @@
-// Problem: G - Accumulation of Wealth
-// Contest: AtCoder - AtCoder Beginner Contest 409
-// URL: https://atcoder.jp/contests/abc409/tasks/abc409_g
-// Memory Limit: 1024 MB
-// Time Limit: 2000 ms
-// 
-// Powered by CP Editor (https://cpeditor.org)
-
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -49,7 +41,7 @@
 #define RSIN Cap1taLDebug::rdstr()
 #define RCIN Cap1taLDebug::rdchar()
 #define HH printf("\n")
-#define All(x) (x).begin(), (x).end()
+#define ALL(x) (x).begin(), (x).end()
 #define fi first
 #define se second
 #define CA const auto&
@@ -64,6 +56,7 @@
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #define mkp(x,y) make_pair(x,y)
 #define ast(x) if(!(x))	{cerr<<endl<<"err at"<<__LINE__<<endl;exit(1);}
+#define sz(x) ((int)(x.size()))
 using namespace std;
 
 typedef __int128 i128;
@@ -115,14 +108,14 @@ public:
 		string s="",w="";
 		if(x<0)	w="-",x*=-1;
 		while(x) s+=(char)('0'+(int)(x%10)),x/=10;
-		reverse(All(s));
+		reverse(ALL(s));
 		return w+s;
 	}
 	static string u128ToString(u128 x){
 		if(x==0)	return "0";
 		string s="",w="";
 		while(x) s+=(char)('0'+(int)(x%10)),x/=10;
-		reverse(All(s));
+		reverse(ALL(s));
 		return w+s;
 	}
 	Cap1taLDebug& operator<<(const string val){
@@ -179,7 +172,7 @@ public:
 	}
 };
 #ifndef DEBUGING
-char Cap1taLDebug::fbuf[1<<21],*Cap1taLDebug::p1=nullptr,*Cap1taLDebug::p2=nullptr;
+char Cap1taLDebug::fbuf[1<<21],*Cap1taLDebug::p1=nuLLptr,*Cap1taLDebug::p2=nuLLptr;
 #endif
 Cap1taLDebug cein(cout);
 // Cap1taLDebug cein(cerr);
@@ -222,7 +215,7 @@ inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
@@ -243,11 +236,11 @@ constexpr int& mmv(int& x,const T1& y,const T2& ...xr){
 	if(x<0)	x+=mod;
 	return mmv(x,xr...);
 }
-constexpr int& mll(int& x){return x;}
+constexpr int& mLL(int& x){return x;}
 template<class T1,class ...T2>
-constexpr int& mll(int& x,const T1& y,const T2& ...xr){
+constexpr int& mLL(int& x,const T1& y,const T2& ...xr){
 	x=(LL)x*y%mod;
-	return mll(x,xr...);
+	return mLL(x,xr...);
 }
 constexpr int add(const int& x){return x;}
 template<class ...T>
@@ -271,8 +264,8 @@ constexpr int mev(const int& x){return mod-x;}
 constexpr int qpow(int x,int y){
 	int ret=1;
 	while(y){
-		if(y&1)	mll(ret,x);
-		mll(x,x),y>>=1;
+		if(y&1)	mLL(ret,x);
+		mLL(x,x),y>>=1;
 	}
 	return ret;
 }
@@ -281,19 +274,23 @@ constexpr int qpow(int x,int y){
 
 */
 
+
+int n,k;
+
+int fac[100005];
+int ifac[100005];
+
 namespace NTT{
 	constexpr int g=3;
 	constexpr int _g=qpow(3,mod-2);
-	typedef vector<int> v;
-	v r;
-	void NTT(v& a,bool inv){
+	vector<int> r;
+	void NTT(vector<int>& a,bool inv){
 		int n=a.size();
 		foru(i,0,n-1)	if(i<r[i])	swap(a[i],a[r[i]]);
 		for(int len=2;len<=n;len<<=1){
 			int W=qpow(inv?_g:g,(mod-1)/len);
-			int W=
 			for(int i=0;i<n;i+=len){
-				for(int j=0,w=1;j*2<len;j++,mll(w,W)){
+				for(int j=0,w=1;j*2<len;j++,mLL(w,W)){
 					int x=a[i+j],y=mul(a[i+j+len/2],w);
 					a[i+j]=add(x,y);
 					a[i+j+len/2]=rmv(x,y);
@@ -302,117 +299,94 @@ namespace NTT{
 		}
 		if(inv){
 			int _n=qpow(n,mod-2);
-			foru(i,0,n-1)	mll(a[i],_n);
+			for(auto& x:a)	mLL(x,_n);
 		}
 	}
-	v convolution(const v& x,const v& y){
-		v A=x,B=y;
+	vector<int> convolution(const vector<int>& x,const vector<int>& y){
+		vector<int> A=x,B=y;
 		int N=1,L=0,n=x.size(),m=y.size();
 		while(N<n+m-1)	N<<=1,L++;
 		A.resize(N,0),B.resize(N,0),r.resize(N,0);
 		foru(i,0,N-1)	r[i]=(r[i>>1]>>1)|((i&1)<<(L-1));
-		NTT(A,0);
-		NTT(B,0);
-		v ret(N,0);
+		NTT(A,false);
+		NTT(B,false);
+		vector<int> ret(N,0);
 		foru(i,0,N-1)	ret[i]=mul(A[i],B[i]);
-		NTT(ret,1);
+		NTT(ret,true);
 		return ret;
-	} 
+	}
 }
 
-int n,p;
+int dfs(int u,int us,int tot,int lm){
+	if(u==n+1){
+		return us==tot;
+	}
+	int ret=0;
+	for(int i=0;i<=tot-us && i<=lm;i++){
+		mdd(ret,mul(dfs(u+1,us+i,tot,lm),ifac[i]));
+	}
+	return ret;
+}
 
-int ans[MAXN];
+vector<int> polypow(vector<int> a,int b){
+	auto ret=a;
+	b--;
+	while(b){
+		if(b&1)	ret=NTT::convolution(ret,a);
+		a=NTT::convolution(a,a),b>>=1;
+		a.resize(k+1,0);
+	}
+	return ret;
+}
 
-int fac[MAXN];
-int ifac[MAXN];
-int inv[MAXN];
 
-void solve(bool SPE){
-	n=RIN,p=RIN;
-	
-	if(p==100){
-		foru(i,1,n){
-			cout<<1<<endl;
+int calc(int K,int N){
+	int ret=0;
+	foru(m,1,K){
+		vector<int> a;
+		a.resize(k+1,0);
+		foru(i,0,m){
+			a[i]=ifac[i];
 		}
-		return ;
+
+		mdd(sum,mul(polypow(a,n)[]));
 	}
+}
+
+
+void solve(bool SPE){ 
+	n=RIN,k=RIN;
 	
-	p=mul(p,qpow(100,mod-2));
-	
-	int q=rmv(1,p);
-	int _q=qpow(q,mod-2);
-	 
-	foru(i,1,n){
-		inv[i]=qpow(i,mod-2);
-	}
 	fac[0]=1;
-	foru(i,1,n){
+	foru(i,1,k){
 		fac[i]=mul(fac[i-1],i);
 	}
-	ifac[n]=qpow(fac[n],mod-2);
-	ford(i,n-1,0){
+	ifac[k]=qpow(fac[k],mod-2);
+
+	ford(i,k-1,0){
 		ifac[i]=mul(ifac[i+1],i+1);
 	}
-	// cout<<mul(fac[3],ifac[2],ifac[1])<<endl;
-	
-	static int G[MAXN];
-	G[n]=1;
-	ford(i,n-1,1){
-		G[i]=add(G[i+1],mul(q,G[i+1],inv[i]));
+
+
+	int ans=0;
+	{
+		vector<int> a;
+		a.resize(k+1,0);
+		foru(i,0,k){
+			a[i]=ifac[i];
+		}
+
+		ans=mul(k,mul(polypow(a,n)[k],fac[k]));
 	}
-	
-	
-	ans[1]=G[1];
-	
-	foru(i,2,n){
-		mll(G[i],fac[i-2],qpow(q,i));
-	}
-	
-	static int H[MAXN];
-	foru(i,2,n){
-		H[i]=mul(ifac[i-2],qpow(p,i-1),qpow(_q,i));
-	}
-	
-	// cout<<g[n][0]<<endl;
-	
-	vector<int> ff(n+1,0);
-	vector<int> ii(n+1,0);
-	
-	foru(i,0,n){
-		// cout<<G[n-i]<<endl;
-		ff[i]=G[n-i];
-		ii[i]=ifac[i];
-		// F[i]=G[n-i];
-	}
-	// return ;
-	
-	// static int CV[MAXN];
-// 	
-	// foru(k,0,n){
-		// foru(i,0,k){
-			// mdd(CV[k],mul(F[i],ifac[k-i]));
-		// }
-	// }
-	vector<int> CV=NTT::convolution(ff,ii);
-	// vector<int> CV(2*n+1,0);
-	// foru(i,0,n){
-		// foru(j,0,n){
-			// mdd(CV[i+j],mul(ff[i],ii[j]));
-		// }
-	// }
-	
-	
-	foru(k,1,n){
-		int x=CV[n-k];
-		ans[k]+=mul(x,H[k]);
-	}
-	
-	
-	foru(i,1,n){
-		printf("%d\n",ans[i]);
-	}
-	
+
+
+
+	int sum=calc(k+1,n);
+
+	mmv(ans,sum);
+
+	cout<<ans;
+
 	return ;
 }
 /*
@@ -423,6 +397,14 @@ void solve(bool SPE){
 signed main()
 {
 	// #define MULTITEST
+	
+	#ifndef CPEDITOR
+	if(freopen("rngmax3.in","r",stdin));
+	#ifdef ONLINE_JUDGE
+	if(freopen("rngmax.in","r",stdin));
+	if(freopen("rngmax.out","w",stdout));
+	#endif
+	#endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

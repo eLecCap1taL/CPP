@@ -1,8 +1,8 @@
-// Problem: G - Accumulation of Wealth
-// Contest: AtCoder - AtCoder Beginner Contest 409
-// URL: https://atcoder.jp/contests/abc409/tasks/abc409_g
-// Memory Limit: 1024 MB
-// Time Limit: 2000 ms
+// Problem: F. Yamakasi
+// Contest: Codeforces - Codeforces Round 1032 (Div. 3)
+// URL: https://codeforces.com/contest/2121/problem/F
+// Memory Limit: 256 MB
+// Time Limit: 3000 ms
 // 
 // Powered by CP Editor (https://cpeditor.org)
 
@@ -44,7 +44,7 @@
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
 #define uLL unsigned long long
 #define LL long long
-#define LXF int
+#define LXF LL
 #define RIN Cap1taLDebug::read()
 #define RSIN Cap1taLDebug::rdstr()
 #define RCIN Cap1taLDebug::rdchar()
@@ -64,6 +64,7 @@
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #define mkp(x,y) make_pair(x,y)
 #define ast(x) if(!(x))	{cerr<<endl<<"err at"<<__LINE__<<endl;exit(1);}
+#define sz(x) ((int)(x.size()))
 using namespace std;
 
 typedef __int128 i128;
@@ -279,139 +280,100 @@ constexpr int qpow(int x,int y){
 
 /*
 
-*/
+*/	
 
-namespace NTT{
-	constexpr int g=3;
-	constexpr int _g=qpow(3,mod-2);
-	typedef vector<int> v;
-	v r;
-	void NTT(v& a,bool inv){
-		int n=a.size();
-		foru(i,0,n-1)	if(i<r[i])	swap(a[i],a[r[i]]);
-		for(int len=2;len<=n;len<<=1){
-			int W=qpow(inv?_g:g,(mod-1)/len);
-			int W=
-			for(int i=0;i<n;i+=len){
-				for(int j=0,w=1;j*2<len;j++,mll(w,W)){
-					int x=a[i+j],y=mul(a[i+j+len/2],w);
-					a[i+j]=add(x,y);
-					a[i+j+len/2]=rmv(x,y);
-				}
-			}
-		}
-		if(inv){
-			int _n=qpow(n,mod-2);
-			foru(i,0,n-1)	mll(a[i],_n);
-		}
-	}
-	v convolution(const v& x,const v& y){
-		v A=x,B=y;
-		int N=1,L=0,n=x.size(),m=y.size();
-		while(N<n+m-1)	N<<=1,L++;
-		A.resize(N,0),B.resize(N,0),r.resize(N,0);
-		foru(i,0,N-1)	r[i]=(r[i>>1]>>1)|((i&1)<<(L-1));
-		NTT(A,0);
-		NTT(B,0);
-		v ret(N,0);
-		foru(i,0,N-1)	ret[i]=mul(A[i],B[i]);
-		NTT(ret,1);
-		return ret;
-	} 
-}
+int n;
+LL S;
+LL M;
+int a[MAXN];
+LL s[MAXN];
 
-int n,p;
+int lf[MAXN];
+int rf[MAXN];
 
-int ans[MAXN];
+stack<int> st;
 
-int fac[MAXN];
-int ifac[MAXN];
-int inv[MAXN];
-
-void solve(bool SPE){
-	n=RIN,p=RIN;
-	
-	if(p==100){
-		foru(i,1,n){
-			cout<<1<<endl;
-		}
-		return ;
-	}
-	
-	p=mul(p,qpow(100,mod-2));
-	
-	int q=rmv(1,p);
-	int _q=qpow(q,mod-2);
-	 
+void solve(bool SPE){ 
+	n=RIN,S=RIN,M=RIN;
 	foru(i,1,n){
-		inv[i]=qpow(i,mod-2);
+		a[i]=RIN;
+		s[i]=s[i-1]+a[i];
 	}
-	fac[0]=1;
+	
+	
 	foru(i,1,n){
-		fac[i]=mul(fac[i-1],i);
+		while(!st.empty() && a[st.top()]<a[i])	st.pop();
+		if(st.empty()){
+			lf[i]=0;
+		}else{
+			lf[i]=st.top();
+		}
+		st+=i;
 	}
-	ifac[n]=qpow(fac[n],mod-2);
-	ford(i,n-1,0){
-		ifac[i]=mul(ifac[i+1],i+1);
+	while(!st.empty())	st.pop();
+	
+	ford(i,n,1){
+		while(!st.empty() && a[st.top()]<=a[i])	st.pop();
+		if(st.empty()){
+			rf[i]=n+1;
+		}else{
+			rf[i]=st.top();
+		}
+		st+=i;
 	}
-	// cout<<mul(fac[3],ifac[2],ifac[1])<<endl;
+	while(!st.empty())	st.pop();
 	
-	static int G[MAXN];
-	G[n]=1;
-	ford(i,n-1,1){
-		G[i]=add(G[i+1],mul(q,G[i+1],inv[i]));
-	}
+	LL ans=0;
 	
-	
-	ans[1]=G[1];
-	
-	foru(i,2,n){
-		mll(G[i],fac[i-2],qpow(q,i));
-	}
-	
-	static int H[MAXN];
-	foru(i,2,n){
-		H[i]=mul(ifac[i-2],qpow(p,i-1),qpow(_q,i));
-	}
-	
-	// cout<<g[n][0]<<endl;
-	
-	vector<int> ff(n+1,0);
-	vector<int> ii(n+1,0);
+	static vector<pair<LL,int>> qls[MAXN];
 	
 	foru(i,0,n){
-		// cout<<G[n-i]<<endl;
-		ff[i]=G[n-i];
-		ii[i]=ifac[i];
-		// F[i]=G[n-i];
-	}
-	// return ;
-	
-	// static int CV[MAXN];
-// 	
-	// foru(k,0,n){
-		// foru(i,0,k){
-			// mdd(CV[k],mul(F[i],ifac[k-i]));
-		// }
-	// }
-	vector<int> CV=NTT::convolution(ff,ii);
-	// vector<int> CV(2*n+1,0);
-	// foru(i,0,n){
-		// foru(j,0,n){
-			// mdd(CV[i+j],mul(ff[i],ii[j]));
-		// }
-	// }
-	
-	
-	foru(k,1,n){
-		int x=CV[n-k];
-		ans[k]+=mul(x,H[k]);
+		qls[i].clear();
 	}
 	
+	auto addd=[](int l,int r,LL k)->void {
+		// cout<<l<<' '<<r<<' '<<k<<endl;
+		qls[r]+=mkp(k,1);
+		if(l-1>=0){
+			qls[l-1]+=mkp(k,-1);
+		}
+	};
 	
 	foru(i,1,n){
-		printf("%d\n",ans[i]);
+		if(a[i]!=M)	continue;
+		
+		if(i-lf[i]<=rf[i]-i){
+			foru(l,lf[i]+1,i){
+				addd(i,rf[i]-1,S+s[l-1]);
+				// foru(r,i,rf[i]-1){
+					// if(s[r]==S+s[l-1]){
+						// ans++;
+					// }
+				// }
+			}
+		}else{
+			foru(r,i,rf[i]-1){
+				addd(lf[i],i-1,s[r]-S);
+				// foru(l,lf[i],i-1){
+					// if(s[l]==s[r]-S){
+						// ans++;
+					// }
+				// }
+			}
+		}
 	}
+	
+	static unordered_map<LL,int> mp;
+	mp.clear();
+	foru(i,0,n){
+		mp[s[i]]++;
+		for(auto [k,x]:qls[i]){
+			ans+=mp[k]*x;
+			// cout<<mp[k]<<'~'<<endl;
+		}
+	}
+	
+	cout<<ans<<'\n';
 	
 	return ;
 }
@@ -422,7 +384,14 @@ void solve(bool SPE){
 */
 signed main()
 {
-	// #define MULTITEST
+	#define MULTITEST
+	
+	// #ifndef CPEDITOR
+	// #ifdef ONLINE_JUDGE
+	// if(freopen(".in","r",stdin));
+	// if(freopen(".out","w",stdout));
+	// #endif
+	// #endif
 	
 	#ifdef MULTITEST
 	int T=RIN;
