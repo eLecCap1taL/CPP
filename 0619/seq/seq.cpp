@@ -273,214 +273,11 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+
 int n;
-int a[MAXN];
+int a[10005];
 
-constexpr int LEN[10]={0,1,1,2,1,3,2,2,2,2};
-constexpr int HGT[10]={0,1,2,1,3,1,2,2,2,2};
-class Space{
-	u128 d;
-public:
-	Space(const u128 x=0):d(x){}
-	bool operator ()(int x,int y)const{
-		return (d>>(x*9+y))&1;
-	}
-	void set(int x,int y,bool v=1){
-		int pos=x*9+y;
-		if(v)	d|=u128(1)<<pos;
-		else	d=d&(~(u128(1)<<pos));
-	}
-	int chk(int l,int r)const{
-		int ret=-1;
-		foru(i,l,r){
-			ford(j,8,0){
-				if((*this)(i,j)){
-					chkmax(ret,j);
-					break;
-				}
-			}
-		}
-		return ret;
-	}
-
-	void down(int i,int h){
-		foru(j,h,7)	set(i,j,(*this)(i,j+1));
-		set(i,8,0);
-	}
-	bool chkdown(int h){
-		bool full=1;
-		foru(i,0,8){
-			if((*this)(i,h)==0){
-				full=0;
-				break;
-			}
-		}
-		if(!full)	return 0;
-		// cerr<<"chk pass"<<endl;
-		foru(i,0,8){
-			down(i,h);
-		}
-		return 1;
-	}
-	
-	int push(int ty,int p){
-		// if(p+LEN[ty]-1>=9)	return -1;
-
-		int h;
-		if(ty==8){
-			h=max(this->chk(p,p)+1,this->chk(p+1,p+1));
-		}else if(ty==9){
-			h=max(this->chk(p,p)+1,this->chk(p+1,p+1)+2);
-		}else{
-			h=this->chk(p,p+LEN[ty]-1)+1;
-		}
-		
-		if(h+HGT[ty]-1>=9)	return -1;
-
-		int w=0;
-		bool con=1;
-
-		switch(ty){
-			case 1:{
-				this->set(p,h);
-				if(con && chkdown(h))	w++;else	con=0;
-				break;
-			}
-			case 2:{
-				this->set(p,h);
-				this->set(p,h+1);
-				if(con && chkdown(h))	w++;else	con=0;
-				if(con && chkdown(h))	w++;else	con=0;
-				break;
-			}
-			case 3:{
-				this->set(p,h);
-				this->set(p+1,h);
-				if(con && chkdown(h))	w++;else	con=0;
-				break;
-			}
-			case 4:{
-				this->set(p,h);
-				this->set(p,h+1);
-				this->set(p,h+2);
-				if(con && chkdown(h))	w++;else	con=0;
-				if(con && chkdown(h))	w++;else	con=0;
-				if(con && chkdown(h))	w++;else	con=0;
-				break;
-			}
-			case 5:{
-				this->set(p,h);
-				this->set(p+1,h);
-				this->set(p+2,h);
-				if(con && chkdown(h))	w++;else	con=0;
-				break;
-			}
-			case 6:{
-				this->set(p,h);
-				this->set(p+1,h);
-				this->set(p,h+1);
-				if(con && chkdown(h))	w++;else	con=0;
-				if(con && chkdown(h))	w++;else	con=0;
-				break;
-			}
-			case 7:{
-				this->set(p,h);
-				this->set(p+1,h);
-				this->set(p+1,h+1);
-				if(con && chkdown(h))	w++;else	con=0;
-				if(con && chkdown(h))	w++;else	con=0;
-				break;
-			}
-			case 8:{
-				this->set(p,h);
-				this->set(p,h+1);
-				this->set(p+1,h+1);
-				if(con && chkdown(h))	w++;else	con=0;
-				if(con && chkdown(h))	w++;else	con=0;
-				break;
-			}
-			case 9:{
-				this->set(p,h);
-				this->set(p+1,h);
-				this->set(p+1,h-1);
-				if(con && chkdown(h-1))	w++;else	con=0;
-				if(con && chkdown(h-1))	w++;else	con=0;
-				break;
-			}
-		}
-		return w;
-	}
-	int chkcv(){
-		int ret=0;
-		foru(i,0,8){
-			bool hv=0;
-			ford(j,8,0){
-				if((*this)(i,j))	hv=1;
-				else	ret+=hv;
-			}
-		}
-		return ret;
-	}
-	float fc()const{
-		float avg=0;
-		foru(i,0,8){
-			int h=chk(i,i)+1;
-			avg+=h;
-		}
-		avg/=9;
-		float ret=0;
-		foru(i,0,8){
-			int h=chk(i,i)+1;
-			ret+=(h-avg)*(h-avg);
-		}
-		return ret/81;
-	}
-};
-
-ostream& operator << (ostream& os,const Space& s){
-	ford(j,8,0){
-		foru(i,0,8){
-			os<<s(i,j);
-		}
-		os<<endl;
-	}
-	return os;
-}
-
-
-class State{
-public:
-	Space d;
-	int k;
-	int id;
-
-	float score;
-
-	void calc(){
-		int mxh=d.chk(0,8)+1;
-		int cv=d.chkcv();
-		float fc=d.fc();
-
-		float mxh_score=1.0*(8-mxh)/8;
-		float cv_score=1.0*(81-cv)/81;
-		float k_score=1.0*k/n;
-		float fc_score=1.0/fc;
-
-		score=10000*mxh_score+100*cv_score+50*k_score;
-	}
-	State(const Space& x,const int& wk,int ID){
-		d=x,k=wk;
-		id=ID;
-		calc();
-	}
-	bool operator < (const State& x)const{
-		return score>x.score;
-	}
-};
-
-// unordered_map<int,pair<int,int>> fr;
-pair<int,int> fr[10000000];
-int cnt;
+int f[505][505][505];
 
 void solve(bool SPE){ 
 	n=RIN;
@@ -488,100 +285,40 @@ void solve(bool SPE){
 		a[i]=RIN;
 	}
 
-	// Space S;
-	// S.push(5,0);
-	// S.push(5,0);
-	// S.push(5,3);
-	// S.push(5,6);
-	// cout<<S<<endl;
-	// exit(0);
-
-	static priority_queue<State> q;
-
-	vector<State> ls;
-	ls+=State(Space(),0,++cnt);
-
-	pair<int,int> mx;
-	foru(i,1,n){
-		vector<State> nls;
-
-		if(ls.empty()){
-			break;
-		}
-
-		mx={i,ls[0].id};
-
-		for(const auto u:ls){
-
-			int t=a[i];
-
-			foru(i,0,8-LEN[t]+1){
-				State nxt=u;
-				int x=nxt.d.push(t,i);	
-				if(x==-1)	continue;
-				nxt.k+=x;
-				nxt.id=++cnt;
-				fr[cnt]={u.id,i};
-				nxt.calc();
-				nls.push_back(nxt);
-				// if(u.r==480){
-				// 	cout<<nxt.score<<' '<<q.top().score<<endl;
-				// 	cout<<nxt.d<<endl<<q.top().d<<endl;
-				// 	return ;
-				// }
+	foru(l,1,n){
+		foru(r,l,n){
+			foru(k,1,n){
+				f[l][r][k]=-1e8;
 			}
 		}
-
-		sort(All(nls));
-		nls.resize(min(sz(nls),1000),State(Space(0),0,0));
-		swap(nls,ls);
+	}
+	f[1][n][1]=0;
+	
+	ford(L,n,2){
+		for(int l=1;l+L-1<=n;l++){
+			int r=l+L-1;
+			for(int vl=1;vl+L-1<=n;vl++){
+				int vr=vl+L-1;
+				if(f[l][r][vl]==-1e8)	continue;
+				int v=f[l][r][vl];
+				chkmax(f[l+1][r][vl],v+(a[l]==vr));
+				chkmax(f[l+1][r][vl+1],v+(a[l]==vl));
+				chkmax(f[l][r-1][vl],v+(a[r]==vr));
+				chkmax(f[l][r-1][vl+1],v+(a[r]==vl));
+			}
+		}
 	}
 
-	cerr<<mx.fi<<endl;
-	// exit(0);
-	
-	static int ans[100005];
+	int ans=0;
 
 	foru(i,1,n){
-		ans[i]=1;
+		foru(j,1,n){
+			chkmax(ans,f[i][i][j]+(a[i]==j));
+		}
 	}
 
-	int u=mx.se;
-	int r=mx.fi;
+	cout<<n-ans;
 	
-	while(u!=1){
-		ans[r-1]=fr[u].se+1;
-		u=fr[u].fi;
-		r--;
-	}
-	foru(i,1,n){
-		cout<<ans[i]<<'\n';
-	}
-
-	// Space s;
-	// foru(i,1,n){
-	// 	int x=s.push(a[i],ans[i]-1);
-	// 	cout<<s<<endl<<i<<' '<<x<<endl<<endl;
-
-	// 	if(x==-1)	break;
-
-	// 	cout<<ans[i]<<'\n';
-	// }
-	
-	// Space s;
-
-	// s.push(5,0);
-	// s.push(5,3);
-	// cout<<s.push(5,6)<<endl;
-
-	// cout<<s.chkcv()<<endl;
-	// cout<<s;
-
-	// s.set(0,2);
-	// s.set(1,1);
-
-	// cout<<s.chk(1,1);
-
 	return ;
 }
 /*
@@ -595,8 +332,9 @@ signed main()
 	
 	#ifndef CPEDITOR
 	#ifndef ONLINE_JUDGE
-	if(freopen("block1.in","r",stdin));
-	if(freopen("block.out","w",stdout));
+	if(freopen("seq1.in","r",stdin));
+	// if(freopen("seq.in","r",stdin));
+	// if(freopen("seq.out","w",stdout));
 	#endif
 	#endif
 	

@@ -273,8 +273,46 @@ constexpr int qpow(int x,int y){
 /*
 
 */
+class Matrix{
+public:
+	int a[3][3];
+	Matrix(){
+		memset(a,0,sizeof a);
+	}
+	Matrix operator * (const Matrix& x)const{
+		Matrix ret;
+		foru(i,0,2){
+			foru(j,0,2){
+				foru(k,0,2){
+					ret.a[i][j]+=a[i][k]*x.a[k][j];
+				}
+			}
+		}
+		return ret;
+	}
+};
+ostream& operator << (ostream& os,const Matrix& x){
+	os<<"{\n";
+	foru(i,0,2){
+		foru(j,0,2){
+			os<<x.a[i][j]<<' ';
+		}
+		os<<'\n';
+	}
+	os<<"}\n";
+	return os;
+}
 void solve(bool SPE){ 
+	Matrix A,B;
+	A.a[0][0]=A.a[1][1]=A.a[2][2]=1;
+	B.a[0][0]=B.a[1][1]=B.a[2][2]=1;
+	A.a[0][1]=1;
+	B.a[2][0]=3;
 
+	Matrix C=A*B*A*A*A*B*B*B*A*A*A*B*B*A;
+	C=B*B*A*A*(A*B*A*A*B*B*B*B)*A*A;
+
+	cout<<C;
 	return ;
 }
 /*

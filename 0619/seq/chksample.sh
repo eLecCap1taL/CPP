@@ -1,5 +1,5 @@
 test_L=1
-test_R=1
+test_R=2
 
 sample_pre=""
 sample_in=".in"

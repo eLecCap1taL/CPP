@@ -282,84 +282,228 @@ public:
 }qr[500005];
 int q;
 
-int dfn[MAXN];
-int fa[MAXN];
-int sz[MAXN];
-int dep[MAXN];
-int st[19][MAXN];
-int DFN;
-void pre(int u,int fath){
-	fa[u]=fath;
-	dep[u]=dep[fa[u]]+1;
-	sz[u]=1;
-	dfn[u]=++DFN;
-	st[0][dfn[u]]=fa[u];
-	for(auto v:e[u]){
-		if(v==fa[u])	continue;
-		pre(v,u);
+namespace SLPF{
+	int fa[MAXN];
+	int id[MAXN];
+	int top[MAXN];
+	int dep[MAXN];
+	int sz[MAXN];
+	int son[MAXN];
+	int DFN;
+	void dfs1(int u,int fath){
+		sz[u]=1;
+		fa[u]=fath;
+		dep[u]=dep[fa[u]]+1;
+		for(auto v:e[u]){
+			if(v==fa[u])	continue;
+			dfs1(v,u);
+			sz[u]+=sz[v];
+			if(sz[v]>sz[son[u]])	son[u]=v;
+		}
+	}
+	void dfs2(int u,int topf){
+		id[u]=++DFN;
+		top[u]=topf;
+		if(son[u]==0)	return ;
+		dfs2(son[u],topf);
+		for(auto v:e[u]){
+			if(v==fa[u] || v==son[u])	continue;
+			dfs2(v,v);
+		}
+	}
+	void findpath(int u,int v,function<void(int,int)> callback){
+		while(top[u]!=top[v]){
+			if(dep[top[u]]<dep[top[v]])	swap(u,v);
+			callback(id[top[u]],id[u]);
+			u=fa[top[u]];
+		}
+		if(dep[u]>dep[v])	swap(u,v);
+		callback(id[u],id[v]);
 	}
 }
-int gdep(int x,int y){
-	return dep[x]<dep[y]?x:y;
-}
-int LCA(int u,int v){
-	if(u==v)	return u;
-	if((u=dfn[u])>(v=dfn[v]))	swap(u,v);
-	int k=__lg(v-u++);
-	return gdep(st[k][u],st[k][v-(1<<k)+1]);
-}
-int dis(int u,int v){
-	return dep[u]+dep[v]-2*dep[LCA(u,v)];
-}
 
-namespace SUB1{
-	LL f[7005][7005];
+class Range{
+public:
+	int l,r,c;
+	bool operator < (const Range& x)const{
+		return l==x.l?r<x.r:l<x.l;
+	};
+};
+ostream& operator << (ostream& os,const Range& x){
+	os<<'['<<x.l<<','<<x.r<<','<<x.c<<']';
+	return os;
+}
+class ODT{
+	int N;
+	// int cl[MAXN];
+	set<Range> st;
+public:
+	void cov(int l,int r,int c,function<void(int,int)> callback){
+		// cerr<<"cv "<<l<<' '<<r<<' '<<c<<endl;
+		// foru(i,l,r){
+		// 	if(cl[i]<c){
+		// 		callback(1,cl[i]);
+		// 		cl[i]=c;
+		// 	}
+		// }
+		auto it=st.lower_bound(Range{l,l,0});
+		while(it->l<=r){
+			if(it->r<=r){
+				callback(it->r-it->l+1,it->c);
+				it=st.erase(it);
+				continue;
+			}
+			callback(r-it->l+1,it->c);
+			int R=it->r,C=it->c;
+			st.erase(it);
+			it=st.insert({r+1,R,C}).fi;
+			break;
+		}
+		it--;
+		if(it->r>r){
+			callback(r-l+1,it->c);
+			int L=it->l,R=it->r,C=it->c;
+			st.erase(it);
+			st.insert({L,l-1,C});
+			st.insert({r+1,R,C});
+		}else if(it->r>=l){
+			callback(it->r-l+1,it->c);
+			int L=it->l,C=it->c;
+			st.erase(it);
+			st.insert({L,l-1,C});
+		}
+		st.insert({l,r,c});
+		// cein<<st<<endl;
+	}
+	void init(int _n){
+		N=_n;
+		st.clear();
+		st.insert({0,0,-1});
+		st.insert({1,n,1});
+		st.insert({n+1,n+1,-1});
+		// cein<<st<<endl;
+		// foru(i,1,N){
+		// 	cl[i]=1;
+		// }
+	}
+}odt;
+
+class DS{
 	class Node{
 	public:
-		int x;
-		bool operator < (const Node& o)const{
-			return dfn[x]<dfn[o.x];
-		}
-	};
-	set<Node> st;
-	void work(){
+		int l,r;
+		LL s,h;
+		LL a,b,c;
+	}tr[MAXN<<2];
+	inline int lc(int x){return x<<1;}
+	inline int rc(int x){return x<<1|1;}
+	void push_up(int p){
+		tr[p].s=tr[lc(p)].s+tr[rc(p)].s;
+		tr[p].h=tr[lc(p)].h+tr[rc(p)].h;
+	}
+	void upd(int p,LL a,LL b,LL c){
+		const int L=tr[p].r-tr[p].l+1;
+		tr[p].c+=c+tr[p].b*a;
+		tr[p].a+=a;
+		tr[p].b+=b;
 		
-		foru(l,1,n){
-			st.clear();
-			int s=0;
-			foru(r,l,n){
-				auto it=st.insert(Node{r}).fi;
+		tr[p].h+=a*tr[p].s+c*L;
+		tr[p].s+=b*L;
+	}
+	void push_down(int p){
+		if(tr[p].a || tr[p].b || tr[p].c){
+			upd(lc(p),tr[p].a,tr[p].b,tr[p].c);
+			upd(rc(p),tr[p].a,tr[p].b,tr[p].c);
+			tr[p].a=0;
+			tr[p].b=0;
+			tr[p].c=0;
+		}
+	}
+	void build(int p,int l,int r){
+		tr[p].l=l,tr[p].r=r;
+		tr[p].s=tr[p].h=0;
+		tr[p].a=tr[p].b=tr[p].c=0;
+		if(l==r)	return ;
+		int mid=(l+r)>>1;
+		build(lc(p),l,mid);
+		build(rc(p),mid+1,r);
+	}
+	void modify(int p,int l,int r,LL k){
+		if(l<=tr[p].l && tr[p].r<=r){
+			upd(p,0,k,0);
+			return ;
+		}
+		int mid=(tr[p].l+tr[p].r)>>1;
+		push_down(p);
+		if(l<=mid)	modify(lc(p),l,r,k);
+		if(r>mid)	modify(rc(p),l,r,k);
+		push_up(p);
+	}
+	LL query(int p,int l,int r){
+		if(l<=tr[p].l && tr[p].r<=r)	return tr[p].h;
+		LL ret=0;
+		push_down(p);
+		int mid=(tr[p].l+tr[p].r)>>1;
+		if(l<=mid)	ret+=query(lc(p),l,r);
+		if(r>mid)	ret+=query(rc(p),l,r);
+		return ret;
+	}
+public:
+	// int d[MAXN];
+	// LL h[MAXN];
+	void add(int l,int r,int k){
+		modify(1,l,r,k);
+		// foru(i,l,r){
+		// 	d[i]+=k;
+		// }
+	}
+	void backup(){
+		upd(1,1,0,0);
+		// foru(i,1,n){
+		// 	h[i]+=d[i];
+		// }
+	}
+	LL qry(int l,int r){
+		return query(1,l,r);
+		// LL ret=0;
+		// foru(i,l,r){
+		// 	ret+=h[i];
+		// }
+		// return ret;
+	}
+	void init(){
+		build(1,1,n);
+	}
+}ds;
 
-				int lf=it==st.begin()?st.rbegin()->x:prev(it)->x;
-				int rf=next(it)==st.end()?st.begin()->x:next(it)->x;
+vector<int> qls[MAXN];
+LL ans[500005];
 
-				s-=dis(lf,rf);
-				s+=dis(lf,r)+dis(r,rf);
-				
-				f[l][r]=s/2+1;
-			}
+void process(){
+	odt.init(n);
+	ds.init();
+	foru(u,1,n){
+		if(u>1){
+			int v=u-1;
+			SLPF::findpath(v,u,[&](int l,int r)->void {
+				odt.cov(l,r,u,[&](int len,int t)->void {
+					ds.add(t,u-1,len);
+				});
+			});	
+			ds.backup();
 		}
 
-		foru(i,1,n){
-			foru(j,1,n){
-				f[i][j]=f[i][j]+f[i-1][j]+f[i][j-1]-f[i-1][j-1];
-			}
-		}
-
-		foru(o,1,q){
-			// cerr<<o<<endl;
-			auto [l,r]=qr[o];
-
-			LL ans=0;
-
-			ans=f[r][r]-f[l-1][r]-f[r][l-1]+f[l-1][l-1];
-			// foru(i,l,r){
-			// 	foru(j,i,r){
-			// 		ans+=f[i][j];
-			// 	}
-			// }
-
-			cout<<ans<<'\n';
+		// foru(i,1,n){
+		// 	cout<<ds.d[i]<<' ';
+		// }
+		// HH;
+		// foru(i,1,n){
+		// 	cout<<ds.h[i]<<' ';
+		// }
+		// HH;
+		for(auto i:qls[u]){
+			auto [l,r]=qr[i];
+			ans[i]=ds.qry(l,r)+r-l+1;
 		}
 	}
 }
@@ -374,62 +518,17 @@ void solve(bool SPE){
 	q=RIN;
 	foru(i,1,q){
 		qr[i]={RIN,RIN};
+		qls[qr[i].r]+=i;
 	}
+	
+	SLPF::dfs1(1,0);
+	SLPF::dfs2(1,1);
 
-	pre(1,0);
-	for(int i=1;(1<<i)<=n;i++){
-		for(int j=1;j+(1<<i)-1<=n;j++){
-			st[i][j]=gdep(st[i-1][j],st[i-1][j+(1<<(i-1))]);
-		}
+	process();
+
+	foru(i,1,q){
+		cout<<ans[i]<<'\n';
 	}
-
-	if(n<=7000 && q<=7000){
-		SUB1::work();
-		return ;
-	}
-
-	// auto f=[](int l,int r)->int {
-	// 	vector<int> ls;
-	// 	foru(i,l,r)	ls+=i;
-	// 	sort(All(ls),[](int u,int v)->bool {
-	// 		return dfn[u]<dfn[v];
-	// 	});
-	// 	int ret=0;
-	// 	int N=ls.size();
-	// 	for(int i=0;i<N;i++){
-	// 		ret+=dis(ls[i],ls[(i+1)%N]);
-	// 	}
-	// 	return ret/2+1;
-	// };
-
-	// static int F[505][505];
-	// foru(l,1,n){
-	// 	foru(r,l,n){
-	// 		F[l][r]=f(l,r);
-	// 	}
-	// }
-	// int cnt=0;
-	// ford(r,n,1){
-	// 	foru(l,1,r){
-	// 		// int x=F[l][r];
-	// 		// if((l+1<=r && F[l+1][r]==F[l][r]) || (l<=r-1 && F[l][r-1]==F[l][r]))	x=0;
-	// 		int x=F[l][r]-F[l+1][r]-F[l][r-1]+F[l+1][r-1];
-	// 		cnt+=x>0;
-	// 		cout<<x<<"	";
-	// 	}
-	// 	cout<<endl;
-	// }
-	// cerr<<cnt<<' '<<n*(1+n)/2<<' '<<n*__lg(n);
-	// exit(0);
-
-	// foru(o,1,q){
-	// 	cerr<<o<<endl;
-	// 	auto [l,r]=qr[o];
-
-	// 	LL ans=0;
-
-	// 	cout<<ans<<'\n';
-	// }
 
 
 	return ;
@@ -445,9 +544,9 @@ signed main()
 	
 	#ifndef CPEDITOR
 	#ifndef ONLINE_JUDGE
-	// if(freopen("tree1.in","r",stdin));
-	if(freopen("tree.in","r",stdin));
-	if(freopen("tree.out","w",stdout));
+	if(freopen("tree1.in","r",stdin));
+	// if(freopen("tree.in","r",stdin));
+	// if(freopen("tree.out","w",stdout));
 	#endif
 	#endif
 	
