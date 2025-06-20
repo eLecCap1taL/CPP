@@ -283,320 +283,66 @@ public:
 	int p;
 }a[MAXN];
 
-namespace TREE{
-	int dfn[MAXN];
-	int DFN;
-	int sz[MAXN];
+class SubTREE{
+public:
+	int rt;
+	bool __init;
+
+	int red[MAXN];
+	int outred;
+
+	bool in[MAXN];
+
 	int fa[MAXN];
-	int id[MAXN];
-	int idt[MAXN];
-	int son[MAXN];
-	int dep[MAXN];
-	int top[MAXN];
-	void dfs1(int u,int fath){
-		sz[u]=1;
-		dfn[u]=++DFN;
+	void pre(int u,int fath){
 		fa[u]=fath;
-		dep[u]=dep[fa[u]]+1;
 		for(auto v:e[u]){
 			if(v==fa[u])	continue;
-			dfs1(v,u);
-			sz[u]+=sz[v];
-			if(sz[v]>sz[son[u]])	son[u]=v;
+			pre(v,u);
 		}
 	}
-	void dfs2(int u,int topf){
-		top[u]=topf;
-		id[u]=++DFN;
-		idt[id[u]]=u;
-		if(!son[u])	return ;
-		dfs2(son[u],topf);
-		for(auto v:e[u]){
-			if(v==fa[u] || v==son[u])	continue;
-			dfs2(v,v);
+
+	void fstblue(int u){
+		__init=1;
+		rt=u;
+		pre(u,0);
+	}
+
+	void clear(){
+		__init=0;
+		rt=-1;
+		foru(i,1,n){
+			red[i]=0;
+			in[i]=0;
+			fa[i]=0;
 		}
+		outred=0;
 	}
-	int get_ch(int u,int v){
-		int lst=-1;
-		while(top[u]!=top[v]){
-			lst=top[v];
-			v=fa[top[v]];
-		}
-		if(u==v)	return lst;
-		return idt[id[u]+1];
-		// while(fa[v]!=u)	v=fa[v];
-		// return v;
-	}
-	bool insub(int u,int v){
-		return dfn[u]<=dfn[v] && dfn[v]<=dfn[u]+sz[u]-1;
-	}
-	int get_close(int u,int v){
-		if(insub(u,v))	return get_ch(u,v);
-		else	return fa[u];
-	}
-	void init(){
-		dfs1(1,0);
-		DFN=0;
-		dfs2(1,1);
-	}
-}
-using TREE::dfn;
-using TREE::sz;
-using TREE::insub;
 
-class Node{
-public:
-	int L1,L2;
-	int R1,R2;
-};
-ostream& operator << (ostream& os,const Node& x){
-	os<<x.L2<<' '<<x.L1<<' '<<x.R1<<' '<<x.R2;
-	return os;
-}
-
-Node b[MAXN];
-
-
-class DS{
-	class Node{
-	public:
-		int l,r;
-		int mx;
-	}tr[MAXN<<2];
-	inline int lc(int x){return x<<1;}
-	inline int rc(int x){return x<<1|1;}
-	void push_up(int p){
-		tr[p].mx=max(tr[lc(p)].mx,tr[rc(p)].mx);
-	}
-	void build(int p,int l,int r){
-		tr[p].l=l,tr[p].r=r;
-		if(l==r){
-			tr[p].mx=-1;
+	void append(int u,bool ty){
+		if(in[u]){
+			red[u]+=ty;
 			return ;
 		}
-		int mid=(l+r)>>1;
-		build(lc(p),l,mid);
-		build(rc(p),mid+1,r);
-		push_up(p);
-	}
-	void modify(int p,int pos,int k){
-		if(tr[p].l==tr[p].r){
-			tr[p].mx=k;
-			return ;
-		}
-		int mid=(tr[p].l+tr[p].r)>>1;
-		if(pos<=mid)	modify(lc(p),pos,k);
-		else	modify(rc(p),pos,k);
-		push_up(p);
-	}
-	int query(int p,int l,int r){
-		if(l<=tr[p].l && tr[p].r<=r){
-			return tr[p].mx;
-		}
-		int mid=(tr[p].l+tr[p].r)>>1;
-		int ret=-1;
-		if(l<=mid)	chkmax(ret,query(lc(p),l,r));
-		if(r>mid)	chkmax(ret,query(rc(p),l,r));
-		return ret;
-	}
-public:
-	// int d[MAXN];
-	void init(){
-		// foru(i,1,n){
-		// 	d[i]=-1;
-		// }
-		build(1,1,n);
-	}
-	void set(int x,int y){
-		// d[x]=y;
-		modify(1,x,y);
-	}
-	int qry_mx(int l,int r){
-		if(l>r)	return -1;
-		return query(1,l,r);
-		// int ret=-1;
-		// foru(i,l,r){
-		// 	chkmax(ret,d[i]);
-		// }
-		// return ret;
-	}
-}ds;
-
-void process_L(){
-	ds.init();
-	
-	int lstB=-1;
-
-	foru(i,1,m){
-		if(!a[i].cl){
-			lstB=i;
-			ds.set(dfn[a[i].p],i);
-			continue;
-		}
-		//red
-		
-		if(lstB==-1){
-			b[i].L1=-1;
-			b[i].L2=-1;
-			continue;
-		}
-		b[i].L1=lstB;
-		
-		//check if on the same point
-		if(a[b[i].L1].p==a[i].p){
-			b[i].L2=-1;
-			continue;
-		}
-
-		if(insub(a[i].p,a[b[i].L1].p)){
-			int x=TREE::get_ch(a[i].p,a[b[i].L1].p);
-			int l=dfn[x],r=dfn[x]+sz[x]-1;
-			b[i].L2=max(ds.qry_mx(1,l-1),ds.qry_mx(r+1,n));
+		if(ty){
+			red[u]++;
+			outred++;
+			// cerr<<outred<<endl;
 		}else{
-			int l=dfn[a[i].p],r=dfn[a[i].p]+sz[a[i].p]-1;
-			b[i].L2=ds.qry_mx(l,r);
-		}
-	}
-}
-void process_R(){
-	ds.init();
+			if(!__init)	fstblue(u);
 
-	int lstB=-1;
-
-	ford(i,m,1){
-		if(!a[i].cl){
-			lstB=i;
-			ds.set(dfn[a[i].p],m-i+1);
-			continue;
-		}
-		//red
-		
-		if(lstB==-1){
-			b[i].R1=-1;
-			b[i].R2=-1;
-			continue;
-		}
-		b[i].R1=lstB;
-		
-		//check if on the same point
-		if(a[b[i].R1].p==a[i].p){
-			b[i].R2=-1;
-			continue;
-		}
-
-		if(insub(a[i].p,a[b[i].R1].p)){
-			int x=TREE::get_ch(a[i].p,a[b[i].R1].p);
-			int l=dfn[x],r=dfn[x]+sz[x]-1;
-			b[i].R2=max(ds.qry_mx(1,l-1),ds.qry_mx(r+1,n));
-		}else{
-			int l=dfn[a[i].p],r=dfn[a[i].p]+sz[a[i].p]-1;
-			// cerr<<"Yes check under"<<endl;
-			b[i].R2=ds.qry_mx(l,r);
-		}
-		
-		if(b[i].R2!=-1)	b[i].R2=m-b[i].R2+1;
-	}
-}
-
-
-class BAN{
-	class DS2{
-		class Node{
-		public:
-			int l,r;
-			int tg;
-			pair<int,int> mn;
-		}tr[MAXN<<2];
-		inline int lc(int x){return x<<1;}
-		inline int rc(int x){return x<<1|1;}
-		void upd(int p,int k){
-			tr[p].tg+=k;
-			tr[p].mn.fi+=k;
-		}
-		void push_up(int p){
-			tr[p].mn=min(tr[lc(p)].mn,tr[rc(p)].mn);
-		}
-		void push_down(int p){
-			if(tr[p].tg==0)	return ;
-			upd(lc(p),tr[p].tg);
-			upd(rc(p),tr[p].tg);
-			tr[p].tg=0;
-		}
-		void build(int p,int l,int r){
-			tr[p].l=l,tr[p].r=r;
-			if(l==r){
-				tr[p].mn={0,-l};
-				return ;
+			while(u && !in[u]){
+				in[u]=1;
+				outred-=red[u];
+				u=fa[u];
 			}
-			int mid=(l+r)>>1;
-			build(lc(p),l,mid);
-			build(rc(p),mid+1,r);
-			push_up(p);
 		}
-		void modify(int p,int l,int r,int k){
-			if(l<=tr[p].l && tr[p].r<=r){
-				upd(p,k);
-				return ;
-			}
-			push_down(p);
-			int mid=(tr[p].l+tr[p].r)>>1;
-			if(l<=mid)	modify(lc(p),l,r,k);
-			if(r>mid)	modify(rc(p),l,r,k);
-			push_up(p);
-		}
-	public:
-		// int d[MAXN];
-		void init(){
-			build(1,1,m);
-		}
-		void add(int l,int r,int k){
-			// foru(i,l,r){
-			// 	d[i]+=k;
-			// }
-			modify(1,l,r,k);
-		}
-		pair<int,int> qry_rmn(){
-			pair<int,int> ret(tr[1].mn.fi,-tr[1].mn.se);
-			// foru(i,1,m){
-			// 	if(d[i]<=ret.fi){
-			// 		ret.fi=d[i];
-			// 		ret.se=i;
-			// 	}
-			// }
-			return ret;
-		}
-	}ds2;
-public:
-	int rf[MAXN];
-	class Event{
-	public:
-		int l,r,k;
-	};
-	vector<Event> els[MAXN];
+	}
 
-	void init(){
-		ds2.init();
+	bool valid(){
+		return outred==0;
 	}
-	void append(int xl,int xr,int yl,int yr){
-		if(xl>xr)	return ;
-		if(yl>yr)	return ;
-		els[xl]+=Event{yl,yr,1};
-		els[xr+1]+=Event{yl,yr,-1};
-	}
-	void process(){
-		foru(i,1,m){
-			for(auto [l,r,k]:els[i]){
-				ds2.add(l,r,k);
-			}
-			auto res=ds2.qry_rmn();
-			if(res.fi>0)	rf[i]=i-1;
-			else	rf[i]=res.se;
-		}
-	}
-	int qry(int i){
-		return rf[i];
-	}
-}ban;
+}sub;
 
 void solve(bool SPE){ 
 	n=RIN;
@@ -612,48 +358,16 @@ void solve(bool SPE){
 		int p=RIN;
 		a[i]={c=='R',p};
 	}
-	
-	TREE::init();
 
-	process_L();
-	process_R();
+	foru(l,1,m){
+		sub.clear();
+		int R=l-1;
 
-	ban.init();
-
-	foru(i,1,m){
-		if(a[i].cl==0)	continue;
-		// cerr<<b[i]<<endl;
-		auto [L1,L2,R1,R2]=b[i];
-		
-		{
-			//must contain 2 rf
-			int l=L1==-1?1:L1+1;
-			
-			int r=m;
-			if(R2!=-1)	r=R2-1;
-			if(R1!=-1 && a[R1].p==a[i].p)	r=R1-1;
-
-			ban.append(l,i,i,r);
+		foru(r,l,m){
+			sub.append(a[r].p,a[r].cl);
+			if(sub.valid())	R=r;
 		}
-
-		if(L1!=-1 && a[L1].p!=a[i].p){
-			int l=L2==-1?1:L2+1;
-
-			int x=TREE::get_close(a[i].p,a[L1].p);
-
-			int r=m;
-			if(R2!=-1 && (a[R2].p==a[i].p || TREE::get_close(a[i].p,a[R2].p)!=x))	r=R2-1;
-			if(R1!=-1 && (a[R1].p==a[i].p || TREE::get_close(a[i].p,a[R1].p)!=x))	r=R1-1;
-
-			ban.append(l,L1,i,r);
-		}
-	}
-
-	ban.process();
-
-	foru(i,1,m){
-		int r=ban.qry(i);
-		printf("%d\n",r-i+1);
+		printf("%d\n",R-l+1);
 	}
 
 	return ;
@@ -669,9 +383,9 @@ signed main()
 	
 	#ifndef CPEDITOR
 	#ifndef ONLINE_JUDGE
-	if(freopen("ex_dye5.in","r",stdin));
+	if(freopen("ex_dye3.in","r",stdin));
 	// if(freopen("dye.in","r",stdin));
-	// if(freopen("dye.out","w",stdout));
+	if(freopen("dye.out","w",stdout));
 	#endif
 	#endif
 	
