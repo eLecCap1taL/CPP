@@ -7,7 +7,7 @@ sample_out=".out"
 
 WAstop=0
 
-TimeLimit=5
+TimeLimit=5000
 
 # ----------------------------------------------
 

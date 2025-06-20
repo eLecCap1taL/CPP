@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>俄罗斯方块 (tiny) 可视化工具</title>
+	</head>
+
+	<body>
+		<h1>俄罗斯方块 (tiny) 可视化工具</h1>
+
+		<div
+			id="box"
+			style="
+				display: inline-block;
+				vertical-align: top;
+				font: 25px/25px 宋体;
+				background: lightgrey;
+				border: grey 10px ridge;
+				margin: 0.5em;
+			"
+		></div>
+
+		<div style="display: inline-block; vertical-align: top; margin: 0.5em;">
+			<input
+				type="button"
+				id="start"
+				value="开始"
+				onclick="start();"
+			/><br />
+			<input
+				type="button"
+				id="reload"
+				value="重置"
+				onclick="location.reload(true);"
+			/><br /><br />
+			收益：<span id="score">0</span>
+
+			<br /><br />
+			【操作】<br />
+			<code>[←]</code> <code>[→]</code>：调整列<br />
+			<code>[↓]</code>：确定<br />
+		</div>
+
+		<div style="display: inline-block; margin: 0.5em;">
+			【从文件执行】<br />
+			从当前状态开始，格式同 <code>tiny.out</code><br /><br />
+			<textarea id="sol_text" rows="10"></textarea><br />
+			<input
+				id="adv_sol"
+				type="button"
+				value="执行"
+				onclick="adv_sol(event);"
+				disabled="true"
+			/>
+		</div>
+
+		<br />
+
+		<div style="display: inline-block; vertical-align: top; margin: 0.5em;">
+			【输入 <code>tiny.in</code>】<br />
+			<label>
+				<input
+					type="radio"
+					id="input_type_random"
+					name="input_type"
+					value="random"
+					checked="true"
+					onchange="
+						if (event.target.checked) {
+							document.getElementById('input_text').value = '';
+							document.getElementById('input_text').readOnly = true;
+						}
+					"
+				/>无尽模式（随机生成）
+			</label>
+			<br />
+			<label>
+				<input
+					type="radio"
+					id="input_type_text"
+					name="input_type"
+					value="file"
+					onchange="
+						if (event.target.checked) {
+							document.getElementById('input_text').readOnly = false;
+						}
+					"
+				/>
+				文本/文件输入 <br />
+				<input
+					type="file"
+					id="input_file"
+					onchange="input_file(event);"
+				/>
+			</label>
+			<br /><br />
+			<input
+				type="button"
+				value="复制"
+				onclick="
+					document.getElementById('input_text').select();
+					document.execCommand('copy', false, null);
+				"
+			/>
+			<br />
+			<textarea id="input_text" rows="10" readonly="true"></textarea>
+		</div>
+
+		<div style="display: inline-block; vertical-align: top; margin: 0.5em;">
+			【输出 <code>tiny.out</code>】<br /><br />
+			<input
+				type="button"
+				value="复制"
+				onclick="
+					document.getElementById('output_text').select();
+					document.execCommand('copy', false, null);
+				"
+			/>
+			<br />
+			<textarea id="output_text" rows="12" readonly="true"></textarea>
+		</div>
+
+		<div style="display: inline-block; margin: 0.5em;">
+			【状态】<br />
+			9 × 9 的字符矩阵，<code style="text-decoration: underline;">X</code>
+			和
+			<code style="text-decoration: underline;">.</code>
+			分别表示每个位置有、无占用。<br />
+			<br />
+			<input
+				type="button"
+				value="复制"
+				onclick="
+					document.getElementById('state_text').select();
+					document.execCommand('copy', false, null);
+				"
+			/>
+			<br />
+			<textarea id="state_text" rows="10">
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+</textarea
+			>
+		</div>
+
+		<script>
+			const M = 9,
+				R = 3,
+				BC = 9;
+			const TETRIS = [
+				[[0, 0]],
+				[
+					[0, 0],
+					[1, 0],
+				],
+				[
+					[0, 0],
+					[0, 1],
+				],
+				[
+					[0, 0],
+					[1, 0],
+					[2, 0],
+				],
+				[
+					[0, 0],
+					[0, 1],
+					[0, 2],
+				],
+				[
+					[0, 0],
+					[0, 1],
+					[1, 0],
+				],
+				[
+					[0, 0],
+					[0, 1],
+					[1, 1],
+				],
+				[
+					[0, 0],
+					[1, 0],
+					[1, 1],
+				],
+				[
+					[0, 1],
+					[1, 0],
+					[1, 1],
+				],
+			];
+			const MAXY = [0, 0, 1, 0, 2, 1, 1, 1, 1];
+
+			var V = new Array(M + R);
+			for (let i = 0; i < M + R; i++) {
+				V[i] = new Int32Array(M);
+			}
+
+			function input_file(event) {
+				document.getElementById("input_type_text").checked = true;
+				document.getElementById("input_text").readOnly = false;
+				let reader = new FileReader();
+				reader.onload = function () {
+					document.getElementById("input_text").value = reader.result;
+				};
+				reader.readAsText(event.target.files[0]);
+			}
+
+			function gen_download(name) {
+				document.getElementById(
+					"download_" + name
+				).href = window.URL.createObjectURL(
+					new Blob([document.getElementById(name + "_text").value])
+				);
+			}
+
+			var bcur = 0;
+			var bn;
+			var bv;
+			var bscore = 0;
+			var A;
+			var bcol;
+
+			function end() {
+				document.onkeydown = function () {};
+				document.getElementById("adv_sol").disabled = true;
+				alert("游戏结束");
+			}
+
+			function bmove(d) {
+				if (bcol + d < 0 || bcol + d + MAXY[bv] >= M) {
+					return false;
+				}
+				bcol += d;
+				for (let i = 0; i < M + R; i++)
+					for (let j = 0; j < M; j++)
+						if (V[i][j] == 2) {
+							V[i][j] = 0;
+						}
+				let brow = M;
+				while (brow > 0) {
+					let fl = true;
+					TETRIS[bv].forEach(function (e) {
+						if (V[brow + e[0] - 1][bcol + e[1]]) {
+							fl = false;
+						}
+					});
+					if (!fl) {
+						break;
+					}
+					brow--;
+				}
+				TETRIS[bv].forEach(function (e) {
+					V[brow + e[0]][bcol + e[1]] = 2;
+				});
+				draw();
+				return true;
+			}
+
+			function bconfirm() {
+				document.getElementById("output_text").value +=
+					(bcol + 1).toString() + "\n";
+				for (let i = M; i < M + R; i++)
+					for (let j = 0; j < M; j++)
+						if (V[i][j] == 2) {
+							end();
+							return false;
+						}
+				for (let i = 0; i < M; i++)
+					for (let j = 0; j < M; j++)
+						if (V[i][j] == 2) {
+							V[i][j] = 1;
+						}
+				let p = 0;
+				let VA = V;
+				V = new Array(M + R);
+				for (let i = 0; i < M; i++) {
+					let fl = true;
+					for (let j = 0; j < M; j++)
+						if (!VA[i][j]) {
+							fl = false;
+							break;
+						}
+					if (!fl) {
+						V[p] = VA[i];
+						p++;
+					}
+				}
+				while (p < M + R) {
+					V[p] = new Int32Array(M);
+					p++;
+				}
+				bscore += 1;
+				document.getElementById("score").innerText = bscore.toString();
+				draw();
+				s = "";
+				const chars = [".", "X"];
+				for (let i = M - 1; i >= 0; i--) {
+					for (let j = 0; j < M; j++) {
+						s += chars[V[i][j]];
+					}
+					s += "\n";
+				}
+				document.getElementById("state_text").value = s;
+				bcur += 1;
+				return bnext();
+			}
+
+			function bnext() {
+				if (document.getElementById("input_type_text").checked) {
+					if (bcur >= bn) {
+						end();
+						return false;
+					}
+					bv = A[bcur];
+				} else {
+					bn++;
+					bv = Math.floor(Math.random() * BC);
+					let input = document
+						.getElementById("input_text")
+						.value.split("\n");
+					input[0] = bn.toString();
+					document.getElementById("input_text").value =
+						input.join("\n") + (bv + 1).toString() + "\n";
+				}
+				bcol = 0;
+				bmove(0);
+				return true;
+			}
+
+			function bonkeydown(e) {
+				if (e.keyCode == 37) {
+					bmove(-1);
+				} else if (e.keyCode == 39) {
+					bmove(1);
+				} else if (e.keyCode == 40) {
+					bconfirm();
+				} else {
+					return true;
+				}
+				return false;
+			}
+
+			function start() {
+				document.getElementById("start").disabled = true;
+				document.getElementsByName("input_type").forEach(function (e) {
+					e.disabled = true;
+				});
+				document.getElementById("input_file").disabled = true;
+				document.getElementById("input_text").readOnly = true;
+				document.getElementById("state_text").readOnly = true;
+				if (document.getElementById("input_type_text").checked) {
+					let input = document
+						.getElementById("input_text")
+						.value.split("\n");
+					bn = parseInt(input[0]);
+					A = new Int32Array(bn);
+					for (let i = 0; i < bn; i++) {
+						A[i] = parseInt(input[i + 1]) - 1;
+					}
+				} else {
+					bn = 0;
+					document.getElementById("input_text").value = "0\n";
+				}
+				let s = document
+					.getElementById("state_text")
+					.value.replace("\r", "")
+					.split("\n");
+				for (let i = 0; i < M; i++)
+					for (let j = 0; j < M; j++)
+						if (s[M - i - 1][j] == "X") V[i][j] = 1;
+				draw();
+				bnext();
+				document.onkeydown = bonkeydown;
+				document.getElementById("adv_sol").disabled = false;
+			}
+
+			function draw() {
+				const chars = [
+					"\u3000",
+					'<span style="color: limegreen; text-shadow: 3px 3px 3px green;">\u25a0</span>',
+					'<span style="color: yellow; text-shadow: 3px 3px 3px khaki;">\u25a0</span>',
+					'<span style="color: red; text-shadow: none;">\u2504</span>',
+				];
+				s = "";
+				for (let i = M + R - 1; i >= 0; i--) {
+					for (let j = 0; j < M; j++) {
+						let v = V[i][j];
+						if (i == M && v == 0) {
+							v = 3;
+						}
+						s += chars[v];
+					}
+					s += "<br />";
+				}
+				document.getElementById("box").innerHTML = s;
+			}
+
+			function sleep(ms) {
+				return new Promise((resolve) => setTimeout(resolve, ms));
+			}
+
+			async function adv_sol(event) {
+				event.target.disabled = true;
+				document.onkeydown = function () {};
+				let s = document
+					.getElementById("sol_text")
+					.value.replace("\r", "")
+					.split("\n");
+				for (let i in s) {
+					let v = parseInt(s[i]);
+					if (isNaN(v)) {
+						break;
+					}
+					bcol = v - 1;
+					if (!bmove(0)) {
+						return;
+					}
+					await sleep(0);
+					if (!bconfirm()) {
+						return;
+					}
+				}
+				document.getElementById("sol_text").value = "";
+				event.target.disabled = false;
+				document.onkeydown = bonkeydown;
+			}
+
+			draw();
+		</script>
+	</body>
+</html>

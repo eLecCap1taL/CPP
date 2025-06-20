@@ -435,6 +435,15 @@ public:
 		}
 		return ret/81;
 	}
+	int empty(){
+		int ret=0;
+		foru(i,0,8){
+			foru(j,0,8){
+				ret+=!(*this)(i,j);
+			}
+		}
+		return ret;
+	}
 };
 
 ostream& operator << (ostream& os,const Space& s){
@@ -457,16 +466,19 @@ public:
 	float score;
 
 	void calc(){
-		int mxh=d.chk(0,8)+1;
-		int cv=d.chkcv();
-		float fc=d.fc();
+		// int mxh=d.chk(0,8)+1;
+		// int cv=d.chkcv();
+		// float fc=d.fc();
+		int kb=d.empty();
 
-		float mxh_score=1.0*(8-mxh)/8;
-		float cv_score=1.0*(81-cv)/81;
-		float k_score=1.0*k/n;
-		float fc_score=1.0/fc;
+		// float mxh_score=1.0*(8-mxh)/8;
+		// float cv_score=1.0*(81-cv)/81;
+		// float k_score=1.0*k/n;
+		// float fc_score=1.0/fc;
+		// float kb_score=kb/81;
 
-		score=10000*mxh_score+100*cv_score+50*k_score;
+		// score=10*mxh_score+100*cv_score+50*k_score;
+		score=kb;
 	}
 	State(const Space& x,const int& wk,int ID){
 		d=x,k=wk;
@@ -503,6 +515,7 @@ void solve(bool SPE){
 
 	pair<int,int> mx;
 	foru(i,1,n){
+		if(i%1000==0)	cerr<<i<<endl;
 		vector<State> nls;
 
 		if(ls.empty()){
@@ -536,6 +549,8 @@ void solve(bool SPE){
 		nls.resize(min(sz(nls),1000),State(Space(0),0,0));
 		swap(nls,ls);
 	}
+
+
 
 	cerr<<mx.fi<<endl;
 	// exit(0);
@@ -584,6 +599,10 @@ void solve(bool SPE){
 
 	return ;
 }
+
+
+
+
 /*
 检查文件读写
 检查多测清空
@@ -595,7 +614,7 @@ signed main()
 	
 	#ifndef CPEDITOR
 	#ifndef ONLINE_JUDGE
-	if(freopen("block1.in","r",stdin));
+	if(freopen("block2.in","r",stdin));
 	if(freopen("block.out","w",stdout));
 	#endif
 	#endif
