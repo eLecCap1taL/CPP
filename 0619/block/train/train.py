@@ -34,9 +34,9 @@ def main():
         learning_starts=1000,
         batch_size=32,
         gamma=0.99,
-        exploration_fraction=0.1,
+        exploration_fraction=0.2,
         exploration_final_eps=0.05,      
-        exploration_initial_eps=1.0,     # 一开始ε=1，完全随机
+        exploration_initial_eps=1.0,
         target_update_interval=500,
         verbose=1,
     )
@@ -53,7 +53,7 @@ def main():
         deterministic=True,  
     )
 
-    model.learn(total_timesteps=1000000,log_interval=10,callback=eval_callback)
+    model.learn(total_timesteps=200000,log_interval=10,callback=eval_callback)
     model.save("tetris_dqn")
 
 if __name__ == "__main__":

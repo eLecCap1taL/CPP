@@ -17,12 +17,13 @@ total_reward = 0
 rd=0
 
 while not done:
+    print('\n')
     action, _ = model.predict(obs, deterministic=True)
     obs, reward, done, _ = env.step(action)
     total_reward += reward
     env.render()          
     print(reward)
     rd+=1
-    time.sleep(0.2)     
+    time.sleep(0.5)     
 
 print(f"Score：{total_reward}, Round={rd}")

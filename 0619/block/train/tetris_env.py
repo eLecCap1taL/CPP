@@ -71,9 +71,61 @@ class TetrisEnv(gym.Env):
                 mask[pos] = True       
         return mask
 
+    class StateInfo(object):
+        def __init__(self, height, be_coverd, dy_sum) -> None:
+            self.height=height
+            self.be_coverd=be_coverd
+            self.avg_dy=dy_sum/8
+
+    def calcStateInfo(self):
+        hls = np.zeros((9),dtype=np.int8)
+
+        height = 0
+        for i in range(9):
+            for j in range(9):
+                if(self.board[j][i]):
+                    if j > height:
+                        height = j
+                    hls[i]=j
+        
+
+        be_coverd=0
+        for i in range(9):
+            num=0
+            for j in range(9):
+                if(self.board[j][i]):
+                    be_coverd+=num
+                    num=0
+                else:
+                    num+=1
+
+        dy_sum=0
+        for i in range(8):
+            dy_sum+=np.abs(hls[i+1]-hls[i])
+        
+        return self.StateInfo(height,be_coverd,dy_sum)
+    
+    def calcReward(self,old_state:StateInfo,place_state:StateInfo,line_cleared,mixin_factor):
+        reward = 0
+
+        d_height = place_state.height-old_state.height
+        d_avg_dy = place_state.avg_dy-old_state.avg_dy
+        d_be_coverd = place_state.be_coverd-old_state.be_coverd
+
+        reward = 1
+        reward += 6 * line_cleared
+        reward += -0.4 * d_height
+        reward += -0.4 * d_avg_dy
+        reward += -0.3 * d_be_coverd
+        reward += 0.8 * mixin_factor
+
+        return reward
+
 
     def step(self, pos):
         self.step_count += 1
+
+        old_state=self.calcStateInfo()
         
         id=self.current_shape
 
@@ -89,20 +141,22 @@ class TetrisEnv(gym.Env):
                 "shape": int(self.current_shape)
             }, reward, True, {}
         
+
         # now try to place
 
-        lst=-1
+        # find a valid height
+        place=-1
         for i in range(9-H+1):
             region=self.board[i:i+H,pos:pos+W].copy()
             if(np.any(region+self.shapes[id]>1)):
                 # invalid
-                lst=-1
+                place=-1
             else:
-                if lst == -1:
-                    lst=i
+                if place == -1:
+                    place=i
         
-        if lst==-1:
-            # all invalid
+        # all-height invalid
+        if place==-1:
             reward=-5
             return {
                 "board": self.board.copy(),
@@ -110,61 +164,39 @@ class TetrisEnv(gym.Env):
             }, reward, True, {}
 
 
-        # print(lst,W,H)
+        # print(place,W,H)
 
-        self.board[lst:lst+H,pos:pos+W]+=self.shapes[id]
+        # add shapes
+        self.board[place:place+H,pos:pos+W]+=self.shapes[id]
 
-        cnt=0
+        placed_state = self.calcStateInfo()
 
+        # counter
+        line_cleared=0
+        mixin_factor=sum(self.board[place:place+H,pos:pos+W])/(H*W)
+
+        # clear lines
         for times in range(H):
             # try to clear
-            region = self.board[lst]
+            region = self.board[place]
             if sum(region)==9:
-                cnt+=1
-                up = self.board[lst:9,0:9].copy()
-                if lst == 8:
-                    self.board[lst:9,0:9]-=up
+                line_cleared+=1
+                up = self.board[place:9,0:9].copy()
+                if place == 8:
+                    self.board[place:9,0:9]-=up
                 else:
-                    U = self.board[lst+1:9,0:9].copy()
-                    self.board[lst:9,0:9]-=up
-                    self.board[lst:8,0:9]+=U
+                    U = self.board[place+1:9,0:9].copy()
+                    self.board[place:9,0:9]-=up
+                    self.board[place:8,0:9]+=U
             else:
                 break
 
-        cv=0
-        mxh=0
-
-        hs=np.zeros((9),dtype=np.uint8)
-
-        for i in range(9):
-            num=0
-            for j in range(9):
-                if(self.board[j][i]):
-                    cv+=num
-                    num=0
-                    if(j>mxh):
-                        mxh=j
-                    hs[i]=j+1
-                else:
-                    num+=1
         
-        avg=sum(hs)/9
-        fc=0
-        for x in hs:
-            fc+=(x-avg)*(x-avg)
-        fc/=9
-        # fc=math.sqrt(fc)
-        fc=np.sqrt(fc)
-        
-        reward = 1+cnt*6
-        reward += -0.6*cv
-        reward += 0.3*(4-mxh)
-        reward += 0.5*(2-fc)
+        # calc reward
+                    
+        reward = self.calcReward(old_state,placed_state,line_cleared,mixin_factor)
 
         self.current_shape = np.random.randint(9)  # 下一块
-        # self.current_shape = 3
-        
-        # info = {"action_mask": self.compute_action_mask()}
 
         return {
             "board": self.board.copy(),
