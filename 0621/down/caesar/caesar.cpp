@@ -1,6 +1,6 @@
 //%^~
 // #pragma GCC optimize(3)
-// #pragma GCC optimize("Ofast")
+#pragma GCC optimize("Ofast")
 // #include <bits/stdc++.h>
 #include <cstdio>
 #include <cstring>
@@ -456,44 +456,52 @@ class recParser{
 		int tg;
 
 		class SegmentTree{
+			D1 st[MAXN];
 			class Node{
 			public:
 				int l,r;
-				D1 st;
 				int mx;
 			}tr[MAXN<<2];
 			inline int lc(int x){return x<<1;}
 			inline int rc(int x){return x<<1|1;}
 			void push_up(int p){
-				tr[p].mx=max({tr[lc(p)].mx,tr[rc(p)].mx,tr[p].st.max()});
+				tr[p].mx=max({tr[lc(p)].mx,tr[rc(p)].mx});
 			}
 		public:
 			void build(int p,int l,int r){
 				tr[p].l=l,tr[p].r=r;
-				tr[p].st.clear();
 				tr[p].mx=INT_MIN;
 				if(tr[p].l==tr[p].r){
+					st[tr[p].l].clear();
 					return ;
 				}
 				int mid=(l+r)>>1;
 				build(lc(p),l,mid);
 				build(rc(p),mid+1,r);
 			}
-			void insert(int p,int pos,int k){
+			void insert_nost(int p,int pos,int k){
+				chkmax(tr[p].mx,k);
 				if(tr[p].l==tr[p].r){
-					tr[p].st.insert(k);
-					tr[p].mx=tr[p].st.max();
+					return ;
+				}
+				int mid=(tr[p].l+tr[p].r)>>1;
+				if(pos<=mid)	insert_nost(lc(p),pos,k);
+				else	insert_nost(rc(p),pos,k);
+			}
+			void insert(int p,int pos,int k){
+				chkmax(tr[p].mx,k);
+				if(tr[p].l==tr[p].r){
+					st[pos].insert(k);
 					return ;
 				}
 				int mid=(tr[p].l+tr[p].r)>>1;
 				if(pos<=mid)	insert(lc(p),pos,k);
 				else	insert(rc(p),pos,k);
-				push_up(p);
 			}
 			void erase(int p,int pos,int k){
 				if(tr[p].l==tr[p].r){
-					tr[p].st.erase(k);
-					tr[p].mx=tr[p].st.max();
+					st[pos].erase(k);
+					tr[p].mx=st[pos].max();
 					return ;
 				}
 				int mid=(tr[p].l+tr[p].r)>>1;
@@ -503,7 +511,7 @@ class recParser{
 			}
 			int query(int p,int l,int r){
 				if(l<=tr[p].l && tr[p].r<=r)	return tr[p].mx;
-				int ret=tr[p].st.max();
+				int ret=INT_MIN;
 				int mid=(tr[p].l+tr[p].r)>>1;
 				if(l<=mid)	chkmax(ret,query(lc(p),l,r));
 				if(r>mid)	chkmax(ret,query(rc(p),l,r));
@@ -516,6 +524,10 @@ class recParser{
 		void insert(int x,int k){
 			// d[x].insert(k-tg);
 			seg.insert(1,x,k-tg);
+		}
+		void insert_nost(int x,int k){
+			// d[x].insert(k-tg);
+			seg.insert_nost(1,x,k-tg);
 		}
 		void erase(int x,int k){
 			// d[x].erase(k-tg);
@@ -573,7 +585,7 @@ public:
 		ds.init();
 		foru(i,1,n){
 			for(auto& [xr,k]:yls_fix[i]){
-				ds.insert(xr,k);
+				ds.insert_nost(xr,k);
 			}
 			for(auto& [x,store]:qls[i]){
 				chkmax(store,ds.qry(x));

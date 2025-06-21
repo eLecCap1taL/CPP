@@ -40,11 +40,13 @@ class TetrisEnv(gym.Env):
             [0,1]
         ],dtype=np.uint8),
     ]
-    def __init__(self):
+    def __init__(self,fix_seq = None):
         super().__init__()
         self.board = np.zeros((9, 9), dtype=np.uint8)
         self.current_shape = 0  # 每轮的方块编号（0–8）
         
+        self.fix_seq = fix_seq
+
         self.observation_space = spaces.Dict({
             "board": spaces.Box(0, 1, shape=(9, 9), dtype=np.uint8),
             "shape": spaces.Discrete(9)  # 9种形状
@@ -53,11 +55,17 @@ class TetrisEnv(gym.Env):
         self.action_space = spaces.Discrete(9)  # 放在哪一列
         self.step_count = 0
 
+    def get_shape(self,rd):
+        if self.fix_seq:
+            return self.fix_seq[rd]
+        else:
+            return np.random.randint(9)
+
     def reset(self):
         self.board.fill(0)
-        # self.step_count = 0
-        self.current_shape = np.random.randint(9)
-        # self.current_shape = 3
+        self.step_count = 0
+        self.current_shape = self.get_shape(0)
+
         return {
             "board": self.board.copy(),
             "shape": self.current_shape
@@ -85,8 +93,8 @@ class TetrisEnv(gym.Env):
             for j in range(9):
                 if(self.board[j][i]):
                     if j > height:
-                        height = j
-                    hls[i]=j
+                        height = j+1
+                    hls[i]=j+1
         
 
         be_coverd=0
@@ -112,18 +120,27 @@ class TetrisEnv(gym.Env):
         d_avg_dy = place_state.avg_dy-old_state.avg_dy
         d_be_coverd = place_state.be_coverd-old_state.be_coverd
 
+        h_factor = (9-place_state.height)/9
+
         reward = 1
-        reward += 6 * line_cleared
-        reward += -0.4 * d_height
-        reward += -0.4 * d_avg_dy
-        reward += -0.3 * d_be_coverd
-        reward += 0.8 * mixin_factor
+        reward += 9 * line_cleared
+        reward += -(h_factor*h_factor) * d_height
+        reward += -0.3 * d_avg_dy
+        reward += -0.8 * d_be_coverd
+        reward += 1.5 * mixin_factor
 
         return reward
 
 
     def step(self, pos):
         self.step_count += 1
+        
+        # check endseq
+        if self.fix_seq and self.step_count == len(self.fix_seq):
+            return {
+                "board": self.board.copy(),
+                "shape": int(self.current_shape)
+            }, 0, True, {}
 
         old_state=self.calcStateInfo()
         
@@ -157,7 +174,7 @@ class TetrisEnv(gym.Env):
         
         # all-height invalid
         if place==-1:
-            reward=-5
+            reward=-8
             return {
                 "board": self.board.copy(),
                 "shape": int(self.current_shape)
@@ -173,7 +190,7 @@ class TetrisEnv(gym.Env):
 
         # counter
         line_cleared=0
-        mixin_factor=sum(self.board[place:place+H,pos:pos+W])/(H*W)
+        mixin_factor=np.sum(self.board[place:place+H,pos:pos+W])/(H*W)
 
         # clear lines
         for times in range(H):
@@ -196,7 +213,7 @@ class TetrisEnv(gym.Env):
                     
         reward = self.calcReward(old_state,placed_state,line_cleared,mixin_factor)
 
-        self.current_shape = np.random.randint(9)  # 下一块
+        self.current_shape = self.get_shape(self.step_count)  # 下一块
 
         return {
             "board": self.board.copy(),

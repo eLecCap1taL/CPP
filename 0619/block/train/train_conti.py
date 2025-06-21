@@ -37,20 +37,12 @@ def main():
         
     env = TetrisEnv(shape_ids)
     env.reset()
-    model = DQN(
-        policy="MultiInputPolicy",
-        env=env,
-        learning_rate=1e-3,
-        buffer_size=50000,
-        learning_starts=1000,
-        batch_size=32,
-        gamma=0.99,
-        exploration_fraction=0.2,
-        exploration_final_eps=0.1,      
-        exploration_initial_eps=1.0,
-        target_update_interval=500,
-        verbose=1,
-        tensorboard_log="./tetris_tensorboard/"  # 指定日志目录
+    model = DQN.load("tetris_dqn",
+            env=env,
+            # exploration_fraction=1.25,
+            # exploration_final_eps=0.05,      
+            # exploration_initial_eps=0.2,
+            tensorboard_log="./tetris_tensorboard/"
     )
 
     eval_env = TetrisEnv()  
@@ -65,8 +57,8 @@ def main():
         deterministic=True,  
     )
 
-    model.learn(total_timesteps=1000000,log_interval=10,callback=eval_callback)
-    model.save("tetris_dqn")
+    model.learn(total_timesteps=500000,reset_num_timesteps=False,log_interval=10,callback=eval_callback)
+    model.save("tetris_dqn_conti")
 
 if __name__ == "__main__":
     main()
