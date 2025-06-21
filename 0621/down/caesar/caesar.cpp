@@ -382,7 +382,7 @@ using STRHASH::qhash;
 using STRHASH::qrhash;
 using STRHASH::can_caesar;
 
-int BinarySearch(int l,int r,function<bool(int)> check,int ret=-1){
+int binarySearch(int l,int r,function<bool(int)> check,int ret=-1){
 	while(l<=r){
 		int mid=(l+r)>>1;
 		if(check(mid)){
@@ -401,7 +401,7 @@ int src_max;
 
 void calcSRC(){
 	foru(i,1,n){
-		rad[i]=BinarySearch(1,min(i,n-i+1),[&](int L)->bool {
+		rad[i]=binarySearch(1,min(i,n-i+1),[&](int L)->bool {
 			return qhash(i-L+1,i)==qrhash(i,i+L-1);
 		});
 		assert(rad[i]!=-1);
@@ -409,7 +409,7 @@ void calcSRC(){
 		chkmax(src_max,rad[i]*2-1);
 	}
 	foru(i,1,n-1){
-		mrad[i]=BinarySearch(1,min(i,n-i),[&](int L)->bool {
+		mrad[i]=binarySearch(1,min(i,n-i),[&](int L)->bool {
 			return qhash(i-L+1,i)==qrhash(i+1,i+L);
 		},0);
 
@@ -426,7 +426,198 @@ void calcSRC(){
 	// HH;
 }
 
+class recParser{
+	class QRY{
+	public:
+		int x;
+		int& store;
+	};
+	vector<QRY> qls[MAXN];
 
+	class D1{
+		multiset<int> st;
+	public:
+		void insert(int v){
+			st.insert(v);
+		}
+		void erase(int v){
+			st.erase(st.find(v));
+		}
+		int max()const{
+			if(st.empty())	return INT_MIN;
+			return *st.rbegin();
+		}
+		void clear(){
+			st.clear();
+		}
+	};
+
+	class DS{
+		int tg;
+
+		class SegmentTree{
+			class Node{
+			public:
+				int l,r;
+				D1 st;
+				int mx;
+			}tr[MAXN<<2];
+			inline int lc(int x){return x<<1;}
+			inline int rc(int x){return x<<1|1;}
+			void push_up(int p){
+				tr[p].mx=max({tr[lc(p)].mx,tr[rc(p)].mx,tr[p].st.max()});
+			}
+		public:
+			void build(int p,int l,int r){
+				tr[p].l=l,tr[p].r=r;
+				tr[p].st.clear();
+				tr[p].mx=INT_MIN;
+				if(tr[p].l==tr[p].r){
+					return ;
+				}
+				int mid=(l+r)>>1;
+				build(lc(p),l,mid);
+				build(rc(p),mid+1,r);
+			}
+			void insert(int p,int pos,int k){
+				if(tr[p].l==tr[p].r){
+					tr[p].st.insert(k);
+					tr[p].mx=tr[p].st.max();
+					return ;
+				}
+				int mid=(tr[p].l+tr[p].r)>>1;
+				if(pos<=mid)	insert(lc(p),pos,k);
+				else	insert(rc(p),pos,k);
+				push_up(p);
+			}
+			void erase(int p,int pos,int k){
+				if(tr[p].l==tr[p].r){
+					tr[p].st.erase(k);
+					tr[p].mx=tr[p].st.max();
+					return ;
+				}
+				int mid=(tr[p].l+tr[p].r)>>1;
+				if(pos<=mid)	erase(lc(p),pos,k);
+				else	erase(rc(p),pos,k);
+				push_up(p);
+			}
+			int query(int p,int l,int r){
+				if(l<=tr[p].l && tr[p].r<=r)	return tr[p].mx;
+				int ret=tr[p].st.max();
+				int mid=(tr[p].l+tr[p].r)>>1;
+				if(l<=mid)	chkmax(ret,query(lc(p),l,r));
+				if(r>mid)	chkmax(ret,query(rc(p),l,r));
+				return ret;
+			}
+		}seg;
+
+		D1 d[MAXN];
+	public:
+		void insert(int x,int k){
+			// d[x].insert(k-tg);
+			seg.insert(1,x,k-tg);
+		}
+		void erase(int x,int k){
+			// d[x].erase(k-tg);
+			seg.erase(1,x,k-tg);
+		}
+		void step(){
+			tg+=2;
+		}
+		int qry(int x){
+			// int ret=INT_MIN;
+			// foru(i,x,n){
+			// 	chkmax(ret,d[i].max());
+			// }
+			int ret=seg.query(1,x,n);
+			if(ret!=INT_MIN)	ret+=tg;
+			return ret;
+		}
+		void init(){
+			seg.build(1,1,n);
+			// foru(i,1,n){
+			// 	d[i].clear();
+			// }
+		}
+	}ds;
+
+public:
+	vector<pair<int,int>> yls_flex[MAXN];
+	vector<pair<int,int>> yls_fix[MAXN];
+
+	virtual void addRec_fix(int xr,int yl,int k){
+		yls_fix[yl]+=mkp(xr,k);
+	}
+	virtual void addRec_flex(int xr,int yl,int yr,int k){
+		yls_flex[yl]+=mkp(xr,k);
+		yls_flex[yr+1]+=mkp(xr,-(k+(yr+1-yl)*2));
+	}
+	virtual void add_qry(int x,int y,int& store){
+		qls[y]+=QRY({x,store});
+	}
+	void process(){
+		// process flex
+		ds.init();
+		foru(i,1,n){
+			ds.step();
+			for(auto& [xr,k]:yls_flex[i]){
+				if(k>0)	ds.insert(xr,k);
+				else	ds.erase(xr,-k);
+			}
+			for(auto& [x,store]:qls[i]){
+				chkmax(store,ds.qry(x));
+			}
+		}
+		
+		// process fix
+		ds.init();
+		foru(i,1,n){
+			for(auto& [xr,k]:yls_fix[i]){
+				ds.insert(xr,k);
+			}
+			for(auto& [x,store]:qls[i]){
+				chkmax(store,ds.qry(x));
+			}
+		}
+	}
+}par_xy;
+
+class recParser_YX: public recParser{
+public:
+	void addRec_fix(int yl,int xr,int k) override {
+		recParser::addRec_fix(n-yl+1,n-xr+1,k);
+	}
+	void addRec_flex(int yl,int xl,int xr,int k) override {
+		recParser::addRec_flex(n-yl+1,n-xr+1,n-xl+1,k);
+	}
+	void add_qry(int x,int y,int& store) override {
+		recParser::add_qry(n-y+1,n-x+1,store);
+	}
+}par_yx;
+
+void stringParser(int l,int r){
+	int c=binarySearch(1,min(l-1,n-r),[&](int len)->bool {
+		return can_caesar(l-len,l-1,r+1,r+len);
+	},0);
+	if(c==0)	return ;
+
+	int cl=l-c;
+	int cr=r+c;
+
+	int span=binarySearch(1,min(cl-1,n-cr),[&](int len)->bool {
+		return qhash(cl-len,cl-1)==qrhash(cr+1,cr+len);
+	},0);
+
+	// [cl,l-1] ~ [r+1,cr]
+	int len=r-l+1;
+
+	if(c>1){
+		par_xy.addRec_flex(r+1,r+1,cr-1,len+2);
+		par_yx.addRec_flex(l-1,cl+1,l-1,len+2);
+	}
+	par_xy.addRec_fix(r+1,cr,len+2*c+2*span);
+	par_yx.addRec_fix(l-1,cl,len+2*c+2*span);
+}
 
 void solve(bool SPE){ 
 	s=" "+RSIN+" ";
@@ -454,10 +645,32 @@ void solve(bool SPE){
 
 	foru(i,1,n){
 		int L=i-rad[i]+1;
-		int R=i+rad[i]-1;	
+		int R=i+rad[i]-1;
+
+		stringParser(L,R);
+	}
+
+	foru(i,1,n-1){
+		int L=i-mrad[i]+1;
+		int R=i+mrad[i];
+		
+		stringParser(L,R);
 	}
 	
+	static int ans[MAXN];
+	foru(i,1,q){
+		auto [l,r]=qr[i];
+		ans[i]=src_max;
+		par_xy.add_qry(l,r,ans[i]);
+		par_yx.add_qry(l,r,ans[i]);
+	}
 
+	par_xy.process();
+	par_yx.process();
+
+	foru(i,1,q){
+		printf("%d\n",ans[i]);
+	}
 
 	return ;
 }
