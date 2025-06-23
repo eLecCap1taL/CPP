@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+const int MOD = 998244353;
+
+struct Node {
+    int ch[2] = {0, 0};  
+    bool end = false;    
+    int dp0 = 1, dp1 = 0;
+};
+
+vector<Node> tr;
+int root;
+
+void update(int p) {
+    int l = tr[p].ch[0], r = tr[p].ch[1];
+    ll a0 = tr[l].dp0, a1 = tr[l].dp1;
+    ll b0 = tr[r].dp0, b1 = tr[r].dp1;
+    if (tr[p].end) {
+        tr[p].dp0 = (a0*b0 + a0*b1 + a1*b0) % MOD;
+        tr[p].dp1 = (a1*b1*2 + a0*b0 + a0*b1 + a1*b0) % MOD;
+    } else {
+        tr[p].dp0 = (a0*(b0 + b1) + a1*b0) % MOD;
+        tr[p].dp1 = (a1*b1) % MOD;
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    cin >> n;
+
+    tr.reserve(500000 + 5);
+    tr.push_back(Node());
+    tr.push_back(Node());
+    root = 1;
+
+    while (n--) {
+        string s;
+        cin >> s;
+        int u = root;
+        vector<int> path = {u};
+        for (char c : s) {
+            int b = (c == 'B');
+            if (!tr[u].ch[b]) {
+                tr[u].ch[b] = tr.size();
+                tr.push_back(Node());
+            }
+            u = tr[u].ch[b];
+            path.push_back(u);
+        }
+        tr[u].end = true;
+        for (int i = (int)path.size() - 1; i >= 0; i--) {
+            update(path[i]);
+        }
+        cout << tr[root].dp1 << "\n";
+    }
+    return 0;
+}
