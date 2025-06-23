@@ -18,7 +18,8 @@
     "rope": "cpp",
     "slist": "cpp",
     "flat_map": "cpp",
-    "flat_set": "cpp"
+    "flat_set": "cpp",
+    "bitset": "cpp"
   },
   "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "gcc",
