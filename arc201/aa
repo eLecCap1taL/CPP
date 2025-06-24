@@ -1,0 +1,52 @@
+#include <bits/stdc++.h>
+#define LL long long
+using namespace std;
+int n;
+LL a[200005];
+LL b[200005];
+LL c[200005];
+int main(){
+	int T;
+	cin>>T;
+	while(T--){
+		
+		cin>>n;
+		for(int i=1;i<=n;i++){
+			cin>>a[i]>>b[i]>>c[i];
+		}
+		
+		LL x=0,y=0;
+		LL z=0;
+		
+		for(int i=1;i<=n;i++){
+			if(a[i]>=b[i]){
+				LL lf=b[i];
+				x+=lf;
+				z+=min(lf,c[i]);
+			}else{
+				LL lf=a[i];
+				
+				x+=lf;
+				if(b[i]-lf>=c[i]){
+					y+=c[i];
+					z+=0;
+				}else{
+					y+=b[i]-lf;
+					z+=min(lf,c[i]-(b[i]-lf));
+				}
+			}
+			
+		}
+		
+		if(x<=y){
+			cout<<x<<'\n';
+			continue;
+		}
+		
+		LL k=min((x-y)/2,z);
+		x-=k,y+=k;
+		cout<<min(x,y)<<'\n';
+	}
+	
+	return 0;
+}
