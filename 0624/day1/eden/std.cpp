@@ -36,7 +36,7 @@
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
 #define uLL unsigned long long
 #define LL long long
-#define LXF LL
+#define LXF int
 #define RIN Cap1taLDebug::read()
 #define RSIN Cap1taLDebug::rdstr()
 #define RCIN Cap1taLDebug::rdchar()
@@ -273,70 +273,86 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-class QR{
-public:
-	LL l,r;
-	int n;
-}qr[10005];
-int q,rmx,sumn;
+
+int n,m;
+string s[500005];
+string t[500005];
+int sums;
+int sumt;
+u64 w[MAXN];
 
 namespace SUB1{
-	string s;
-	int rk[1000105];
-	void work(){
-		// exit(1);
-		s="0";
-		for(int i=1;sz(s)<=rmx;i++){
-			int x=i;
-			string t;
-			while(x){
-				t+="01"[x&1];
-				x>>=1;
-			}
-			reverse(All(t));
-			s+=t;
-		}
-		int N=sz(s);
-		s=" "+s;
-
-		foru(i,1,N){
-			rk[i]=i;
-		}
-		sort(rk+1,rk+1+N,[&](const int& x,const int& y)->bool {
-			if(x==y)	return false;
-			for(int i=0;i<min(N-x+1,N-y+1);i++){
-				if(s[x+i]==s[y+i])	continue;
-				return s[x+i]<s[y+i];
-			}
-			return x>y;
-		});
-		
-		foru(o,1,q){
-			auto [l,r,n]=qr[o];
-
-			ford(i,N,1){
-				if(l<=rk[i] && rk[i]<=r-n+1){
-					cout<<s.substr(rk[i],n)<<'\n';
-					break;
+	bool pre[55][105];
+	bool suf[55][105];
+	u64 calc(int o){
+		u64 ret=0;
+		int N=sz(t[o]);
+		foru(i,1,n){
+			foru(j,0,N-1){
+				if(sz(s[i])<j+1){
+					pre[i][j]=0;
+				}else{
+					pre[i][j]=1;
+					for(int k=0;k<j+1;k++){
+						if(s[i][sz(s[i])-1-k]!=t[o][j-k]){
+							pre[i][j]=0;
+							break;
+						}
+					}
+				}
+				if(sz(s[i])<N-j){
+					suf[i][j]=0;
+				}else{
+					suf[i][j]=1;
+					for(int k=0;k<N-j;k++){
+						if(s[i][k]!=t[o][j+k]){
+							suf[i][j]=0;
+							break;
+						}
+					}
 				}
 			}
 		}
+		foru(i,1,n){
+			foru(j,1,n){
+				bool ok=0;
+				foru(k,0,N-2){
+					if(pre[i][k] && suf[j][k+1]){
+						ok=1;
+						break;
+					}
+				}
+				ret+=ok;
+			}
+		}
+        cout<<ret<<endl;
+		return ret;
+	}
+	void work(){
+		u64 ans=0;
+		foru(o,1,m){
+			ans+=w[o]*calc(o);
+		}
+		cout<<ans;
 	}
 }
 
 void solve(bool SPE){ 
-	q=RIN;
-
-	foru(i,1,q){
-		qr[i]={RIN,RIN,(int)RIN};
-		chkmax(rmx,qr[i].r);
-		sumn+=qr[i].n;
+	n=RIN,m=RIN;
+	foru(i,1,m){
+		t[i]=RSIN;
+		sumt+=sz(t[i]);
+		w[i]=RIN;
+	}
+	foru(i,1,n){
+		s[i]=RSIN;
+		sums+=sz(s[i]);
 	}
 
-	// if(rmx<=50000 && sumn<=50000){
+	if(n<=50 && m<=50 && sums<=100 && sumt<=100){
 		SUB1::work();
 		return ;
-	// }
+	}
 
 	return ;
 }
@@ -351,9 +367,9 @@ signed main()
 	
 	#ifndef CPEDITOR
 	#ifndef ONLINE_JUDGE
-	// if(freopen("desire0.in","r",stdin));
-	if(freopen("desire.in","r",stdin));
-	if(freopen("desire.out","w",stdout));
+	if(freopen("eden1.in","r",stdin));
+	// if(freopen("eden.in","r",stdin));
+	// if(freopen("eden.out","w",stdout));
 	#endif
 	#endif
 	

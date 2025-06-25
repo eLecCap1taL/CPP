@@ -7,7 +7,7 @@ sample_out=".ans"
 
 WAstop=0
 
-TimeLimit=5
+TimeLimit=1
 
 # ----------------------------------------------
 

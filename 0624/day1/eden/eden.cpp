@@ -274,6 +274,8 @@ constexpr int qpow(int x,int y){
 
 */
 
+bool m_begin;
+
 class ACAM{
 public:
 	class Node{
@@ -321,17 +323,17 @@ public:
 int n,m;
 string s[500005];
 string t[500005];
-u64 w[MAXN];
+u64 w[500005];
 
-int A[1000005];
-int B[1000005];
+u64 A[1000005];
+u64 B[1000005];
 int dfnA[1000005];
 int dfnB[1000005];
 int szA[1000005];
 int szB[1000005];
 
+vector<int> e[1000005];
 void gen(ACAM& ac,int* dfn,int* sz){
-	static vector<int> e[1000005];
 	static int DFN;
 
 	int N=ac.N;
@@ -354,6 +356,141 @@ void gen(ACAM& ac,int* dfn,int* sz){
 	dfs(dfs,1);
 }
 
+class RecDS{
+	int N,M;
+	u64 Bsum=0;
+	class Node{
+	public:
+		int l,r;
+		int mn;
+		int tg;
+		u64 s;
+	}tr[1000005<<2];
+	inline int lc(int x){return x<<1;}
+	inline int rc(int x){return x<<1|1;}
+	void push_up(int p){
+		if(tr[lc(p)].mn<tr[rc(p)].mn){
+			tr[p].mn=tr[lc(p)].mn;
+			tr[p].s=tr[lc(p)].s;
+		}else if(tr[rc(p)].mn<tr[lc(p)].mn){
+			tr[p].mn=tr[rc(p)].mn;
+			tr[p].s=tr[rc(p)].s;
+		}else{
+			tr[p].mn=tr[lc(p)].mn;
+			tr[p].s=tr[lc(p)].s+tr[rc(p)].s;
+		}
+	}
+	void upd(int p,int k){
+		tr[p].tg+=k;
+		tr[p].mn+=k;
+	}
+	void push_down(int p){
+		if(tr[p].tg==0)	return ;
+		upd(lc(p),tr[p].tg);
+		upd(rc(p),tr[p].tg);
+		tr[p].tg=0;
+	}
+	void build(int p,int l,int r){
+		tr[p].l=l,tr[p].r=r;
+		if(l==r){
+			tr[p].mn=0;
+			tr[p].s=B[l];
+			return ;
+		}
+		int mid=(l+r)>>1;
+		build(lc(p),l,mid);
+		build(rc(p),mid+1,r);
+		push_up(p);
+	}
+	void modify(int p,int l,int r,int k){
+		if(l<=tr[p].l && tr[p].r<=r){
+			upd(p,k);
+			return ;
+		}
+		push_down(p);
+		int mid=(tr[p].l+tr[p].r)>>1;
+		if(l<=mid)	modify(lc(p),l,r,k);
+		if(r>mid)	modify(rc(p),l,r,k);
+		push_up(p);
+	}
+	u64 qry(){
+		return Bsum-(tr[1].mn==0)*tr[1].s;
+	}
+public:
+	void init(){
+		N=acam.N;
+		M=acam_rev.N;
+		foru(i,1,N){
+			A[i]+=A[i-1];
+		}
+		foru(i,1,M){
+			Bsum+=B[i];
+		}
+		build(1,1,M);
+		// cout<<qry()<<endl;
+	}
+
+	class Event{
+	public:
+		int x,l,r;
+		bool ty;
+		bool operator < (const Event& o)const{
+			if(x==o.x)	return ty<o.ty;
+			else	return x<o.x;
+		}
+	};
+	vector<Event> els;
+
+	// vector<pair<int,int>> ls;
+	void clear(){
+		// ls.clear();
+		els.clear();
+		// build(1,1,M);
+	}
+	void add_rec(int xl,int xr,int yl,int yr){
+		els+=Event{xl,yl,yr,0};
+		els+=Event{xr+1,yl,yr,1};
+		// foru(i,xl,xr){
+		// 	foru(j,yl,yr){
+		// 		ls+=mkp(i,j);
+		// 	}
+		// }
+	}
+	u64 calc(){
+		u64 ret=0;
+
+		sort(All(els));
+		for(int i=0;i<sz(els);i++){
+			auto [x,l,r,ty]=els[i];
+			if(ty==0){
+				modify(1,l,r,1);
+			}else{
+				modify(1,l,r,-1);
+			}
+			if(i+1<sz(els) && els[i+1].x>els[i].x){
+				ret+=qry()*(A[els[i+1].x-1]-A[els[i].x-1]);
+			}
+		}
+
+		// assert(qry()==0);
+
+		// ret=0;
+		// sort(All(ls));
+		// ls.erase(unique(All(ls)),ls.end());
+		// for(auto [x,y]:ls){
+		// 	// cerr<<x<<' '<<y<<' '<<(A[x]-A[x-1])*B[y]<<endl;
+		// 	// cerr<<(A[x]-A[x-1])<<' '<<B[y]<<endl;
+		// 	ret+=1ull*(A[x]-A[x-1])*B[y];
+		// }
+
+		// cerr<<ret<<endl;
+		// exit(0);
+
+		return ret;
+	}
+}rec;
+
+int rf[1000005];
 void solve(bool SPE){ 
 	n=RIN,m=RIN;
 	foru(i,1,m){
@@ -387,9 +524,9 @@ void solve(bool SPE){
 
 	//calc
 	u64 ans=0;
+	rec.init();
 
 	foru(o,1,m){
-		static int rf[1000005];
 		int N=sz(t[o]);
 
 		rf[N]=acam_rev.rt;
@@ -397,24 +534,16 @@ void solve(bool SPE){
 			rf[i]=acam_rev[rf[i+1]][t[o][i]-'a'];
 		}
 
-		static bool vis[10000][10000];
+		rec.clear();
 
 		int lf=acam.rt;
 		for(int i=0;i+1<N;i++){
 			lf=acam[lf][t[o][i]-'a'];
 
-			u64 sa=0;
-			u64 sb=0;
-
-			foru(j,dfnA[lf],dfnA[lf]+szA[lf]-1){
-				sa+=A[j];
-			}
-			foru(j,dfnB[lf],dfnB[lf]+szB[lf]-1){
-				sb+=B[j];
-			}
-
-			ans+=sa*sb;
+			rec.add_rec(dfnA[lf],dfnA[lf]+szA[lf]-1,dfnB[rf[i+1]],dfnB[rf[i+1]]+szB[rf[i+1]]-1);
 		}
+
+		ans+=w[o]*rec.calc();
 	}
 	
 	cout<<ans;
@@ -426,13 +555,15 @@ void solve(bool SPE){
 检查多测清空
 检查数组大小
 */
+
+bool m_end;
 signed main()
 {
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
 	#ifndef ONLINE_JUDGE
-	if(freopen("eden1.in","r",stdin));
+	if(freopen("eden2.in","r",stdin));
 	// if(freopen("eden.in","r",stdin));
 	// if(freopen("eden.out","w",stdout));
 	#endif
@@ -443,7 +574,9 @@ signed main()
 	#else
 	int T=1;
 	#endif
-	
+
+	cerr<<"static memory:"<<(&m_begin-&m_end)/1024/1024<<endl;
+
 	for(int i=1;i<=T;i++){
 		solve(i==0);
 	}
