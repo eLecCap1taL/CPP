@@ -36,7 +36,7 @@
 #define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
 #define uLL unsigned long long
 #define LL long long
-#define LXF LL
+#define LXF int
 #define RIN Cap1taLDebug::read()
 #define RSIN Cap1taLDebug::rdstr()
 #define RCIN Cap1taLDebug::rdchar()
@@ -273,70 +273,41 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-class QR{
-public:
-	LL l,r;
-	int n;
-}qr[10005];
-int q,rmx,sumn;
 
-namespace SUB1{
-	string s;
-	int rk[1000105];
-	void work(){
-		// exit(1);
-		s="0";
-		for(int i=1;sz(s)<=rmx;i++){
-			int x=i;
-			string t;
-			while(x){
-				t+="01"[x&1];
-				x>>=1;
-			}
-			reverse(All(t));
-			s+=t;
-		}
-		int N=sz(s);
-		s=" "+s;
+int a[MAXN];
 
-		foru(i,1,N){
-			rk[i]=i;
-		}
-		sort(rk+1,rk+1+N,[&](const int& x,const int& y)->bool {
-			if(x==y)	return false;
-			for(int i=0;i<min(N-x+1,N-y+1);i++){
-				if(s[x+i]==s[y+i])	continue;
-				return s[x+i]<s[y+i];
-			}
-			return x>y;
-		});
-		
-		foru(o,1,q){
-			auto [l,r,n]=qr[o];
+void solve(bool SPE){
+    int n=10; 
 
-			ford(i,N,1){
-				if(l<=rk[i] && rk[i]<=r-n+1){
-					cout<<s.substr(rk[i],n)<<'\n';
-					break;
-				}
-			}
-		}
-	}
-}
+    vector<u32> a(50000000);
 
-void solve(bool SPE){ 
-	q=RIN;
+    mt19937 rd(random_device{}());
+    for(auto& x:a){
+        x=rd();
+    }
 
-	foru(i,1,q){
-		qr[i]={RIN,RIN,(int)RIN};
-		chkmax(rmx,qr[i].r);
-		sumn+=qr[i].n;
-	}
+    int N=199;
 
-	// if(rmx<=50000 && sumn<=50000){
-		SUB1::work();
-		return ;
-	// }
+    // sort(All(a));
+    partial_sort(a.begin(),a.begin()+N+1,a.end());
+    // priority_queue<u32> q;
+
+    // for(auto& x:a){
+    //     q.push(x);
+    //     if(sz(q)>N+1) q.pop();
+    // }
+
+    // cout<<n_
+
+    foru(i,0,N){
+    //     // nth_element(a.begin(),a.begin()+i,a.end());
+        cout<<a[i]<<endl;
+    }
+
+    // while(!q.empty()){
+    //     cout<<q.top()<<endl;
+    //     q.pop();
+    // }
 
 	return ;
 }
@@ -350,10 +321,9 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	#ifndef ONLINE_JUDGE
-	// if(freopen("desire0.in","r",stdin));
-	if(freopen("desire.in","r",stdin));
-	if(freopen("desire.out","w",stdout));
+	#ifdef ONLINE_JUDGE
+	if(freopen(".in","r",stdin));
+	if(freopen(".out","w",stdout));
 	#endif
 	#endif
 	

@@ -278,144 +278,51 @@ constexpr int _100 = qpow(100,mod-2);
 
 int n,m;
 
-int a[MAXN];
+int P[15][2505];
 
-namespace SUB1{
-	int f[6][1<<10][25];
+int C[55][55];
 
-	pair<int,int> e[100];
-	int eg=0;
+int a[15];
 
-	int fa[6];
-	int find(int x){
-		return fa[x]==x?x:fa[x]=find(fa[x]);
-	}
-	void Union(int u,int v){
-		u=find(u);
-		v=find(v);
-		if(u!=v){
-			fa[u]=v;
-		}
-	}
-	void init(int s){
-		foru(i,1,n){
-			fa[i]=i;
-		}
-		foru(i,0,eg-1){
-			if((s>>i)&1){
-				Union(e[i+1].fi,e[i+1].se);
-			}
-		}
+std::vector<int> Lagrange(std::vector<int> y) {
+	static int fac[100005];
+	fac[0]=1;
+	foru(i,1,100000){
+		fac[i]=mul(fac[i-1],i);
 	}
 
-	void work(){
-		memset(f,0,sizeof f);
+	//template
+	if (y.empty()) return y;
+	const int n = (int)y.size();
+	std::vector<int> f(n + 1), a(n), coef, g(n);
 	
-		f[0][0][0]=1;
+	for (int i = 0; i < n; i ++) {
+		int res = mul(y[i] , qpow(fac[i],mod-2) , qpow(fac[n - i - 1],mod-2));
+		((n - i - 1) & 1) ? a[i] = rmv(0 , res) : a[i] = res;
+	}
 
-		eg=0;
-		foru(u,1,n){
-			foru(v,u+1,n){
-				e[++eg]={u,v};
-			}
-		}
-
-		int ans[200];
-
-		foru(i,0,m-1){
-			for(int s=0;s<(1<<eg);s++){
-				for(int j=0;j<=(n-1)*m;j++){
-					if(f[i][s][j]==0)	continue;
-					int T=((1<<eg)-1)^s;
-					for(int t=T;t;t=(t-1)&T){
-						int nj=j;
-
-						init(s);
-
-						for(int k=0;k<eg;k++){
-							if((t>>k)&1){
-								int u=find(e[k+1].fi);
-								int v=find(e[k+1].se);
-								if(u!=v){
-									Union(u,v);
-									nj+=i+1;
-								}
-							}
-						}
-
-						// if(i==0 && s==0 && j==0 && t==T){
-						// 	cout<<i+1<<' '<<(s|t)<<' '<<nj<<' '<<f[i][s][j]<<' '<<a[i+1]<<' '<<__builtin_popcount(t)<<endl;
-						// }
-
-						mdd(f[i+1][s|t][nj],mul(f[i][s][j],qpow(a[i+1],__builtin_popcount(t))));
-					}
-
-					mdd(f[i+1][s][j],f[i][s][j]);
-				}
-			}
-		}
-		
-		// cout<<f[1][(1<<eg)-1][n-1]<<endl;
 	
-
-		memset(ans,0,sizeof ans);
-
-		for(int s=0;s<(1<<eg);s++){
-			for(int j=0;j<=(n-1)*m;j++){
-				init(s);
-				bool ok=1;
-				for(int i=2;i<=n;i++){
-					if(find(i)!=find(1)){
-						ok=0;
-						break;
-					}
-				}
-				if(!ok)	continue;
-				mdd(ans[j],mul(f[m][s][j],qpow(a[0],eg-__builtin_popcount(s))));
-			}
-		}
-
-		foru(i,(n-1),m*(n-1)){
-			cout<<ans[i]<<' ';
-		}
-		cout<<endl;
+	f[0] = 1;
+	for (int i = 0; i < n; i ++) {
+		f[i + 1] = 0;
+		for (int j = i + 1; j; j --)
+			f[j] = rmv(f[j - 1] , mul(i , f[j]));
+		f[0] = rmv(0 , mul(f[0] , i));
 	}
-}
 
-namespace SUBM1{
-	int f[55][55];
-	int C[55][55];
-	int P[2][55];
-	void work(){
-		C[0][0]=1;
-		foru(i,1,n){
-			C[i][0]=1;
-			foru(j,1,i){
-				C[i][j]=add(C[i-1][j],C[i-1][j-1]);
-			}
-		}
-
-		foru(i,0,n){
-			foru(j,0,1){
-				P[j][i]=qpow(a[j],i);
-			}
-		}
-
-		f[1][0]=1;
-		foru(i,1,n-1){
-			foru(j,0,i-1){
-				if(f[i][j]==0)	continue;
-				foru(k,0,j){
-					mdd(f[i+1][j+1],mul(f[i][j],C[j][k],P[1][k],P[0][j-k]));
-					mmv(f[i+1][j+1],mul(f[i][j],C[j][k],P[1][k],P[0][j-k]));
-				}
-				foru(k,0,i-j){
-					mdd(f[i+1][j],mul(f[i][j],C[i-j][k],P[1][k],P[0][i-j-k]));
-				}
-			}
-		}
-		cout<<f[n][0]<<endl;
+	// cein<<f<<endl;
+	
+	coef = f, coef.erase(coef.begin());
+	for (auto &x : coef) mll(x , a[0]);
+	for (int i = 1; i < n; i ++) {
+		g[0] = rmv(0 , mul(qpow(i,mod-2) , f[0]));
+		for (int j = 1; j < n; j ++)
+			g[j] = mul(qpow(i,mod-2) , rmv(g[j - 1] , f[j]));
+		for (int j = 0; j < n; j ++)
+			mdd(coef[j] , mul(a[i] , g[j]));
 	}
+	
+	return coef;
 }
 
 void solve(bool SPE){ 
@@ -425,20 +332,81 @@ void solve(bool SPE){
 		mll(a[i],_100);
 	}
 
-	if(n==1){
-		cout<<1<<'\n';
-		return ;
+	a[m+1]=a[0];
+
+	for(int i=m;i>=1;i--){
+		mdd(a[i],a[i+1]);
 	}
 
-	// if(m<=1){
-	// 	SUBM1::work();
-	// 	return ;
-	// }
-
-	if(n<=5 && m<=5){
-		SUB1::work();
-		return ;
+	for(int i=1;i<=m+1;i++){
+		P[i][0]=1;
+		for(int j=1;j<=n*n;j++){
+			P[i][j]=mul(P[i][j-1],a[i]);
+		}
 	}
+
+	C[0][0]=1;
+	foru(i,1,n){
+		C[i][0]=1;
+		foru(j,1,i){
+			C[i][j]=add(C[i-1][j-1],C[i-1][j]);
+		}
+	}
+
+	int M=(n-1)*m;
+
+	vector<int> Y(M+1,0);
+
+	//calc Y
+	// return ;
+	for(int X=0;X<=M;X++){
+		vector<int> f(n+1,0);
+
+		f[1]=1;
+
+		int xi=1;
+
+		for(int i=1;i<=m;i++){
+			vector<int> g(n+1,0);
+
+			mll(xi,X);
+
+			for(int j=1;j<=n;j++){
+				g[j]=f[j];
+				for(int k=1;k<j;k++){
+					mdd(g[j],mul(f[k],g[j-k],C[j-1][k-1],P[i][k*(j-k)],xi));
+				}
+			}
+
+			f=g;
+
+			for(int j=1;j<=n;j++){
+				for(int k=1;k<j;k++){
+					mmv(f[j],mul(f[k],g[j-k],C[j-1][k-1],P[i+1][k*(j-k)],xi));
+				}
+			}
+
+			// cein<<f<<endl;
+		}
+
+		Y[X]=f[n];
+	}
+
+	// exit(0);
+	// cein<<Y<<endl;
+
+	auto X=Lagrange(Y);
+
+	// cout<<n-1<<' '<<M<<endl;
+	
+	foru(i,n-1,M){
+		cout<<X[i]<<' ';
+	}
+	cout<<'\n';
+	
+
+	// exit(0);
+	
 
 	return ;
 }
@@ -453,7 +421,7 @@ signed main()
 	
 	#ifndef CPEDITOR
 	#ifndef ONLINE_JUDGE
-	if(freopen("plant0.in","r",stdin));
+	if(freopen("plant1.in","r",stdin));
 	// if(freopen("plant.in","r",stdin));
 	// if(freopen("plant.out","w",stdout));
 	#endif
