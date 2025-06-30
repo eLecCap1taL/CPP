@@ -274,254 +274,136 @@ constexpr int qpow(int x,int y){
 
 */
 
-int n,m;
+int n,k;
+int fa[500005];
+vector<int> e[500005];
+u64 f[500005],HS;
+int N=0;
 
-class Edge{
-public:
-	int u,v,l,r;
-	bool operator < (const Edge& x)const{
-		return r==x.r?l<x.l:r<x.r;
-	}
-}eg[3505];
-
-
-namespace GenEdge{
-	vector<pair<int,int>> e[3505];
-	struct FindTarget{};
-	struct Invalid{};
-	vector<int> ls;
-	void dfs(int u,int fath,int t,int& l,int& r){
-		if(u==t){
-			for(auto i:ls){
-				chkmin(eg[i].r,r);
-				if(eg[i].r<eg[i].l){
-					cout<<"-1";
-					exit(0);
-				}
-				chkmax(l,eg[i].l);
-			}
-
-			throw FindTarget();
-			cerr<<"eee";
-		}
-		for(auto [v,id]:e[u]){
-			if(v==fath)	continue;
-			ls+=id;
-			dfs(v,u,t,l,r);
-			ls.pop_back();
-		}
-	}
-	void work(){
-		foru(i,1,n-1){
-			auto [u,v,l,r]=eg[i];
-			e[u]+=mkp(v,i);
-			e[v]+=mkp(u,i);
-		}
-		foru(i,n,m){
-			auto& [u,v,l,r]=eg[i];
-			try{
-				ls.clear();
-				dfs(u,0,v,l,r);
-			}catch(FindTarget){
-
-			}
-		}
-	}
+mt19937_64 rd(random_device{}());
+u64 C=rd(),D=rd();
+u64 xor_shift(u64 x){
+	x^=D;
+	x^=(x>>5);
+	x^=(x>>3);
+	x^=(x>>9);
+	x^=(x>>3);
+	return x+37011220071019ull;
 }
 
-int ans[3505];
-
-bool us[3505];
-vector<Edge> els;
-
-class DSU{
-	int fa[3505];
-	class Range{
-	public:
-		int l,r;
-		int operator ()()const{
-			return r-l+1;
-		}
-	}rg[3505];
-public:
-	int find(int x){
-		return x==fa[x]?x:fa[x]=find(fa[x]);
+void dfs(int u,int dep){
+	chkmax(N,dep);
+	for(auto v:e[u]){
+		dfs(v,dep+1);
+		f[u]+=xor_shift(f[v]);
 	}
-	void Union(int x,int y){
-		x=find(x),y=find(y);
-		if(x==y)	return ;
-		if(rg[x]()<rg[y]())	swap(x,y);
-		fa[y]=x;
-		if(rg[x].r+1==rg[y].l){
-			rg[x].r=rg[y].r;
-		}else{
-			rg[x].l=rg[y].l;
-			// return ;
-			// if(rg[x].l-1==rg[y].r){
-			// 	rg[x].l=rg[y].l;
-			// }else{
-			// 	// cerr<<rg[x].l<<' '<<rg[x].r<<endl;
-			// 	// cerr<<rg[y].l<<' '<<rg[y].r<<endl;
-			// 	exit(1);
+	f[u]+=C;
+}
+
+class Node{
+public:
+	int ch[2];
+	int& operator [](const int& idx){
+		return ch[idx];
+	}
+}tr[500005];
+int pcnt=0;
+int rt=0;
+
+int s[500005];
+
+void insert(int& p,int* S,int i,int len){
+	if(!p){
+		p=++pcnt;
+		tr[p][0]=tr[p][1]=0;
+	}
+	if(i==len)	return ;
+	insert(tr[p][S[i]-1],S,i+1,len);
+}
+
+int ans[500005];
+int num;
+
+void calc(int p){
+	f[p]=0;
+	if(tr[p][0]){
+		calc(tr[p][0]);
+		f[p]+=xor_shift(f[tr[p][0]]);
+	}
+	if(tr[p][1]){
+		calc(tr[p][1]);
+		f[p]+=xor_shift(f[tr[p][1]]);
+	}
+	f[p]+=C;
+}
+
+void gen(int u){
+	if(u==N+1){
+		rt=0;
+		pcnt=0;
+
+		// iota(s+1,s+1+N,1);
+		// foru(i,1,N){
+		// 	cout<<s[i]<<' ';
+		// }
+		// HH;
+		for(int i=N;i>=1;i--){
+			insert(rt,s+i,0,N-i+1);
+		}
+
+		calc(1);
+
+		if(pcnt==n && f[1]==HS){
+			num++;
+
+			// foru(i,1,N){
+			// 	cout<<s[i]<<' ';
 			// }
-		}
-	}
-	void reset(){
-		foru(i,1,m){
-			fa[i]=i;
-			rg[i]={i,i};
-		}
-	}
-	Range operator [](const int& x)const{
-		return rg[x];
-	}
-};
+			// HH;
 
-class DS{
-	DSU dsu;
-	bitset<3505> ac;
-	int N=0;
-public:
-	void reset(){
-		// cerr<<"reset"<<endl;
-		dsu.reset();
-		ac.reset();
-		N=0;
-	}	
-	void append(){
-		// cerr<<"append "<<' '<<N+1<<endl;
-		N++;
-		ac[N]=1;
-	}
-	int get(int x){
-		// assert(x<=N);
-		// cerr<<"get "<<x<<endl;
-		x=dsu.find(x);
-		if(ac[x]){
-			// cerr<<"ret1 "<<x<<endl;
-			return x;
-		}
-		if(dsu[x].r==N){
-			// cerr<<"ret2 "<<-1<<endl;
-			return -1;
-		}else{
-			// cerr<<"ret3 "<<dsu[x].r+1<<endl;
-			return dsu[x].r+1;
-		}
-	}
-	void deactive(int x){
-		// cerr<<"deactive "<<x<<endl;
-		// assert(x<=N);
-		// assert(ac[x]);
-		// assert(dsu[x].l==dsu[x].r);
-		ac[x]=0;
-		int y=0;
-
-		if(x<N){
-			y=dsu.find(x+1);
-			if(!ac[y]){
-				dsu.Union(x,y);
+			if(num==1){
+				foru(i,1,N){
+					ans[i]=s[i];
+				}
 			}
 		}
-		if(x>1){
-			y=dsu.find(x-1);
-			if(!ac[y]){
-				dsu.Union(x,y);
-			}
-		}
+
+
+		return ;
 	}
-}ds;
-
-bool check(int o,int l,int r){
-	bool uso=0;
-
-	ds.reset();
-
-	int j=0;
-	foru(i,1,m){
-		ds.append();
-		if(us[i])	ds.deactive(i);
-		// if(us[i]==0)	st.insert(i);
-
-		if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-			uso=1;
-			int x=ds.get(l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			// auto it=st.lower_bound(l);
-			// if(it==st.end())	return false;
-			// st.erase(it);
-		}
-		while(j<sz(els) && els[j].r==i){
-			int x=ds.get(els[j].l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			j++;
-			
-			if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-				uso=1;
-				int x=ds.get(l);
-				if(x==-1)	return false;
-				ds.deactive(x);
-			}
-		}
+	foru(i,1,k){
+		s[u]=i;
+		gen(u+1);
 	}
-
-	return true;
 }
 
 void solve(bool SPE){ 
-	n=RIN,m=RIN;
-
-	foru(i,1,m){
-		eg[i]={RIN,RIN,RIN,RIN};
+	n=RIN,k=RIN;
+	foru(i,2,n){
+		fa[i]=RIN;
+		e[fa[i]]+=i;
 	}
 
-	GenEdge::work();
+	dfs(1,0);
+	HS=f[1];
 
-	// foru(i,1,m){
-	// 	cout<<eg[i].l<<' '<<eg[i].r<<endl;
-	// }
+	if(N<=20 && k<=2){
 
-	foru(i,1,m){
-		// cerr<<i<<endl;
+		gen(1);
 
-		els.clear();
-		foru(j,i+1,m){
-			els+=eg[j];
-		}
-		sort(All(els));
-		
-		int l=eg[i].l;
-		int r=eg[i].r;
-		ans[i]=-1;
-
-		// cout<<check(i,l,r)<<endl;
-
-		// if(sz(els))ans[i]=els.back().l;
-
-		while(l<=r){
-			int mid=(l+r)>>1;
-			if(check(i,l,mid)){
-				ans[i]=mid;
-				r=mid-1;
-			}else{
-				l=mid+1;
+		cout<<num<<endl;
+		if(num!=0){
+			cout<<N<<endl;
+			foru(i,1,N){
+				cout<<ans[i]<<' ';
 			}
 		}
-
-		if(ans[i]==-1){
-			cout<<"-1";
-			return ;
+	}else{
+		cout<<k<<endl<<n-1<<endl;
+		foru(i,1,n-1){
+			cout<<1<<' ';
 		}
-
-		// cerr<<i<<' '<<ans[i]<<endl;
-
-		us[ans[i]]=1;
-	}
-
-	foru(i,1,m){
-		cout<<ans[i]-1<<' ';
+		
 	}
 
 	return ;
@@ -536,10 +418,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	#ifndef ONLINE_JUDGE
-	if(freopen("ex_passingthrough3.in","r",stdin));
-	// if(freopen("passingthrough.in","r",stdin));
-	if(freopen("passingthrough.out","w",stdout));
+	if(freopen("ru1.in","r",stdin));
+	#ifdef ONLINE_JUDGE
+	if(freopen("ru.in","r",stdin));
+	if(freopen("ru.out","w",stdout));
 	#endif
 	#endif
 	

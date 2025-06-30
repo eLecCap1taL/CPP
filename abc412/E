@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+using namespace std;
+using int64 = long long;
+
+// 计算 x^k，若结果 > lim 则返回 lim+1
+int64 ipow(int64 x, int k, int64 lim) {
+    __int128 r = 1, b = x;
+    while (k) {
+        if (k & 1) {
+            r = r * b;
+            if (r > lim) return lim + 1;
+        }
+        b = b * b;
+        if (b > lim) b = lim + 1;
+        k >>= 1;
+    }
+    return (int64)r;
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int64 L, R;
+    cin >> L >> R;
+    if (L == R) {
+        // 单点区间
+        cout << 1 << "\n";
+        return 0;
+    }
+    // 1) 预筛所有 <= sqrt(R) 的素数
+    int64 S = floor(sqrt((long double)R)) + 1;
+    vector<bool> is_prime_small(S+1, true);
+    is_prime_small[0] = is_prime_small[1] = false;
+    for (int64 i = 2; i*i <= S; i++) {
+        if (is_prime_small[i]) {
+            for (int64 j = i*i; j <= S; j += i)
+                is_prime_small[j] = false;
+        }
+    }
+    vector<int> primes;
+    for (int i = 2; i <= S; i++) {
+        if (is_prime_small[i])
+            primes.push_back(i);
+    }
+
+    // 2) 区间筛 [L+1, R] 中的素数数量 —— 处理 k=1 的情况
+    int64 segL = L + 1, segR = R;
+    int64 len = segR - segL + 1;
+    vector<bool> is_prime_seg(len, true);
+    if (segL == 1) is_prime_seg[0] = false;
+    for (int p : primes) {
+        int64 start = max((int64)p * p, ((segL + p - 1) / p) * (int64)p);
+        for (int64 x = start; x <= segR; x += p) {
+            is_prime_seg[x - segL] = false;
+        }
+    }
+    int64 cnt = 0;
+    for (int i = 0; i < len; i++)
+        if (is_prime_seg[i])
+            cnt++;
+
+    // 3) k >= 2 的所有 p^k 情况
+    // 最大 k 由 2^k <= R 决定
+    int maxK = 0;
+    while ((1LL << (maxK+1)) <= R) maxK++;
+    for (int k = 2; k <= maxK; k++) {
+        // 计算区间 [p_min, p_max]
+        long double rl = pow((long double)(L+1), 1.0L/k);
+        long double rr = pow((long double)R, 1.0L/k);
+        int64 p_min = floor(rl);
+        // 调整上下界以修正浮点误差
+        while (ipow(p_min, k, R) < L+1) p_min++;
+        while (p_min > 0 && ipow(p_min-1, k, R) >= L+1) p_min--;
+        int64 p_max = floor(rr);
+        while (ipow(p_max, k, R) > R) p_max--;
+        while (ipow(p_max+1, k, R) <= R) p_max++;
+
+        if (p_min > p_max) continue;
+        // 在 primes 数组中二分：[p_min, p_max]
+        auto it1 = lower_bound(primes.begin(), primes.end(), (int)p_min);
+        auto it2 = upper_bound(primes.begin(), primes.end(), (int)p_max);
+        cnt += distance(it1, it2);
+    }
+
+    // 4) 最终答案
+    // A_L 算第一个不同值，再加上区间 (L, R] 上每次跳变的次数
+    cout << (1 + cnt) << "\n";
+    return 0;
+}
+E

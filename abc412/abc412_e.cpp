@@ -1,3 +1,11 @@
+// Problem: E-LCM Sequence
+// Contest: AtCoder-AtCoder Beginner Contest 412
+// URL: https://atcoder.jp/contests/abc412/tasks/abc412_e
+// Memory Limit: 1024 MB
+// Time Limit: 4000 ms
+// 
+// Powered by CP Editor(https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
 // #pragma GCC optimize("Ofast")
@@ -32,31 +40,31 @@
 // #include <bits/extc++.h>
 #define MAXN 200005
 #define eps 1e-10
-#define foru(a, b, c) for (int a = (b); (a) <= (c); (a)++)
-#define ford(a, b, c) for (int a = (b); (a) >= (c); (a)--)
+#define foru(a,b,c) for(int a=(b);(a)<=(c);(a)++)
+#define ford(a,b,c) for(int a=(b);(a) >=(c);(a)--)
 #define uLL unsigned long long
 #define LL long long
-#define LXF int
+#define LXF LL
 #define RIN Cap1taLDebug::read()
 #define RSIN Cap1taLDebug::rdstr()
 #define RCIN Cap1taLDebug::rdchar()
 #define HH printf("\n")
-#define All(x) (x).begin(), (x).end()
+#define All(x)(x).begin(),(x).end()
 #define fi first
 #define se second
 #define CA const auto&
 #if defined(__clang__)
 #define assume(expr) __builtin_assume(expr)
 #elif defined(__GNUC__)
-#define assume(expr) if (expr) {} else { __builtin_unreachable(); }
+#define assume(expr) if(expr){} else{ __builtin_unreachable();}
 #elif defined(_MSC_VER)
 #define assume(expr) __assume(expr)
 #endif
-#define likely(x) __builtin_expect(!!(x), 1) 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+#define likely(x) __builtin_expect(!!(x),1) 
+#define unlikely(x) __builtin_expect(!!(x),0)
 #define mkp(x,y) make_pair(x,y)
 #define ast(x) if(!(x))	{cerr<<endl<<"err at"<<__LINE__<<endl;exit(1);}
-#define sz(x) ((int)(x.size()))
+#define sz(x)((int)(x.size()))
 using namespace std;
 
 typedef __int128 i128;
@@ -75,7 +83,7 @@ public:
 	ostream& buf;
 	#ifndef DEBUGING
 	static char fbuf[1<<21],*p1,*p2;
-	#define getchar() (Cap1taLDebug::p1==p2&&(p1=(p2=fbuf)+fread(fbuf,1,1<<21,stdin),p1==p2)?EOF:*p2++)
+	#define getchar()(Cap1taLDebug::p1==p2&&(p1=(p2=fbuf)+fread(fbuf,1,1<<21,stdin),p1==p2)?EOF:*p2++)
 	#endif
 	Cap1taLDebug(ostream& out=cout):buf(out){}
 	~Cap1taLDebug(){
@@ -132,7 +140,7 @@ public:
 		return *this;
 	}
 	template<typename T,template<typename,typename...>class Container,typename...Args>
-	Cap1taLDebug& operator<<(const Container<T, Args...>& container){
+	Cap1taLDebug& operator<<(const Container<T,Args...>& container){
 		#ifdef DEBUGING
 		buf<<"{";
 		bool fst=0;
@@ -164,7 +172,7 @@ public:
 		#endif
 		return *this;
 	}
-	Cap1taLDebug& operator<<(ostream& (*manip)(ostream&)){
+	Cap1taLDebug& operator<<(ostream&(*manip)(ostream&)){
 		#ifdef DEBUGING
 		buf<<manip;
 		#endif
@@ -187,15 +195,15 @@ ostream& operator<<(ostream& os,u128 val){
 
 #define OPERATOR_FOR_PUSHBACK(pb)\
 template<typename T1,typename T2>\
-pb<T1>& operator += (pb<T1>& x,const T2& y){x.push_back((T1)y);return x;}
+pb<T1>& operator +=(pb<T1>& x,const T2& y){x.push_back((T1)y);return x;}
 
 #define OPERATOR_FOR_PUSH(p)\
 template<typename T1,typename T2>\
-p<T1>& operator += (p<T1>& x,const T2& y){x.push((T1)y);return x;}
+p<T1>& operator +=(p<T1>& x,const T2& y){x.push((T1)y);return x;}
 
 #define OPERATOR_FOR_INSERT(i)\
 template<typename T1,typename T2>\
-i<T1>& operator += (i<T1>& x,const T2& y){x.insert((T1)y);return x;}
+i<T1>& operator +=(i<T1>& x,const T2& y){x.insert((T1)y);return x;}
 
 OPERATOR_FOR_PUSHBACK(vector)
 OPERATOR_FOR_PUSHBACK(deque)
@@ -210,12 +218,12 @@ OPERATOR_FOR_INSERT(unordered_multiset)
 template<typename T1,typename T2>
 inline bool chkmax(T1& x,const T2& y){return x<(T1)y?x=(T1)y,true:false;}
 template<typename T1,typename T2>
-inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
+inline bool chkmin(T1& x,const T2& y){return(T1)y<x?x=(T1)y,true:false;}
 
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
@@ -252,7 +260,7 @@ constexpr int add(const int& x,const T& ...xr){
 constexpr int mul(const int& x){return x;}
 template<class ...T>
 constexpr int mul(const int& x,const T& ...xr){
-	return (LL)x*mul(xr...)%mod;
+	return(LL)x*mul(xr...)%mod;
 }
 constexpr int rmv(int x,int y){
 	x-=y;
@@ -273,257 +281,76 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-
-int n,m;
-
-class Edge{
-public:
-	int u,v,l,r;
-	bool operator < (const Edge& x)const{
-		return r==x.r?l<x.l:r<x.r;
-	}
-}eg[3505];
-
-
-namespace GenEdge{
-	vector<pair<int,int>> e[3505];
-	struct FindTarget{};
-	struct Invalid{};
-	vector<int> ls;
-	void dfs(int u,int fath,int t,int& l,int& r){
-		if(u==t){
-			for(auto i:ls){
-				chkmin(eg[i].r,r);
-				if(eg[i].r<eg[i].l){
-					cout<<"-1";
-					exit(0);
-				}
-				chkmax(l,eg[i].l);
-			}
-
-			throw FindTarget();
-			cerr<<"eee";
-		}
-		for(auto [v,id]:e[u]){
-			if(v==fath)	continue;
-			ls+=id;
-			dfs(v,u,t,l,r);
-			ls.pop_back();
-		}
-	}
-	void work(){
-		foru(i,1,n-1){
-			auto [u,v,l,r]=eg[i];
-			e[u]+=mkp(v,i);
-			e[v]+=mkp(u,i);
-		}
-		foru(i,n,m){
-			auto& [u,v,l,r]=eg[i];
-			try{
-				ls.clear();
-				dfs(u,0,v,l,r);
-			}catch(FindTarget){
-
-			}
-		}
-	}
+LL L,R;
+LL ipow(LL x,int k,LL lim){
+    __int128 r=1,b=x;
+    while(k){
+        if(k&1){
+            r=r*b;
+            if(r>lim) return lim+1;
+        }
+        b=b*b;
+        if(b>lim) b=lim+1;
+        k>>=1;
+    }
+    return(LL)r;
 }
-
-int ans[3505];
-
-bool us[3505];
-vector<Edge> els;
-
-class DSU{
-	int fa[3505];
-	class Range{
-	public:
-		int l,r;
-		int operator ()()const{
-			return r-l+1;
-		}
-	}rg[3505];
-public:
-	int find(int x){
-		return x==fa[x]?x:fa[x]=find(fa[x]);
-	}
-	void Union(int x,int y){
-		x=find(x),y=find(y);
-		if(x==y)	return ;
-		if(rg[x]()<rg[y]())	swap(x,y);
-		fa[y]=x;
-		if(rg[x].r+1==rg[y].l){
-			rg[x].r=rg[y].r;
-		}else{
-			rg[x].l=rg[y].l;
-			// return ;
-			// if(rg[x].l-1==rg[y].r){
-			// 	rg[x].l=rg[y].l;
-			// }else{
-			// 	// cerr<<rg[x].l<<' '<<rg[x].r<<endl;
-			// 	// cerr<<rg[y].l<<' '<<rg[y].r<<endl;
-			// 	exit(1);
-			// }
-		}
-	}
-	void reset(){
-		foru(i,1,m){
-			fa[i]=i;
-			rg[i]={i,i};
-		}
-	}
-	Range operator [](const int& x)const{
-		return rg[x];
-	}
-};
-
-class DS{
-	DSU dsu;
-	bitset<3505> ac;
-	int N=0;
-public:
-	void reset(){
-		// cerr<<"reset"<<endl;
-		dsu.reset();
-		ac.reset();
-		N=0;
-	}	
-	void append(){
-		// cerr<<"append "<<' '<<N+1<<endl;
-		N++;
-		ac[N]=1;
-	}
-	int get(int x){
-		// assert(x<=N);
-		// cerr<<"get "<<x<<endl;
-		x=dsu.find(x);
-		if(ac[x]){
-			// cerr<<"ret1 "<<x<<endl;
-			return x;
-		}
-		if(dsu[x].r==N){
-			// cerr<<"ret2 "<<-1<<endl;
-			return -1;
-		}else{
-			// cerr<<"ret3 "<<dsu[x].r+1<<endl;
-			return dsu[x].r+1;
-		}
-	}
-	void deactive(int x){
-		// cerr<<"deactive "<<x<<endl;
-		// assert(x<=N);
-		// assert(ac[x]);
-		// assert(dsu[x].l==dsu[x].r);
-		ac[x]=0;
-		int y=0;
-
-		if(x<N){
-			y=dsu.find(x+1);
-			if(!ac[y]){
-				dsu.Union(x,y);
-			}
-		}
-		if(x>1){
-			y=dsu.find(x-1);
-			if(!ac[y]){
-				dsu.Union(x,y);
-			}
-		}
-	}
-}ds;
-
-bool check(int o,int l,int r){
-	bool uso=0;
-
-	ds.reset();
-
-	int j=0;
-	foru(i,1,m){
-		ds.append();
-		if(us[i])	ds.deactive(i);
-		// if(us[i]==0)	st.insert(i);
-
-		if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-			uso=1;
-			int x=ds.get(l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			// auto it=st.lower_bound(l);
-			// if(it==st.end())	return false;
-			// st.erase(it);
-		}
-		while(j<sz(els) && els[j].r==i){
-			int x=ds.get(els[j].l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			j++;
-			
-			if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-				uso=1;
-				int x=ds.get(l);
-				if(x==-1)	return false;
-				ds.deactive(x);
-			}
-		}
-	}
-
-	return true;
-}
-
 void solve(bool SPE){ 
-	n=RIN,m=RIN;
+    cin>>L>>R;
+    if(L==R){
+        // 单点区间
+        cout<<1<<"\n";
+        return ;
+    }
+    LL S=floor(sqrt((long double)R))+1;
+    vector<bool> smp(S+1,true);
+    smp[0]=smp[1]=false;
+    for(LL i=2;i*i<=S;i++){
+        if(smp[i]){
+            for(LL j=i*i;j<=S;j+=i)
+                smp[j]=false;
+        }
+    }
+    vector<int> primes;
+    for(int i=2;i<=S;i++){
+        if(smp[i])
+            primes.push_back(i);
+    }
 
-	foru(i,1,m){
-		eg[i]={RIN,RIN,RIN,RIN};
-	}
+    LL segL=L+1,segR=R;
+    LL len=segR-segL+1;
+    vector<bool> ips(len,true);
+    if(segL==1) ips[0]=false;
+    for(auto p:primes){
+        LL start=max((LL)p*p,((segL+p-1)/p)*(LL)p);
+        for(LL x=start;x<=segR;x+=p){
+            ips[x-segL]=false;
+        }
+    }
+    LL cnt=0;
+    for(int i=0;i<len;i++)   if(ips[i])   cnt++;
 
-	GenEdge::work();
+    int maxK=0;
+    while((1LL<<(maxK+1))<=R) maxK++;
+    for(int k=2;k<=maxK;k++){
+        long double rl=pow((long double)(L+1),1.0L/k);
+        long double rr=pow((long double)R,1.0L/k);
+        LL p_min=floor(rl);
+        
+        while(ipow(p_min,k,R)<L+1) p_min++;
+        while(p_min>0 && ipow(p_min-1,k,R)>=L+1) p_min--;
+        LL p_max=floor(rr);
+        while(ipow(p_max,k,R)>R) p_max--;
+        while(ipow(p_max+1,k,R)<=R) p_max++;
 
-	// foru(i,1,m){
-	// 	cout<<eg[i].l<<' '<<eg[i].r<<endl;
-	// }
+        if(p_min>p_max) continue;
+        
+        auto it1=lower_bound(primes.begin(),primes.end(),(int)p_min);
+        auto it2=upper_bound(primes.begin(),primes.end(),(int)p_max);
+        cnt+=distance(it1,it2);
+    }
 
-	foru(i,1,m){
-		// cerr<<i<<endl;
-
-		els.clear();
-		foru(j,i+1,m){
-			els+=eg[j];
-		}
-		sort(All(els));
-		
-		int l=eg[i].l;
-		int r=eg[i].r;
-		ans[i]=-1;
-
-		// cout<<check(i,l,r)<<endl;
-
-		// if(sz(els))ans[i]=els.back().l;
-
-		while(l<=r){
-			int mid=(l+r)>>1;
-			if(check(i,l,mid)){
-				ans[i]=mid;
-				r=mid-1;
-			}else{
-				l=mid+1;
-			}
-		}
-
-		if(ans[i]==-1){
-			cout<<"-1";
-			return ;
-		}
-
-		// cerr<<i<<' '<<ans[i]<<endl;
-
-		us[ans[i]]=1;
-	}
-
-	foru(i,1,m){
-		cout<<ans[i]-1<<' ';
-	}
-
+    cout<<(1+cnt)<<"\n";
 	return ;
 }
 /*
@@ -535,13 +362,12 @@ signed main()
 {
 	// #define MULTITEST
 	
-	#ifndef CPEDITOR
-	#ifndef ONLINE_JUDGE
-	if(freopen("ex_passingthrough3.in","r",stdin));
-	// if(freopen("passingthrough.in","r",stdin));
-	if(freopen("passingthrough.out","w",stdout));
-	#endif
-	#endif
+	// #ifndef CPEDITOR
+	// #ifdef ONLINE_JUDGE
+	// if(freopen(".in","r",stdin));
+	// if(freopen(".out","w",stdout));
+	// #endif
+	// #endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

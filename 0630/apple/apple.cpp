@@ -273,256 +273,248 @@ constexpr int qpow(int x,int y){
 /*
 
 */
-
-int n,m;
-
-class Edge{
+class Node{
 public:
-	int u,v,l,r;
-	bool operator < (const Edge& x)const{
-		return r==x.r?l<x.l:r<x.r;
-	}
-}eg[3505];
-
-
-namespace GenEdge{
-	vector<pair<int,int>> e[3505];
-	struct FindTarget{};
-	struct Invalid{};
-	vector<int> ls;
-	void dfs(int u,int fath,int t,int& l,int& r){
-		if(u==t){
-			for(auto i:ls){
-				chkmin(eg[i].r,r);
-				if(eg[i].r<eg[i].l){
-					cout<<"-1";
-					exit(0);
-				}
-				chkmax(l,eg[i].l);
-			}
-
-			throw FindTarget();
-			cerr<<"eee";
-		}
-		for(auto [v,id]:e[u]){
-			if(v==fath)	continue;
-			ls+=id;
-			dfs(v,u,t,l,r);
-			ls.pop_back();
-		}
-	}
-	void work(){
-		foru(i,1,n-1){
-			auto [u,v,l,r]=eg[i];
-			e[u]+=mkp(v,i);
-			e[v]+=mkp(u,i);
-		}
-		foru(i,n,m){
-			auto& [u,v,l,r]=eg[i];
-			try{
-				ls.clear();
-				dfs(u,0,v,l,r);
-			}catch(FindTarget){
-
-			}
-		}
-	}
-}
-
-int ans[3505];
-
-bool us[3505];
-vector<Edge> els;
-
-class DSU{
-	int fa[3505];
-	class Range{
-	public:
-		int l,r;
-		int operator ()()const{
-			return r-l+1;
-		}
-	}rg[3505];
-public:
-	int find(int x){
-		return x==fa[x]?x:fa[x]=find(fa[x]);
-	}
-	void Union(int x,int y){
-		x=find(x),y=find(y);
-		if(x==y)	return ;
-		if(rg[x]()<rg[y]())	swap(x,y);
-		fa[y]=x;
-		if(rg[x].r+1==rg[y].l){
-			rg[x].r=rg[y].r;
-		}else{
-			rg[x].l=rg[y].l;
-			// return ;
-			// if(rg[x].l-1==rg[y].r){
-			// 	rg[x].l=rg[y].l;
-			// }else{
-			// 	// cerr<<rg[x].l<<' '<<rg[x].r<<endl;
-			// 	// cerr<<rg[y].l<<' '<<rg[y].r<<endl;
-			// 	exit(1);
-			// }
-		}
-	}
-	void reset(){
-		foru(i,1,m){
-			fa[i]=i;
-			rg[i]={i,i};
-		}
-	}
-	Range operator [](const int& x)const{
-		return rg[x];
+	int x,c;
+	bool operator < (const Node& o)const{
+		return x<o.x;
 	}
 };
 
-class DS{
-	DSU dsu;
-	bitset<3505> ac;
-	int N=0;
-public:
-	void reset(){
-		// cerr<<"reset"<<endl;
-		dsu.reset();
-		ac.reset();
-		N=0;
-	}	
-	void append(){
-		// cerr<<"append "<<' '<<N+1<<endl;
-		N++;
-		ac[N]=1;
-	}
-	int get(int x){
-		// assert(x<=N);
-		// cerr<<"get "<<x<<endl;
-		x=dsu.find(x);
-		if(ac[x]){
-			// cerr<<"ret1 "<<x<<endl;
-			return x;
-		}
-		if(dsu[x].r==N){
-			// cerr<<"ret2 "<<-1<<endl;
-			return -1;
-		}else{
-			// cerr<<"ret3 "<<dsu[x].r+1<<endl;
-			return dsu[x].r+1;
-		}
-	}
-	void deactive(int x){
-		// cerr<<"deactive "<<x<<endl;
-		// assert(x<=N);
-		// assert(ac[x]);
-		// assert(dsu[x].l==dsu[x].r);
-		ac[x]=0;
-		int y=0;
+vector<Node> a;
 
-		if(x<N){
-			y=dsu.find(x+1);
-			if(!ac[y]){
-				dsu.Union(x,y);
+int q;
+int tid;
+
+class Matrix{
+public:
+	LL a[5][5];
+	Matrix(){
+		memset(a,0,sizeof a);
+	}
+	LL* operator [] (const int& idx){
+		return a[idx];
+	}
+	const LL* operator [] (const int& idx)const{
+		return a[idx];
+	}
+	void fillc(const int& idx,const LL& A,const LL& B,const LL& C,const LL& D,const LL& E){
+		a[0][idx]=A;
+		a[1][idx]=B;
+		a[2][idx]=C;
+		a[3][idx]=D;
+		a[4][idx]=E;
+	}
+	Matrix operator * (const Matrix& x)const{
+		Matrix ret;
+		foru(i,0,4){
+			foru(j,0,4){
+				ret[i][j]=max({a[i][0]+x[0][j],a[i][1]+x[1][j],a[i][2]+x[2][j],a[i][3]+x[3][j],a[i][4]+x[4][j]});
 			}
 		}
-		if(x>1){
-			y=dsu.find(x-1);
-			if(!ac[y]){
-				dsu.Union(x,y);
-			}
+		return ret;
+	}
+};
+
+class Vector{
+public:
+	LL a[5];
+	Vector(){
+		memset(a,0,sizeof a);
+	}
+	LL& operator [] (const int& idx){
+		return a[idx];
+	}
+	const LL& operator [] (const int& idx)const{
+		return a[idx];
+	}
+	Vector operator * (const Matrix& x)const{
+		Vector ret;
+		foru(j,0,4){
+			ret[j]=max({a[0]+x[0][j],a[1]+x[1][j],a[2]+x[2][j],a[3]+x[3][j],a[4]+x[4][j]});
 		}
+		return ret;
+	}
+};
+
+constexpr LL inf=5e13;
+
+Matrix gen(int L,int c){
+	Matrix ret;
+
+	if(c==-1){
+		// 机器人
+		// 结算
+		
+		ret.fillc(0,0,0,0,-1*L,-inf);
+		ret.fillc(1,0,0,0,-inf,-2*L);
+		ret.fillc(2,-inf,-inf,-inf,-inf,-inf);
+		ret.fillc(3,-inf,-inf,-inf,-inf,-inf);
+		ret.fillc(4,-inf,-inf,-inf,-inf,-inf);
+		// nf[0]=max({f[0],f[1],f[2],f[3]-L});
+		// nf[1]=max({f[0],f[1],f[2],f[4]-2*L});
+		// nf[2]=-1e16;
+		// nf[3]=-1e16;
+		// nf[4]=-1e16;
+	}else{
+		ret.fillc(0,c-2*L,-inf,-inf,-inf,-inf);
+		ret.fillc(1,-inf,c-1*L,-inf,-inf,-inf);
+		ret.fillc(2,0,0,0,-inf,-inf);
+		ret.fillc(3,c,c,c,c-1*L,-inf);
+		ret.fillc(4,c,c,c,-inf,c-2*L);
+		// nf[0]=max({f[0]+c-2*L});
+		// nf[1]=max({f[1]+c-L});
+		// nf[2]=max({f[0],f[1],f[2]});
+		// nf[3]=max({f[0]+c,f[1]+c,f[2]+c,f[3]+c-L});
+		// nf[4]=max({f[0]+c,f[1]+c,f[2]+c,f[4]+c-2*L});
+	}
+
+	return ret;
+}
+
+Matrix one(){
+	Matrix ret;
+	foru(i,0,4){
+		foru(j,0,4){
+			if(i==j)	ret[i][j]=0;
+			else	ret[i][j]=-inf;
+		}
+	}
+	return ret;
+}
+
+Vector gen(int c){
+	Vector f;
+
+	if(c==-1){
+		//first robot
+		f[0]=0;
+		f[1]=0;
+		f[2]=-inf;
+		f[3]=-inf;
+		f[4]=-inf;
+	}else{
+		f[0]=-inf;
+		f[1]=-inf;
+		f[2]=0;
+		f[3]=c;
+		f[4]=c;
+	}
+
+	return f;
+}
+
+unordered_map<int,int> mp;
+vector<int> X;
+Node in[MAXN];
+
+Matrix ls[MAXN];
+
+class DS{
+public:
+	class Node{
+	public:
+		int l,r;
+		Matrix d;
+	}tr[MAXN<<2];
+	inline int lc(int x){return x<<1;}
+	inline int rc(int x){return x<<1|1;}
+	void push_up(int p){
+		tr[p].d=tr[lc(p)].d*tr[rc(p)].d;
+	}
+	void build(int p,int l,int r){
+		tr[p].l=l,tr[p].r=r;
+		tr[p].d=one();
+		if(l==r){
+			return ;
+		}
+		int mid=(l+r)>>1;
+		build(lc(p),l,mid);
+		build(rc(p),mid+1,r);
+	}
+	void modify(int p,int pos,int L,int c){
+		if(tr[p].l==tr[p].r){
+			tr[p].d=gen(L,c);
+			return ;
+		}
+		int mid=(tr[p].l+tr[p].r)>>1;
+		if(pos<=mid)	modify(lc(p),pos,L,c);
+		else	modify(rc(p),pos,L,c);
+		push_up(p);
+	}
+	void query(int p,int l,int r,Vector& f){
+		// cout<<p<<' '<<tr[p].l<<' '<<tr[p].r<<' '<<l<<' '<<r<<endl;
+		if(l<=tr[p].l && tr[p].r<=r){
+			f=f*tr[p].d;
+			return ;
+			// return tr[p].d;
+		}
+		int mid=(tr[p].l+tr[p].r)>>1;
+		if(l<=mid)	query(lc(p),l,r,f);
+		if(r>mid)	query(rc(p),l,r,f);
 	}
 }ds;
 
-bool check(int o,int l,int r){
-	bool uso=0;
-
-	ds.reset();
-
-	int j=0;
-	foru(i,1,m){
-		ds.append();
-		if(us[i])	ds.deactive(i);
-		// if(us[i]==0)	st.insert(i);
-
-		if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-			uso=1;
-			int x=ds.get(l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			// auto it=st.lower_bound(l);
-			// if(it==st.end())	return false;
-			// st.erase(it);
-		}
-		while(j<sz(els) && els[j].r==i){
-			int x=ds.get(els[j].l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			j++;
-			
-			if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-				uso=1;
-				int x=ds.get(l);
-				if(x==-1)	return false;
-				ds.deactive(x);
-			}
-		}
-	}
-
-	return true;
-}
-
 void solve(bool SPE){ 
-	n=RIN,m=RIN;
+	tid=RIN;
+	q=RIN;
 
-	foru(i,1,m){
-		eg[i]={RIN,RIN,RIN,RIN};
+	foru(o,1,q){
+		int ty=RIN;
+		if(ty==1){
+			int x=RIN;
+			in[o]=Node{x,-1};
+			X+=x;
+		}else{
+			int x=RIN,c=RIN;
+			in[o]=Node{x,c};
+			X+=x;
+		}
 	}
 
-	GenEdge::work();
-
-	// foru(i,1,m){
-	// 	cout<<eg[i].l<<' '<<eg[i].r<<endl;
-	// }
-
-	foru(i,1,m){
-		// cerr<<i<<endl;
-
-		els.clear();
-		foru(j,i+1,m){
-			els+=eg[j];
-		}
-		sort(All(els));
-		
-		int l=eg[i].l;
-		int r=eg[i].r;
-		ans[i]=-1;
-
-		// cout<<check(i,l,r)<<endl;
-
-		// if(sz(els))ans[i]=els.back().l;
-
-		while(l<=r){
-			int mid=(l+r)>>1;
-			if(check(i,l,mid)){
-				ans[i]=mid;
-				r=mid-1;
-			}else{
-				l=mid+1;
-			}
-		}
-
-		if(ans[i]==-1){
-			cout<<"-1";
-			return ;
-		}
-
-		// cerr<<i<<' '<<ans[i]<<endl;
-
-		us[ans[i]]=1;
+	sort(All(X));
+	foru(i,1,q){
+		mp[X[i-1]]=i;
+		// ls[i]=one();
 	}
 
-	foru(i,1,m){
-		cout<<ans[i]-1<<' ';
+	ds.build(1,1,q);
+
+	static set<pair<int,int>> st;
+
+	// return ;
+	foru(o,1,q){
+		auto [x,c]=in[o];
+		int p=mp[x];
+
+		auto it=st.upper_bound(mkp(x,0));
+		if(it!=st.end()){
+			ds.modify(1,mp[it->fi],it->fi-x,it->se);
+			// ls[mp[it->fi]]=gen(it->fi-x,it->se);
+		}
+
+		it=st.insert(mkp(x,c)).fi;
+
+		if(it!=st.begin()){
+			ds.modify(1,p,x-prev(it)->fi,c);
+			// ls[p]=gen(x-prev(it)->fi,c);
+		}
+
+		Vector f=gen(st.begin()->se);
+
+		int l=mp[st.begin()->fi];
+
+		if(l<q){
+			ds.query(1,l+1,q,f);
+		}
+		// foru(i,l+1,q){
+		// 	f=f*ls[i];
+		// }
+
+		printf("%lld\n",max({f[0],f[1],f[2]}));
 	}
+
+	
 
 	return ;
 }
@@ -536,10 +528,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	#ifndef ONLINE_JUDGE
-	if(freopen("ex_passingthrough3.in","r",stdin));
-	// if(freopen("passingthrough.in","r",stdin));
-	if(freopen("passingthrough.out","w",stdout));
+	if(freopen("apple1.in","r",stdin));
+	#ifdef ONLINE_JUDGE
+	if(freopen("apple.in","r",stdin));
+	if(freopen("apple.out","w",stdout));
 	#endif
 	#endif
 	

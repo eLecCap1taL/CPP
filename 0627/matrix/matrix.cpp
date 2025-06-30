@@ -274,255 +274,253 @@ constexpr int qpow(int x,int y){
 
 */
 
-int n,m;
-
-class Edge{
+class Matrix{
 public:
-	int u,v,l,r;
-	bool operator < (const Edge& x)const{
-		return r==x.r?l<x.l:r<x.r;
+	int a[2][2];
+	Matrix(int x=0,int y=0,int z=0,int w=0){
+		a[0][0]=x;
+		a[0][1]=y;
+		a[1][0]=z;
+		a[1][1]=w;
 	}
-}eg[3505];
-
-
-namespace GenEdge{
-	vector<pair<int,int>> e[3505];
-	struct FindTarget{};
-	struct Invalid{};
-	vector<int> ls;
-	void dfs(int u,int fath,int t,int& l,int& r){
-		if(u==t){
-			for(auto i:ls){
-				chkmin(eg[i].r,r);
-				if(eg[i].r<eg[i].l){
-					cout<<"-1";
-					exit(0);
-				}
-				chkmax(l,eg[i].l);
-			}
-
-			throw FindTarget();
-			cerr<<"eee";
-		}
-		for(auto [v,id]:e[u]){
-			if(v==fath)	continue;
-			ls+=id;
-			dfs(v,u,t,l,r);
-			ls.pop_back();
-		}
+	int* operator [] (const int& x){
+		return a[x];
 	}
+	const int* operator [] (const int& x)const{
+		return a[x];
+	}
+	Matrix operator * (const Matrix& x)const{
+		return Matrix(
+			add(mul(a[0][0],x[0][0]),mul(a[0][1],x[1][0])),
+			add(mul(a[0][0],x[0][1]),mul(a[0][1],x[1][1])),
+			add(mul(a[1][0],x[0][0]),mul(a[0][1],x[1][0])),
+			add(mul(a[1][0],x[0][1]),mul(a[0][1],x[1][1]))
+		);
+	}
+};
+ostream& operator << (ostream& os,const Matrix& x){
+	os<<'['<<x[0][0]<<','<<x[0][1]<<','<<x[1][0]<<','<<x[1][1]<<']';
+	return os;
+}
+
+Matrix a[505];
+
+int n;
+
+int fac[2005];
+int ifac[2005];
+int C(int n,int m){
+	return mul(fac[n],ifac[m],ifac[n-m]);
+}
+
+namespace SUBN8{
+	int p[10];
 	void work(){
-		foru(i,1,n-1){
-			auto [u,v,l,r]=eg[i];
-			e[u]+=mkp(v,i);
-			e[v]+=mkp(u,i);
+		foru(i,1,n){
+			p[i]=i;
 		}
-		foru(i,n,m){
-			auto& [u,v,l,r]=eg[i];
-			try{
-				ls.clear();
-				dfs(u,0,v,l,r);
-			}catch(FindTarget){
-
+		int ans=0;
+		do{
+			// cout<<"~~~~~~~~~~"<<endl;
+			Matrix res(1,0,0,1);
+			foru(i,1,n){
+				res=res*a[p[i]];
+				// cout<<a[p[i]]<<' ';
 			}
-		}
+			// cout<<res;
+			// exit(0);
+			// cout<<endl;
+			mdd(ans,res[0][0]);
+		}while(next_permutation(p+1,p+1+n));
+		cout<<ans;
 	}
 }
 
-int ans[3505];
 
-bool us[3505];
-vector<Edge> els;
+int divide(int n,int m){
+	//divide n element into m set
+	//empty is allowed
+	// if(n==0 && m==0)	return 1;
+	return C(n+m-1,m-1);
+}
 
-class DSU{
-	int fa[3505];
-	class Range{
-	public:
-		int l,r;
-		int operator ()()const{
-			return r-l+1;
+namespace SUBN18{
+	int _2=qpow(2,mod-2);
+	int f[2][505][1005][2];
+	void work(){
+		f[0][0][n][0]=1;
+		foru(i,0,n-1){
+			bool t=(i+1)&1;
+			foru(xy,0,i+1){
+				foru(z,n-i-1,n+i+1){
+					f[t][xy][z][0]=0;
+					f[t][xy][z][1]=0;
+				}
+			}
+			foru(xy,0,i){
+				foru(z,n-i,n+i){
+					int v=0;
+					
+					v=f[t^1][xy][z][0];
+					mdd(f[t][xy+1][z][0],mul(v,a[i+1][0][0]));
+					mdd(f[t][xy+1][z+1][0],mul(v,a[i+1][0][1]));
+					mdd(f[t][xy+1][z+1][1],mul(v,a[i+1][0][1]));
+					mdd(f[t][xy][z-1][0],mul(v,a[i+1][1][0]));
+					mdd(f[t][xy][z][0],mul(v,a[i+1][1][1]));
+					
+					v=f[t^1][xy][z][1];
+					mdd(f[t][xy+1][z][1],mul(v,a[i+1][0][0]));
+					mdd(f[t][xy+1][z+1][1],mul(v,a[i+1][0][1]));
+					mdd(f[t][xy][z-1][1],mul(v,a[i+1][1][0]));
+					mdd(f[t][xy][z][1],mul(v,a[i+1][1][1]));
+				}
+			}
 		}
-	}rg[3505];
-public:
-	int find(int x){
-		return x==fa[x]?x:fa[x]=find(fa[x]);
-	}
-	void Union(int x,int y){
-		x=find(x),y=find(y);
-		if(x==y)	return ;
-		if(rg[x]()<rg[y]())	swap(x,y);
-		fa[y]=x;
-		if(rg[x].r+1==rg[y].l){
-			rg[x].r=rg[y].r;
-		}else{
-			rg[x].l=rg[y].l;
-			// return ;
-			// if(rg[x].l-1==rg[y].r){
-			// 	rg[x].l=rg[y].l;
-			// }else{
-			// 	// cerr<<rg[x].l<<' '<<rg[x].r<<endl;
-			// 	// cerr<<rg[y].l<<' '<<rg[y].r<<endl;
+
+		/*
+		
+		*/
+		int ans=0;
+		foru(xy,0,n-1){
+			// if(x+y*2>n)	break;
+
+			// cerr<<x<<' '<<y<<' '<<z<<' '<<mul(divide(z,y),divide(y,(x-1)+1))<<' '<<g[n&1][x][y][0]<<endl;
+			// if(mul(divide(z,y),divide(y,(x-1)+1))!=g[n&1][x][y][0]){
+			// 	cerr<<divide(z,y)<<' '<<divide(y,x)<<endl;
 			// 	exit(1);
 			// }
+			// cerr<<y<<' '<<z<<endl;
+			// cout<<x<<' '<<y<<' '<<z<<' '<<g[n][x][y][z][0]<<endl;
+			mdd(ans,mul(fac[n-xy-1],fac[xy],f[n&1][xy][n][1]));
 		}
-	}
-	void reset(){
-		foru(i,1,m){
-			fa[i]=i;
-			rg[i]={i,i};
-		}
-	}
-	Range operator [](const int& x)const{
-		return rg[x];
-	}
-};
 
-class DS{
-	DSU dsu;
-	bitset<3505> ac;
-	int N=0;
-public:
-	void reset(){
-		// cerr<<"reset"<<endl;
-		dsu.reset();
-		ac.reset();
-		N=0;
-	}	
-	void append(){
-		// cerr<<"append "<<' '<<N+1<<endl;
-		N++;
-		ac[N]=1;
-	}
-	int get(int x){
-		// assert(x<=N);
-		// cerr<<"get "<<x<<endl;
-		x=dsu.find(x);
-		if(ac[x]){
-			// cerr<<"ret1 "<<x<<endl;
-			return x;
+		{
+			int x=fac[n];
+			foru(i,1,n){
+				mll(x,a[i][0][0]);
+			}
+			mdd(ans,x);
 		}
-		if(dsu[x].r==N){
-			// cerr<<"ret2 "<<-1<<endl;
-			return -1;
-		}else{
-			// cerr<<"ret3 "<<dsu[x].r+1<<endl;
-			return dsu[x].r+1;
-		}
-	}
-	void deactive(int x){
-		// cerr<<"deactive "<<x<<endl;
-		// assert(x<=N);
-		// assert(ac[x]);
-		// assert(dsu[x].l==dsu[x].r);
-		ac[x]=0;
-		int y=0;
 
-		if(x<N){
-			y=dsu.find(x+1);
-			if(!ac[y]){
-				dsu.Union(x,y);
+		cout<<ans;
+	}
+}
+
+
+namespace SUBA{
+	int f[2][505][4][4];
+	int g[2][505][4][4][2];
+	void work(){
+		f[0][0][0][0]=1;
+		foru(i,0,n-1){
+			bool t=(i+1)&1;
+			foru(x,0,i){
+				foru(y,0,min(i,2)){
+					foru(z,0,min(i,2)){
+						f[t][x][y][z]=0;
+					}
+				}
+			}
+			foru(x,0,i){
+				foru(y,0,min(i,2)){
+					foru(z,0,min(i,2)){
+						if(f[t^1][x][y][z]==0)	continue;
+						int v=f[t^1][x][y][z];
+						mdd(f[t][x+1][y][z],mul(v,a[i+1][0][0]));
+						mdd(f[t][x][y+1][z],mul(v,a[i+1][0][1]));
+						mdd(f[t][x][y][z+1],mul(v,a[i+1][1][0]));
+						mdd(f[t][x][y][z],mul(v,a[i+1][1][1]));
+					}
+				}
 			}
 		}
-		if(x>1){
-			y=dsu.find(x-1);
-			if(!ac[y]){
-				dsu.Union(x,y);
+		g[1][1][0][0][0]=1;
+		g[1][0][1][0][1]=1;
+		foru(i,1,n-1){
+			bool t=(i+1)&1;
+			foru(x,0,i){
+				foru(y,0,min(i,2)){
+					foru(z,0,min(i,2)){
+						g[t][x][y][z][0]=0;
+						g[t][x][y][z][1]=0;
+					}
+				}
+			}
+			foru(x,0,i){
+				foru(y,0,min(i,2)){
+					foru(z,0,min(i,2)){
+						if(g[t^1][x][y][z][0]==0 && g[t^1][x][y][z][1]==0)	continue;
+						mdd(g[t][x+1][y][z][0],g[t^1][x][y][z][0]);
+						mdd(g[t][x][y+1][z][1],g[t^1][x][y][z][0]);
+						mdd(g[t][x][y][z+1][0],g[t^1][x][y][z][1]);
+						mdd(g[t][x][y][z][1],g[t^1][x][y][z][1]);
+					}
+				}
 			}
 		}
-	}
-}ds;
 
-bool check(int o,int l,int r){
-	bool uso=0;
-
-	ds.reset();
-
-	int j=0;
-	foru(i,1,m){
-		ds.append();
-		if(us[i])	ds.deactive(i);
-		// if(us[i]==0)	st.insert(i);
-
-		if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-			uso=1;
-			int x=ds.get(l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			// auto it=st.lower_bound(l);
-			// if(it==st.end())	return false;
-			// st.erase(it);
-		}
-		while(j<sz(els) && els[j].r==i){
-			int x=ds.get(els[j].l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			j++;
-			
-			if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-				uso=1;
-				int x=ds.get(l);
-				if(x==-1)	return false;
-				ds.deactive(x);
+		int ans=0;
+		foru(x,0,n){
+			foru(y,0,min(n,2)){
+				foru(z,0,min(n,2)){
+					if(x+y+z>n)	break;
+					if(g[n&1][x][y][z][0]==0)	continue;
+					// cout<<x<<' '<<y<<' '<<z<<' '<<g[n][x][y][z][0]<<endl;
+					mdd(ans,mul(g[n&1][x][y][z][0],f[n&1][x][y][z],fac[x],fac[y],fac[z],fac[n-x-y-z]));
+				}
 			}
 		}
+		cout<<ans;
 	}
+}
 
-	return true;
+namespace SUBN500{
+	// int f[505][505][505];
+	void work(){
+		
+	}
 }
 
 void solve(bool SPE){ 
-	n=RIN,m=RIN;
 
-	foru(i,1,m){
-		eg[i]={RIN,RIN,RIN,RIN};
+	fac[0]=1;
+	foru(i,1,2000){
+		fac[i]=mul(fac[i-1],i);
+	}
+	ifac[2000]=qpow(fac[2000],mod-2);
+	ford(i,1999,0){
+		ifac[i]=mul(ifac[i+1],i+1);
 	}
 
-	GenEdge::work();
+	bool A=1;
 
-	// foru(i,1,m){
-	// 	cout<<eg[i].l<<' '<<eg[i].r<<endl;
+	n=RIN;
+	foru(i,1,n){
+		a[i][0][0]=RIN;
+		a[i][0][1]=RIN;
+		a[i][1][0]=RIN;
+		a[i][1][1]=RIN;
+		A&=a[i][1][0]==0;
+		A&=a[i][1][1]==0;
+	}
+
+	// if(n<=8){
+	// 	SUBN8::work();
+	// 	return ;
+	// 	// cout<<endl;
 	// }
 
-	foru(i,1,m){
-		// cerr<<i<<endl;
-
-		els.clear();
-		foru(j,i+1,m){
-			els+=eg[j];
-		}
-		sort(All(els));
-		
-		int l=eg[i].l;
-		int r=eg[i].r;
-		ans[i]=-1;
-
-		// cout<<check(i,l,r)<<endl;
-
-		// if(sz(els))ans[i]=els.back().l;
-
-		while(l<=r){
-			int mid=(l+r)>>1;
-			if(check(i,l,mid)){
-				ans[i]=mid;
-				r=mid-1;
-			}else{
-				l=mid+1;
-			}
-		}
-
-		if(ans[i]==-1){
-			cout<<"-1";
-			return ;
-		}
-
-		// cerr<<i<<' '<<ans[i]<<endl;
-
-		us[ans[i]]=1;
+	if(A){
+		SUBA::work();
+		return ;
 	}
 
-	foru(i,1,m){
-		cout<<ans[i]-1<<' ';
-	}
+	// if(n<=100){
+	SUBN18::work();
+	return ;
+	// }
+
+	// SUBN500::work();
 
 	return ;
 }
@@ -536,10 +534,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	#ifndef ONLINE_JUDGE
-	if(freopen("ex_passingthrough3.in","r",stdin));
-	// if(freopen("passingthrough.in","r",stdin));
-	if(freopen("passingthrough.out","w",stdout));
+	if(freopen("matrix2.in","r",stdin));
+	#ifdef ONLINE_JUDGE
+	if(freopen("matrix.in","r",stdin));
+	if(freopen("matrix.out","w",stdout));
 	#endif
 	#endif
 	

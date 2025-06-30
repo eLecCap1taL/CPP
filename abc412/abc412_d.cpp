@@ -1,6 +1,14 @@
+// Problem: D - Make 2-Regular Graph
+// Contest: AtCoder - AtCoder Beginner Contest 412
+// URL: https://atcoder.jp/contests/abc412/tasks/abc412_d
+// Memory Limit: 1024 MB
+// Time Limit: 2000 ms
+// 
+// Powered by CP Editor (https://cpeditor.org)
+
 //%^~
 // #pragma GCC optimize(3)
-// #pragma GCC optimize("Ofast")
+#pragma GCC optimize("Ofast")
 // #include <bits/stdc++.h>
 #include <cstdio>
 #include <cstring>
@@ -215,7 +223,7 @@ inline bool chkmin(T1& x,const T2& y){return (T1)y<x?x=(T1)y,true:false;}
 class TIMECHKER{
 public:
 	~TIMECHKER(){
-		cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
+		// cerr<<endl<<clock()*1.0/CLOCKS_PER_SEC<<endl;
 	}
 }TIMECHECKER;
 
@@ -275,255 +283,62 @@ constexpr int qpow(int x,int y){
 */
 
 int n,m;
+bool e[10][10];
 
-class Edge{
-public:
-	int u,v,l,r;
-	bool operator < (const Edge& x)const{
-		return r==x.r?l<x.l:r<x.r;
+int ans=INT_MAX;
+
+bool g[10][10];
+bool vis[10];
+void gen(int u,int lm,int dep){
+	foru(v,lm,n){
+		if(vis[v])	continue;
+		vis[v]=1;
+		g[u][v]=g[v][u]=1;
+		gen(v,lm,dep+1);
+		g[u][v]=g[v][u]=0;
+		vis[v]=0;
 	}
-}eg[3505];
-
-
-namespace GenEdge{
-	vector<pair<int,int>> e[3505];
-	struct FindTarget{};
-	struct Invalid{};
-	vector<int> ls;
-	void dfs(int u,int fath,int t,int& l,int& r){
-		if(u==t){
-			for(auto i:ls){
-				chkmin(eg[i].r,r);
-				if(eg[i].r<eg[i].l){
-					cout<<"-1";
-					exit(0);
-				}
-				chkmax(l,eg[i].l);
-			}
-
-			throw FindTarget();
-			cerr<<"eee";
-		}
-		for(auto [v,id]:e[u]){
-			if(v==fath)	continue;
-			ls+=id;
-			dfs(v,u,t,l,r);
-			ls.pop_back();
+	if(dep<=2)	return ;
+	
+	// com
+	g[u][lm]=g[lm][u]=1;
+	
+	int f=-1;
+	foru(i,1,n){
+		if(!vis[i]){
+			f=i;
+			break;
 		}
 	}
-	void work(){
-		foru(i,1,n-1){
-			auto [u,v,l,r]=eg[i];
-			e[u]+=mkp(v,i);
-			e[v]+=mkp(u,i);
-		}
-		foru(i,n,m){
-			auto& [u,v,l,r]=eg[i];
-			try{
-				ls.clear();
-				dfs(u,0,v,l,r);
-			}catch(FindTarget){
-
+	if(f==-1){
+		int sum=0;
+		foru(u,1,n){
+			foru(v,u+1,n){
+				sum+=e[u][v]!=g[u][v];
 			}
 		}
+		chkmin(ans,sum);
+	}else{
+		vis[f]=1;
+		gen(f,f,1);
+		vis[f]=0;
 	}
-}
-
-int ans[3505];
-
-bool us[3505];
-vector<Edge> els;
-
-class DSU{
-	int fa[3505];
-	class Range{
-	public:
-		int l,r;
-		int operator ()()const{
-			return r-l+1;
-		}
-	}rg[3505];
-public:
-	int find(int x){
-		return x==fa[x]?x:fa[x]=find(fa[x]);
-	}
-	void Union(int x,int y){
-		x=find(x),y=find(y);
-		if(x==y)	return ;
-		if(rg[x]()<rg[y]())	swap(x,y);
-		fa[y]=x;
-		if(rg[x].r+1==rg[y].l){
-			rg[x].r=rg[y].r;
-		}else{
-			rg[x].l=rg[y].l;
-			// return ;
-			// if(rg[x].l-1==rg[y].r){
-			// 	rg[x].l=rg[y].l;
-			// }else{
-			// 	// cerr<<rg[x].l<<' '<<rg[x].r<<endl;
-			// 	// cerr<<rg[y].l<<' '<<rg[y].r<<endl;
-			// 	exit(1);
-			// }
-		}
-	}
-	void reset(){
-		foru(i,1,m){
-			fa[i]=i;
-			rg[i]={i,i};
-		}
-	}
-	Range operator [](const int& x)const{
-		return rg[x];
-	}
-};
-
-class DS{
-	DSU dsu;
-	bitset<3505> ac;
-	int N=0;
-public:
-	void reset(){
-		// cerr<<"reset"<<endl;
-		dsu.reset();
-		ac.reset();
-		N=0;
-	}	
-	void append(){
-		// cerr<<"append "<<' '<<N+1<<endl;
-		N++;
-		ac[N]=1;
-	}
-	int get(int x){
-		// assert(x<=N);
-		// cerr<<"get "<<x<<endl;
-		x=dsu.find(x);
-		if(ac[x]){
-			// cerr<<"ret1 "<<x<<endl;
-			return x;
-		}
-		if(dsu[x].r==N){
-			// cerr<<"ret2 "<<-1<<endl;
-			return -1;
-		}else{
-			// cerr<<"ret3 "<<dsu[x].r+1<<endl;
-			return dsu[x].r+1;
-		}
-	}
-	void deactive(int x){
-		// cerr<<"deactive "<<x<<endl;
-		// assert(x<=N);
-		// assert(ac[x]);
-		// assert(dsu[x].l==dsu[x].r);
-		ac[x]=0;
-		int y=0;
-
-		if(x<N){
-			y=dsu.find(x+1);
-			if(!ac[y]){
-				dsu.Union(x,y);
-			}
-		}
-		if(x>1){
-			y=dsu.find(x-1);
-			if(!ac[y]){
-				dsu.Union(x,y);
-			}
-		}
-	}
-}ds;
-
-bool check(int o,int l,int r){
-	bool uso=0;
-
-	ds.reset();
-
-	int j=0;
-	foru(i,1,m){
-		ds.append();
-		if(us[i])	ds.deactive(i);
-		// if(us[i]==0)	st.insert(i);
-
-		if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-			uso=1;
-			int x=ds.get(l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			// auto it=st.lower_bound(l);
-			// if(it==st.end())	return false;
-			// st.erase(it);
-		}
-		while(j<sz(els) && els[j].r==i){
-			int x=ds.get(els[j].l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			j++;
-			
-			if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-				uso=1;
-				int x=ds.get(l);
-				if(x==-1)	return false;
-				ds.deactive(x);
-			}
-		}
-	}
-
-	return true;
+	
+	g[u][lm]=g[lm][u]=0;
 }
 
 void solve(bool SPE){ 
 	n=RIN,m=RIN;
-
 	foru(i,1,m){
-		eg[i]={RIN,RIN,RIN,RIN};
+		int u=RIN,v=RIN;
+		e[u][v]=e[v][u]=1;
 	}
-
-	GenEdge::work();
-
-	// foru(i,1,m){
-	// 	cout<<eg[i].l<<' '<<eg[i].r<<endl;
-	// }
-
-	foru(i,1,m){
-		// cerr<<i<<endl;
-
-		els.clear();
-		foru(j,i+1,m){
-			els+=eg[j];
-		}
-		sort(All(els));
-		
-		int l=eg[i].l;
-		int r=eg[i].r;
-		ans[i]=-1;
-
-		// cout<<check(i,l,r)<<endl;
-
-		// if(sz(els))ans[i]=els.back().l;
-
-		while(l<=r){
-			int mid=(l+r)>>1;
-			if(check(i,l,mid)){
-				ans[i]=mid;
-				r=mid-1;
-			}else{
-				l=mid+1;
-			}
-		}
-
-		if(ans[i]==-1){
-			cout<<"-1";
-			return ;
-		}
-
-		// cerr<<i<<' '<<ans[i]<<endl;
-
-		us[ans[i]]=1;
-	}
-
-	foru(i,1,m){
-		cout<<ans[i]-1<<' ';
-	}
-
+	
+	vis[1]=1;
+	gen(1,1,1);
+	vis[1]=0;
+	
+	cout<<ans;
 	return ;
 }
 /*
@@ -535,13 +350,12 @@ signed main()
 {
 	// #define MULTITEST
 	
-	#ifndef CPEDITOR
-	#ifndef ONLINE_JUDGE
-	if(freopen("ex_passingthrough3.in","r",stdin));
-	// if(freopen("passingthrough.in","r",stdin));
-	if(freopen("passingthrough.out","w",stdout));
-	#endif
-	#endif
+	// #ifndef CPEDITOR
+	// #ifdef ONLINE_JUDGE
+	// if(freopen(".in","r",stdin));
+	// if(freopen(".out","w",stdout));
+	// #endif
+	// #endif
 	
 	#ifdef MULTITEST
 	int T=RIN;

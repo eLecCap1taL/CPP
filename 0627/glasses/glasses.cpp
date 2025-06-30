@@ -219,49 +219,49 @@ public:
 	}
 }TIMECHECKER;
 
-constexpr int mod=998244353;
+int mod;
 // constexpr int mod=1e9+7;
 
-constexpr int& mdd(int& x){return x;}
+int& mdd(int& x){return x;}
 template<class T1,class ...T2>
-constexpr int& mdd(int& x,const T1& y,const T2& ...xr){
+int& mdd(int& x,const T1& y,const T2& ...xr){
 	x+=y;
 	if(x>=mod)	x-=mod;
 	return mdd(x,xr...);
 }
-constexpr int& mmv(int& x){return x;}
+int& mmv(int& x){return x;}
 template<class T1,class ...T2>
-constexpr int& mmv(int& x,const T1& y,const T2& ...xr){
+int& mmv(int& x,const T1& y,const T2& ...xr){
 	x-=y;
 	if(x<0)	x+=mod;
 	return mmv(x,xr...);
 }
-constexpr int& mll(int& x){return x;}
+int& mll(int& x){return x;}
 template<class T1,class ...T2>
-constexpr int& mll(int& x,const T1& y,const T2& ...xr){
+int& mll(int& x,const T1& y,const T2& ...xr){
 	x=(LL)x*y%mod;
 	return mll(x,xr...);
 }
-constexpr int add(const int& x){return x;}
+int add(const int& x){return x;}
 template<class ...T>
-constexpr int add(const int& x,const T& ...xr){
+int add(const int& x,const T& ...xr){
 	int ret=x+add(xr...);
 	if(ret>=mod)	ret-=mod;
 	return ret;
 }
-constexpr int mul(const int& x){return x;}
+int mul(const int& x){return x;}
 template<class ...T>
-constexpr int mul(const int& x,const T& ...xr){
+int mul(const int& x,const T& ...xr){
 	return (LL)x*mul(xr...)%mod;
 }
-constexpr int rmv(int x,int y){
+int rmv(int x,int y){
 	x-=y;
 	if(x<0)	x+=mod;
 	return x;
 }
-constexpr int mev(const int& x){return mod-x;}
+int mev(const int& x){return mod-x;}
 
-constexpr int qpow(int x,int y){
+int qpow(int x,int y){
 	int ret=1;
 	while(y){
 		if(y&1)	mll(ret,x);
@@ -272,257 +272,134 @@ constexpr int qpow(int x,int y){
 
 /*
 
+令 M=2^m-1
+
+我要计算 f[n] 表示，选出来一个大小为 n 的集合，异或和为 0 的方案数
+
+对于所有大小为 n-1 的集合，我可以尝试往它里面加一个等于它异或和的数，这样新集合异或和为 0
+
+方案数是 C(M,n-1)。一个集合可以被这样生成 n 次，再除以 n
+
+然后要去掉一些情况
+
+C(M,n-1) 里，有些集合的异或和是 0，因为元素不能是 0,没法加入新的数，需要去掉。方案数是 f[n-1]
+
+一些集合，它的异或和就在它的集合里。这个情况下无法加入等于它异或和的数。
+
+剩下的都可以搞
+
+问题变成计算 g[n] 表示，选出来一个大小为 n 的集合，这个集合的异或和是这个集合的元素
+
+考虑把那个元素去掉，那么一定得到了一个大小为 n-1 的异或和为 0 的集合，和 f[n-1] 有联系。考虑怎么构建映射关系。
+
+g[n] 的每个方案，按照上述规则，每人严格对应一个 f[n-1] 的方案
+
+f[n-1] 内的每个方案，可以生成 M-(n-1) 个 g[n] 的方案
+
+转移系数直接是 M-(n-1)
+
 */
 
-int n,m;
+int type,n,m;
 
-class Edge{
-public:
-	int u,v,l,r;
-	bool operator < (const Edge& x)const{
-		return r==x.r?l<x.l:r<x.r;
+namespace SUB1{
+	int fac[1000005];
+	int ifac[1000005];
+	int C(int n,int m){
+		return mul(fac[n],ifac[m],ifac[n-m]);
 	}
-}eg[3505];
-
-
-namespace GenEdge{
-	vector<pair<int,int>> e[3505];
-	struct FindTarget{};
-	struct Invalid{};
-	vector<int> ls;
-	void dfs(int u,int fath,int t,int& l,int& r){
-		if(u==t){
-			for(auto i:ls){
-				chkmin(eg[i].r,r);
-				if(eg[i].r<eg[i].l){
-					cout<<"-1";
-					exit(0);
-				}
-				chkmax(l,eg[i].l);
-			}
-
-			throw FindTarget();
-			cerr<<"eee";
+	// int f[45][1000005];
+	int f[1000005];
+	void work(){
+		fac[0]=1;
+		foru(i,1,1000000){
+			fac[i]=mul(fac[i-1],i);
 		}
-		for(auto [v,id]:e[u]){
-			if(v==fath)	continue;
-			ls+=id;
-			dfs(v,u,t,l,r);
-			ls.pop_back();
+		ifac[1000000]=qpow(fac[1000000],mod-2);
+		ford(i,1000000-1,0){
+			ifac[i]=mul(ifac[i+1],i+1);
+		}
+
+		int M=rmv(qpow(2,m),1);
+
+		f[0]=1;
+		f[1]=0;
+		
+		int mi=1;
+		foru(i,2,n){
+			mi=mul(mi,M-i+2);
+
+			f[i]=mul(mi,ifac[i-1]);
+			mmv(f[i],f[i-1]);
+			mmv(f[i],mul(f[i-2],rmv(M,i-2)));
+			mll(f[i],qpow(i,mod-2));
+
+			// cout<<i<<' '<<f[i]<<endl;
+		}
+
+		cout<<f[n];
+
+
+		// f[0][1]=1;
+		// // cerr<<n<<' '<<m<<endl;
+		// // exit(0);
+		// foru(i,0,m-1){
+		// 	foru(j,1,n){
+		// 		if(f[i][j]==0)	continue;
+		// 		cout<<i<<' '<<j<<' '<<f[i][j]<<endl;
+		// 		foru(x,0,j){
+		// 			int nj=x*2+(j-x);
+		// 			if(nj>n)	break;
+		// 			for(int y=0;y<=j-x;y++){
+		// 				if((y+x)&1)	continue;
+		// 				mdd(f[i+1][nj],mul(f[i][j],C(j-x,y)));
+		// 				// cerr<<j-x<<' '<<y<<endl;
+		// 			}
+		// 		}
+		// 	}
+		// }
+
+		// cout<<f[m][n];
+	}
+}
+
+namespace SUB0{
+	int ans=0;
+	int a[1000];
+	void dfs(int u,int pre,int xs){
+		if(u==n+1){
+			if(xs==0){
+				foru(i,1,n){
+					cout<<a[i]<<' ';
+				}
+				HH;
+				ans++;
+			}
+			return ;
+		}
+		for(int i=pre+1;i<(1<<m);i++){
+			a[u]=i;
+			dfs(u+1,i,xs^i);
 		}
 	}
 	void work(){
-		foru(i,1,n-1){
-			auto [u,v,l,r]=eg[i];
-			e[u]+=mkp(v,i);
-			e[v]+=mkp(u,i);
-		}
-		foru(i,n,m){
-			auto& [u,v,l,r]=eg[i];
-			try{
-				ls.clear();
-				dfs(u,0,v,l,r);
-			}catch(FindTarget){
-
-			}
-		}
+		dfs(1,0,0);
+		cout<<ans%mod;
 	}
-}
-
-int ans[3505];
-
-bool us[3505];
-vector<Edge> els;
-
-class DSU{
-	int fa[3505];
-	class Range{
-	public:
-		int l,r;
-		int operator ()()const{
-			return r-l+1;
-		}
-	}rg[3505];
-public:
-	int find(int x){
-		return x==fa[x]?x:fa[x]=find(fa[x]);
-	}
-	void Union(int x,int y){
-		x=find(x),y=find(y);
-		if(x==y)	return ;
-		if(rg[x]()<rg[y]())	swap(x,y);
-		fa[y]=x;
-		if(rg[x].r+1==rg[y].l){
-			rg[x].r=rg[y].r;
-		}else{
-			rg[x].l=rg[y].l;
-			// return ;
-			// if(rg[x].l-1==rg[y].r){
-			// 	rg[x].l=rg[y].l;
-			// }else{
-			// 	// cerr<<rg[x].l<<' '<<rg[x].r<<endl;
-			// 	// cerr<<rg[y].l<<' '<<rg[y].r<<endl;
-			// 	exit(1);
-			// }
-		}
-	}
-	void reset(){
-		foru(i,1,m){
-			fa[i]=i;
-			rg[i]={i,i};
-		}
-	}
-	Range operator [](const int& x)const{
-		return rg[x];
-	}
-};
-
-class DS{
-	DSU dsu;
-	bitset<3505> ac;
-	int N=0;
-public:
-	void reset(){
-		// cerr<<"reset"<<endl;
-		dsu.reset();
-		ac.reset();
-		N=0;
-	}	
-	void append(){
-		// cerr<<"append "<<' '<<N+1<<endl;
-		N++;
-		ac[N]=1;
-	}
-	int get(int x){
-		// assert(x<=N);
-		// cerr<<"get "<<x<<endl;
-		x=dsu.find(x);
-		if(ac[x]){
-			// cerr<<"ret1 "<<x<<endl;
-			return x;
-		}
-		if(dsu[x].r==N){
-			// cerr<<"ret2 "<<-1<<endl;
-			return -1;
-		}else{
-			// cerr<<"ret3 "<<dsu[x].r+1<<endl;
-			return dsu[x].r+1;
-		}
-	}
-	void deactive(int x){
-		// cerr<<"deactive "<<x<<endl;
-		// assert(x<=N);
-		// assert(ac[x]);
-		// assert(dsu[x].l==dsu[x].r);
-		ac[x]=0;
-		int y=0;
-
-		if(x<N){
-			y=dsu.find(x+1);
-			if(!ac[y]){
-				dsu.Union(x,y);
-			}
-		}
-		if(x>1){
-			y=dsu.find(x-1);
-			if(!ac[y]){
-				dsu.Union(x,y);
-			}
-		}
-	}
-}ds;
-
-bool check(int o,int l,int r){
-	bool uso=0;
-
-	ds.reset();
-
-	int j=0;
-	foru(i,1,m){
-		ds.append();
-		if(us[i])	ds.deactive(i);
-		// if(us[i]==0)	st.insert(i);
-
-		if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-			uso=1;
-			int x=ds.get(l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			// auto it=st.lower_bound(l);
-			// if(it==st.end())	return false;
-			// st.erase(it);
-		}
-		while(j<sz(els) && els[j].r==i){
-			int x=ds.get(els[j].l);
-			if(x==-1)	return false;
-			ds.deactive(x);
-			j++;
-			
-			if(uso==0 && i==r && (j==sz(els) || els[j].r>i || els[j].l>l)){
-				uso=1;
-				int x=ds.get(l);
-				if(x==-1)	return false;
-				ds.deactive(x);
-			}
-		}
-	}
-
-	return true;
 }
 
 void solve(bool SPE){ 
-	n=RIN,m=RIN;
+	type=RIN,n=RIN,m=RIN,mod=RIN;
 
-	foru(i,1,m){
-		eg[i]={RIN,RIN,RIN,RIN};
-	}
-
-	GenEdge::work();
-
-	// foru(i,1,m){
-	// 	cout<<eg[i].l<<' '<<eg[i].r<<endl;
+	// if(type==1 && n<=5 && m<=5){
+	// 	SUB0::work();
+	// 	return ;
 	// }
-
-	foru(i,1,m){
-		// cerr<<i<<endl;
-
-		els.clear();
-		foru(j,i+1,m){
-			els+=eg[j];
-		}
-		sort(All(els));
-		
-		int l=eg[i].l;
-		int r=eg[i].r;
-		ans[i]=-1;
-
-		// cout<<check(i,l,r)<<endl;
-
-		// if(sz(els))ans[i]=els.back().l;
-
-		while(l<=r){
-			int mid=(l+r)>>1;
-			if(check(i,l,mid)){
-				ans[i]=mid;
-				r=mid-1;
-			}else{
-				l=mid+1;
-			}
-		}
-
-		if(ans[i]==-1){
-			cout<<"-1";
-			return ;
-		}
-
-		// cerr<<i<<' '<<ans[i]<<endl;
-
-		us[ans[i]]=1;
+	if(type==1 && n<=1000000 && m<=45){
+		SUB1::work();
+		return ;
 	}
 
-	foru(i,1,m){
-		cout<<ans[i]-1<<' ';
-	}
 
 	return ;
 }
@@ -536,10 +413,10 @@ signed main()
 	// #define MULTITEST
 	
 	#ifndef CPEDITOR
-	#ifndef ONLINE_JUDGE
-	if(freopen("ex_passingthrough3.in","r",stdin));
-	// if(freopen("passingthrough.in","r",stdin));
-	if(freopen("passingthrough.out","w",stdout));
+	if(freopen("glasses2.in","r",stdin));
+	#ifdef ONLINE_JUDGE
+	if(freopen("glasses.in","r",stdin));
+	if(freopen("glasses.out","w",stdout));
 	#endif
 	#endif
 	
